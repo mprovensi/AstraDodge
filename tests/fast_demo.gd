@@ -66,7 +66,12 @@ func _add_overlay() -> void:
 	layer.layer = 10
 	root.add_child(layer)
 	_label = Label.new()
-	_label.position = Vector2(24, 24)
+	# Embaixo à esquerda: o cabeçalho do jogo (pontos, barras, chefe) fica livre.
+	_label.anchor_top = 1.0
+	_label.anchor_bottom = 1.0
+	_label.offset_left = 24.0
+	_label.offset_top = -90.0
+	_label.offset_bottom = -40.0
 	_label.add_theme_font_size_override("font_size", 34)
 	_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
 	_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))

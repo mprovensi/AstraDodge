@@ -1,6 +1,6 @@
 class_name Hud
 extends CanvasLayer
-## HUD minimalista (pontuação, recorde, escudo, arma, progresso do setor), dicas na tela
+## HUD minimalista (cabeçalho compacto: pontos, recorde, escudo, arma; barra do chefe), dicas na tela
 ## e as telas de menu, pronto, pausa, fim de jogo, setor completo e opções.
 
 signal resume_pressed
@@ -13,16 +13,17 @@ signal quit_pressed
 signal new_game_pressed
 signal next_pressed
 
-const BAR_WIDTH := 320.0
+const BAR_WIDTH := 300.0
 const BAR_HEIGHT := 12.0
-const BAR_LABEL_WIDTH := 150.0
+const BAR_LABEL_WIDTH := 120.0
 const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
 const PAUSE_TOP_MARGIN := 460.0
 const DIM_ALPHA := 0.82              # escurecimento do jogo atrás dos menus
-const BOSS_BAR_WIDTH := 640.0
-const BOSS_BAR_HEIGHT := 18.0
+const BOSS_BAR_WIDTH := 560.0
+const BOSS_BAR_HEIGHT := 14.0
+const HEADER_MARGIN := 36          # margem lateral do cabeçalho
 
 
 ## Três estrelas desenhadas (a fonte padrão não tem o caractere ★).
@@ -62,7 +63,7 @@ var _levelup_timer := 0.0
 var _hint_panel: PanelContainer
 var _hint_label: Label
 var _hint_timer := 0.0
-var _boss_box: VBoxContainer
+var _boss_box: HBoxContainer
 var _boss_label: Label
 var _boss_fill: ColorRect
 var _dim: ColorRect
@@ -111,33 +112,60 @@ func _ready() -> void:
 	_top.add_theme_constant_override("separation", 6)
 	root.add_child(_top)
 
-	_score_label = _make_label("0", 72, Palette.NEON)
-	_top.add_child(_score_label)
-	_best_label = _make_label("RECORDE 0", 30, Palette.TEXT_DIM)
-	_top.add_child(_best_label)
+	# Cabeçalho compacto numa faixa só: pontos e recorde à esquerda, escudo e arma à direita.
+	# (Menos altura = a barra do chefe cabe logo abaixo sem cobrir o chefe.)
+	var header_margin := MarginContainer.new()
+	header_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["left", "right"]:
+		header_margin.add_theme_constant_override("margin_" + side, HEADER_MARGIN)
+	_top.add_child(header_margin)
+	var header := HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header_margin.add_child(header)
 
-	_shield_label = _make_label("ESCUDO", 26, Palette.NEON)
-	_shield_bg = _make_bar_row(_shield_label, Palette.NEON)
+	var score_box := VBoxContainer.new()
+	score_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	score_box.add_theme_constant_override("separation", -6)
+	header.add_child(score_box)
+	_score_label = _make_label("0", 54, Palette.NEON)
+	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	score_box.add_child(_score_label)
+	_best_label = _make_label("RECORDE 0", 22, Palette.TEXT_DIM)
+	_best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	score_box.add_child(_best_label)
+
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(gap)
+
+	var bars := VBoxContainer.new()
+	bars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bars.alignment = BoxContainer.ALIGNMENT_CENTER
+	bars.add_theme_constant_override("separation", 10)
+	header.add_child(bars)
+	_shield_label = _make_label("ESCUDO", 22, Palette.NEON)
+	_shield_bg = _make_bar_row(bars, _shield_label, Palette.NEON)
 	_shield_trail = _add_fill(_shield_bg, Color(1, 1, 1, 0.55))
 	_shield_fill = _add_fill(_shield_bg, Palette.NEON)
-
-	_weapon_label = _make_label("ARMA 1", 26, Palette.MAGENTA)
-	var weapon_bg := _make_bar_row(_weapon_label, Palette.MAGENTA)
+	_weapon_label = _make_label("ARMA 1", 22, Palette.MAGENTA)
+	var weapon_bg := _make_bar_row(bars, _weapon_label, Palette.MAGENTA)
 	_weapon_fill = _add_fill(weapon_bg, Palette.MAGENTA)
 
-
-	# Barra de vida do chefe (só durante a luta), com marca na troca de fase (50%).
-	_boss_box = VBoxContainer.new()
+	# Barra de vida do chefe (só durante a luta), numa linha só: nome + barra, com marca
+	# na troca de fase (50%).
+	_boss_box = HBoxContainer.new()
 	_boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_boss_box.add_theme_constant_override("separation", 4)
+	_boss_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_boss_box.add_theme_constant_override("separation", 16)
 	_boss_box.visible = false
 	_top.add_child(_boss_box)
-	_boss_label = _make_label("", 32, Palette.DANGER)
+	_boss_label = _make_label("", 24, Palette.DANGER)
 	_boss_box.add_child(_boss_label)
 	var boss_bg := ColorRect.new()
 	boss_bg.color = Color(Palette.DANGER, 0.18)
 	boss_bg.custom_minimum_size = Vector2(BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT)
-	boss_bg.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	boss_bg.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	boss_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_box.add_child(boss_bg)
 	_boss_fill = _add_fill(boss_bg, Palette.DANGER)
@@ -273,7 +301,7 @@ func _process(delta: float) -> void:
 
 ## Margem superior para não ficar embaixo do notch/câmera.
 func set_safe_top(px: float) -> void:
-	_top.offset_top = px + 24.0
+	_top.offset_top = px + 14.0
 
 
 ## True se o toque caiu em algum botão/tela de opções (não deve iniciar a partida).
@@ -569,12 +597,13 @@ func _set_toggle(b: Button, title: String, on: bool, on_text: String, off_text: 
 # ---------------------------------------------------------------- construção
 
 ## Linha "RÓTULO ████░░" centralizada no topo; retorna o fundo da barra.
-func _make_bar_row(label: Label, color: Color) -> ColorRect:
+## Linha "RÓTULO ▬▬▬▬" dentro de `parent`; devolve o fundo da barra (o preenchimento vai nele).
+func _make_bar_row(parent: Container, label: Label, color: Color) -> ColorRect:
 	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_END
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", 16)
-	_top.add_child(row)
+	row.add_theme_constant_override("separation", 14)
+	parent.add_child(row)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	label.custom_minimum_size.x = BAR_LABEL_WIDTH
 	row.add_child(label)
@@ -584,11 +613,6 @@ func _make_bar_row(label: Label, color: Color) -> ColorRect:
 	bg.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(bg)
-	# Espaço à direita do mesmo tamanho do rótulo, para a barra ficar no centro da tela.
-	var spacer := Control.new()
-	spacer.custom_minimum_size.x = BAR_LABEL_WIDTH
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(spacer)
 	return bg
 
 
