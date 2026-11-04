@@ -39,6 +39,8 @@ var enemies_destroyed := 0
 var _state_timer := 0.0
 var _touch_index := -1
 var _shake := 0.0
+var _kick := Vector2.ZERO
+var _kick_vel := Vector2.ZERO
 var _revive_used := false
 var _pending_wall := -1.0  # segundos até o paredão avisado aparecer (-1 = nenhum)
 var _last_ship_pos := Vector2.ZERO
@@ -469,7 +471,8 @@ func _damage_ship(amount: float) -> bool:
 func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 	bonus_score += Tuning.SCORE_PER_DUST_HP * a.max_hp
 	fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
-	_shake = maxf(_shake, 3.0 + a.radius * 0.04)
+	_break_kick(Tuning.KICK_BASE + a.radius * Tuning.KICK_PER_RADIUS)
+	Game.vibrate(Tuning.KICK_VIBRATE_MS)
 	# Asteroides maiores soam mais graves.
 	Sfx.play("explosion", -5.0, lerpf(1.35, 0.8, clampf((a.radius - 40.0) / 45.0, 0.0, 1.0)), 0.06, a.pos)
 	if a.radius > 70.0:
@@ -581,8 +584,19 @@ func _update_engine_sound(delta: float) -> void:
 	Sfx.set_engine(on, _engine_level)
 
 
+## Dois tipos de tremor que se somam:
+## - `_shake`: caótico, em todas as direções (ser atingido, morte).
+## - `_kick`: tranco direcional com mola, curto e "seco" (quebrar asteroide).
 func _update_shake(delta: float) -> void:
 	_shake *= exp(-8.0 * delta)
 	if _shake < 0.3:
 		_shake = 0.0
-	world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake
+	var accel := -Tuning.KICK_STIFFNESS * _kick - Tuning.KICK_DAMPING * _kick_vel
+	_kick_vel += accel * delta
+	_kick = (_kick + _kick_vel * delta).limit_length(Tuning.KICK_MAX)  # várias quebras seguidas não "explodem"
+	world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake + _kick
+
+
+## Tranco ao quebrar: empurra a tela para baixo e ela volta com uma pequena mola.
+func _break_kick(strength: float) -> void:
+	_kick_vel += Vector2(randf_range(-0.25, 0.25), 1.0) * strength

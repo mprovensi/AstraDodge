@@ -33,6 +33,14 @@ const DOUBLE_SHOT_OFFSET := 16.0
 const FAN_ANGLE_DEG := 10.0
 const METAL_PUSH := 22.0                 # empurrão do tiro nível 5 nos metálicos
 
+# --- Tranco ao quebrar asteroide (diferente do tremor caótico de ser atingido) ---
+const KICK_BASE := 260.0          # velocidade inicial do tranco (px/s)
+const KICK_PER_RADIUS := 5.0      # asteroides maiores dão tranco maior
+const KICK_STIFFNESS := 900.0     # mola que traz a tela de volta (≈ 5 Hz)
+const KICK_DAMPING := 28.0        # amortecimento: 1–2 balanços e para
+const KICK_VIBRATE_MS := 15       # vibração bem curta (ser atingido usa 60 ms)
+const KICK_MAX := 30.0            # deslocamento máximo da tela pelo tranco (px)
+
 # --- Sensação de impacto (tiro que acerta sem destruir) ---
 const HIT_KNOCKBACK_DUST := 140.0        # px/s de recuo por tiro na poeira
 const HIT_KNOCKBACK_METAL := 45.0        # metálicos são pesados: recuam menos
