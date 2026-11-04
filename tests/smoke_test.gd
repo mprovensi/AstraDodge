@@ -39,6 +39,7 @@ func _run() -> void:
 	_test_endless_generator()
 	_test_endless_run()
 	_test_daily()
+	_test_polish()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -992,6 +993,54 @@ func _test_daily() -> void:
 	main.daily = false
 	main.go_to_menu()
 	assert(main.hud._buttons["daily"].text == "DESAFIO (TREINO)", "menu mostra que hoje já foi")
+
+
+## Polimento: volume 0–100% nos barramentos, skins e modificadores liberados por estrelas.
+func _test_polish() -> void:
+	var game := root.get_node("Game")
+	var sfx := root.get_node("Sfx")
+	game.music_volume = 0.5
+	game.sfx_volume = 0.0
+	sfx.apply_volumes()
+	var music_bus := AudioServer.get_bus_index("Music")
+	assert(AudioServer.get_bus_volume_db(music_bus) < -3.0 and not AudioServer.is_bus_mute(music_bus), "música a 50%")
+	assert(AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX")), "efeitos em 0% = mudo")
+	game.music_volume = 1.0
+	game.sfx_volume = 1.0
+	sfx.apply_volumes()
+
+	var saved_stars: Dictionary = game.sector_stars.duplicate()
+	game.sector_stars = {"x": 5}
+	assert(not game.skin_unlocked(1), "ÂMBAR precisa de 6 estrelas")
+	game.skin = 0
+	game.next_skin()
+	assert(game.skin == 0, "sem estrelas, só a skin padrão")
+	game.sector_stars = {"x": 24}
+	game.next_skin()
+	assert(game.skin == 1, "com 24 estrelas a próxima skin libera")
+
+	game.mod = 1  # ESCUDO FRÁGIL
+	main.start_endless()
+	assert(main._mod == "fragile")
+	var before: float = main.ship.shield
+	main.ship.invuln = 0.0
+	main._damage_ship(10.0)
+	assert(is_equal_approx(before - main.ship.shield, 20.0), "escudo frágil: dano em dobro")
+	game.mod = 2  # CHEFES EM DOBRO
+	main.start_endless()
+	assert(main.director.generator.boss_every == 90.0, "chefe a cada 1,5 min")
+	game.mod = 4  # RETRÔ
+	main.start_endless()
+	assert(not main._env.glow_enabled, "retrô desliga o brilho")
+	main.start_daily()
+	assert(main._mod == "none" and main._env.glow_enabled, "o Desafio do Dia ignora modificadores")
+	game.mod = 0
+	game.skin = 0
+	game.sector_stars = saved_stars
+	game.daily_date = ""
+	main.daily = false
+	main.go_to_menu()
+	print("POLIMENTO OK | volume por barramento | skins e modificadores por estrelas")
 
 
 func _test_music() -> void:

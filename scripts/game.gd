@@ -56,6 +56,8 @@ func load_data() -> void:
 	daily_date = cfg.get_value("daily", "date", "")
 	daily_score = cfg.get_value("daily", "score", 0)
 	daily_best = cfg.get_value("daily", "best", 0)
+	skin = clampi(cfg.get_value("options", "skin", 0), 0, SKINS.size() - 1)
+	mod = clampi(cfg.get_value("options", "mod", 0), 0, MODS.size() - 1)
 
 
 func save_data() -> void:
@@ -75,6 +77,8 @@ func save_data() -> void:
 	cfg.set_value("daily", "date", daily_date)
 	cfg.set_value("daily", "score", daily_score)
 	cfg.set_value("daily", "best", daily_best)
+	cfg.set_value("options", "skin", skin)
+	cfg.set_value("options", "mod", mod)
 	cfg.save(SAVE_PATH)
 
 
@@ -176,3 +180,85 @@ func begin_daily() -> void:
 	daily_date = today()
 	daily_score = 0
 	save_data()
+
+
+# ---------------------------------------------------------------- skins da nave
+
+## Skins (só visuais), liberadas pelo total de estrelas da campanha (8 setores × 3 = 24).
+## [nome, estrelas necessárias, cor do casco (multiplica o sprite), cor da chama]
+const SKINS := [
+	["PADRÃO", 0, Color(1.6, 1.6, 1.6), Palette.FLAME_HDR],
+	["ÂMBAR", 6, Color(2.0, 1.4, 0.6), Color(3.0, 1.2, 0.2)],
+	["GELO", 10, Color(1.2, 1.7, 2.2), Color(0.8, 1.8, 3.0)],
+	["CARMESIM", 14, Color(2.2, 0.8, 0.9), Color(3.0, 0.6, 0.5)],
+	["OURO", 18, Color(2.2, 1.9, 0.8), Color(3.0, 2.4, 0.8)],
+	["FENDA", 24, Color(1.9, 0.9, 2.1), Color(2.6, 0.8, 2.6)],
+]
+
+var skin := 0  # índice em SKINS (salvo)
+
+
+func total_stars() -> int:
+	var n := 0
+	for id in sector_stars:
+		n += int(sector_stars[id])
+	return n
+
+
+func skin_unlocked(i: int) -> bool:
+	return total_stars() >= int(SKINS[i][1])
+
+
+## Troca para a próxima skin liberada (volta ao início depois da última).
+func next_skin() -> void:
+	for step in range(1, SKINS.size() + 1):
+		var i := (skin + step) % SKINS.size()
+		if skin_unlocked(i):
+			skin = i
+			save_data()
+			return
+
+
+func skin_hull() -> Color:
+	return SKINS[skin][2] if skin_unlocked(skin) else SKINS[0][2]
+
+
+func skin_flame() -> Color:
+	return SKINS[skin][3] if skin_unlocked(skin) else SKINS[0][3]
+
+
+# ---------------------------------------------------------------- modificadores do Infinito
+
+## Modificadores do Modo Infinito (não valem no Desafio do Dia), liberados por estrelas.
+## [id, nome, estrelas necessárias, bônus de pontos, descrição]
+const MODS := [
+	["none", "NENHUM", 0, 1.0, "Infinito normal"],
+	["fragile", "ESCUDO FRÁGIL", 8, 2.0, "Dano em dobro · pontos x2"],
+	["bosses", "CHEFES EM DOBRO", 12, 1.5, "Chefe a cada 1,5 min · pontos x1,5"],
+	["fast", "VELOCIDADE MÁXIMA", 16, 1.8, "Começa no ritmo máximo · pontos x1,8"],
+	["retro", "RETRÔ", 20, 1.2, "Sem brilho neon · pontos x1,2"],
+]
+
+var mod := 0  # índice em MODS (salvo)
+
+
+func mod_unlocked(i: int) -> bool:
+	return total_stars() >= int(MODS[i][2])
+
+
+func next_mod() -> void:
+	for step in range(1, MODS.size() + 1):
+		var i := (mod + step) % MODS.size()
+		if mod_unlocked(i):
+			mod = i
+			save_data()
+			return
+
+
+## Id do modificador ativo ("none" se o escolhido ainda não está liberado).
+func mod_id() -> String:
+	return MODS[mod][0] if mod_unlocked(mod) else "none"
+
+
+func mod_bonus() -> float:
+	return float(MODS[mod][3]) if mod_unlocked(mod) else 1.0

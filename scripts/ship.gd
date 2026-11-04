@@ -193,11 +193,13 @@ func _draw() -> void:
 		var flick := 0.75 + 0.25 * sin(_t * 40.0 + i)
 		var flame := PackedVector2Array([e + Vector2(-FLAME_HALF_WIDTH, 0), e + Vector2(FLAME_HALF_WIDTH, 0),
 				e + Vector2(0, FLAME_LENGTH * flick)])
-		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.85))
+		draw_colored_polygon(flame, Color(Game.skin_flame(), 0.85))
 
 	# Sprite: o "glow" > 1 faz só as linhas claras (neon) passarem do limiar do glow.
 	var half := art.ship_size * 0.5
-	draw_texture_rect(art.ship_texture, Rect2(-half, -half, art.ship_size, art.ship_size), false, art.ship_glow)
+	# Skin: a cor do casco multiplica o sprite (o padrão é o próprio brilho do ArtSet).
+	var hull := art.ship_glow if Game.skin == 0 else Game.skin_hull()
+	draw_texture_rect(art.ship_texture, Rect2(-half, -half, art.ship_size, art.ship_size), false, hull)
 	draw_set_transform(Vector2.ZERO, 0.0)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia

@@ -235,3 +235,14 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Testes: semente/cenários do dia, tentativa valendo x treino, multiplicador sobe e zera
 - [ ] Placar online (Google Play Games) — depois do lançamento
 - Observação: a ordem dos trechos, cenários e chefes é idêntica; a posição exata de cada rocha pode variar um pouco entre aparelhos (o sorteio fino depende do ritmo dos quadros)
+
+**S13 — Polimento: em andamento (05/11/2026)**
+- [x] Volume de música e efeitos de 0 a 100% (de 10 em 10, curva perceptiva); saves antigos migram (ligado = 100%)
+- [x] Pacote definitivo `com.mprovensi.astradodge` (versão 0.9.0, code 2); save do app antigo copiado no aparelho de teste
+- [x] Perfil "Android Release" (.aab via Gradle) + `tools/criar_chave_release.ps1` e `tools/exportar_release.ps1` (senha nunca fica no projeto)
+- [x] Imagens da loja em `store/screenshots/` (6 × 1080×1920)
+- [x] Skins da nave por estrelas: Padrão, Âmbar (6), Gelo (10), Carmesim (14), Ouro (18), Fenda (24)
+- [x] Modificadores do Infinito por estrelas: Escudo Frágil (8, x2), Chefes em Dobro (12, x1,5), Velocidade Máxima (16, x1,8), Retrô (20, x1,2) — não valem no Desafio do Dia
+- [ ] Gerar o primeiro .aab assinado (você cria a chave; o 1º build baixa o Gradle)
+- [ ] Teste fechado na Play (12 testadores, 14 dias) e balanceamento com eles
+- [ ] Vídeo da loja (opcional)

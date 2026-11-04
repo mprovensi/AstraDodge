@@ -89,6 +89,10 @@ var _center_was_visible := false
 var _music_label: Label  # volume da música (0–100%)
 var _sfx_label: Label    # volume dos efeitos
 var _vibration_button: Button
+var _skin_button: Button
+var _skin_info: Label
+var _mod_button: Button
+var _mod_info: Label
 var _sensitivity_label: Label
 var _new_game_button: Button
 var _new_game_armed := 0.0  # > 0: aguardando o toque de confirmação
@@ -618,6 +622,24 @@ func _build_options(root: Control) -> void:
 		Game.sfx_volume = clampf(snappedf(Game.sfx_volume + step, 0.1), 0.0, 1.0)
 		_on_option_changed())
 
+	# Skin da nave: cada toque passa para a próxima liberada (estrelas da campanha).
+	_skin_button = _make_button("")
+	_skin_button.pressed.connect(func() -> void:
+		Game.next_skin()
+		_on_option_changed())
+	box.add_child(_skin_button)
+	_skin_info = _make_label("", 26, Palette.TEXT_DIM)
+	box.add_child(_skin_info)
+
+	# Modificador do Modo Infinito (também liberado por estrelas).
+	_mod_button = _make_button("")
+	_mod_button.pressed.connect(func() -> void:
+		Game.next_mod()
+		_on_option_changed())
+	box.add_child(_mod_button)
+	_mod_info = _make_label("", 26, Palette.TEXT_DIM)
+	box.add_child(_mod_info)
+
 	_vibration_button = _make_button("")
 	_vibration_button.pressed.connect(func() -> void:
 		Game.vibration_enabled = not Game.vibration_enabled
@@ -714,6 +736,22 @@ static func _percent(v: float) -> String:
 func _refresh_options() -> void:
 	_music_label.text = _percent(Game.music_volume)
 	_sfx_label.text = _percent(Game.sfx_volume)
+	_skin_button.text = "NAVE: %s" % Game.SKINS[Game.skin][0]
+	var stars := Game.total_stars()
+	var next_locked := ""
+	for s in Game.SKINS:
+		if stars < int(s[1]):
+			next_locked = "próxima: %s com %d" % [s[0], s[1]]
+			break
+	_skin_info.text = "Estrelas %d/24 · %s" % [stars, next_locked if next_locked != "" else "todas liberadas!"]
+	var m: Array = Game.MODS[Game.mod]
+	_mod_button.text = "INFINITO: %s" % m[1]
+	var next_mod := ""
+	for x in Game.MODS:
+		if stars < int(x[2]):
+			next_mod = " · próximo com %d" % x[2]
+			break
+	_mod_info.text = "%s%s" % [m[4], next_mod]
 	_set_toggle(_vibration_button, "VIBRAÇÃO", Game.vibration_enabled, "LIGADA", "DESLIGADA")
 	_sensitivity_label.text = ("%.1fx" % Game.sensitivity).replace(".", ",")
 

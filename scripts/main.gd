@@ -97,6 +97,9 @@ var _no_hit_t := 0.0
 var _last_raw := 0                      # pontos "crus" já somados (o multiplicador vale para os novos)
 var _biomes_seen := {}                  # cenários vistos nesta partida (estatísticas)
 var _best_multiplier := 1.0
+var _mod := "none"                      # modificador do Infinito nesta partida (Game.MODS)
+var _mod_bonus := 1.0
+var _env: Environment
 
 
 func _ready() -> void:
@@ -235,6 +238,8 @@ func go_to_menu() -> void:
 	mode = Mode.ENDLESS
 	_new_run()
 	director = null  # o menu não roda linha do tempo
+	_mod = "none"
+	_env.glow_enabled = true
 	ship.visible = false
 	hud.clear_hint()
 	_set_state(State.MENU)
@@ -267,6 +272,8 @@ func start_endless() -> void:
 	_touch_index = -1
 	daily = false
 	start_mode(Mode.ENDLESS)
+	if _mod != "none":
+		hud.show_hint("MODIFICADOR: %s\n%s" % [Game.MODS[Game.mod][1], Game.MODS[Game.mod][4]], 4.0)
 
 
 ## DESAFIO DO DIA: o Infinito com a semente do dia e TODOS os cenários e chefes — a mesma
@@ -345,6 +352,12 @@ func _new_run() -> void:
 	else:
 		director = _make_endless_director()
 		_biome = director.generator.biomes[0]
+	# Modificador do Infinito (nunca no Desafio do Dia nem na campanha).
+	_mod = Game.mod_id() if mode == Mode.ENDLESS and not daily else "none"
+	_mod_bonus = Game.mod_bonus() if _mod != "none" else 1.0
+	if _mod == "bosses":
+		director.generator.boss_every = EndlessGenerator.BOSS_EVERY * 0.5
+	_env.glow_enabled = _mod != "retro"
 	nebula.set_colors(SECTORS[_biome].nebula_a, SECTORS[_biome].nebula_b)
 	Sfx.play_music(SECTORS[_biome].music)
 
@@ -561,6 +574,8 @@ func _step(dt: float) -> void:
 			for e in director.update(dt):
 				_on_wave_event(e)
 		difficulty = director.difficulty()
+		if _mod == "fast":
+			difficulty = maxf(difficulty, 0.7)  # modificador VELOCIDADE MÁXIMA
 		asteroids.density = director.density
 		asteroids.metals_enabled = director.metals
 		asteroids.dust_rain = director.rain_left > 0.0
@@ -794,7 +809,7 @@ func _update_score(dt: float) -> void:
 		if multiplier > before:
 			hud.on_multiplier_up(multiplier)
 		_best_multiplier = maxf(_best_multiplier, multiplier)
-	score += int(round((raw - _last_raw) * multiplier))
+	score += int(round((raw - _last_raw) * multiplier * _mod_bonus))
 	_last_raw = raw
 
 
@@ -1024,6 +1039,8 @@ func _check_ship_hits() -> void:
 
 ## Aplica dano na nave. Retorna false se o golpe foi ignorado (invencibilidade).
 func _damage_ship(amount: float) -> bool:
+	if _mod == "fragile":
+		amount *= 2.0  # modificador ESCUDO FRÁGIL
 	var result := ship.take_hit(amount)
 	if result == Ship.HitResult.IGNORED:
 		return false
@@ -1303,6 +1320,7 @@ func _on_resized() -> void:
 ## Glow neon: só as cores HDR (> 1.0) da Palette acendem. O HUD (CanvasLayer acima) fica nítido.
 func _setup_glow() -> void:
 	var env := Environment.new()
+	_env = env
 	env.background_mode = Environment.BG_CANVAS
 	env.glow_enabled = true
 	env.glow_intensity = 0.9

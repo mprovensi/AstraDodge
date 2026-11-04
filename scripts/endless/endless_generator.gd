@@ -41,6 +41,7 @@ var bosses: Array[String] = []    ## chefes já derrotados (ids)
 var sectors: Array[SectorData] = []
 var rng := RandomNumberGenerator.new()
 var generated_until := 0.0
+var boss_every := BOSS_EVERY  ## o modificador "Chefes em dobro" reduz (múltiplo de CHUNK)
 
 var _biome := 0
 var _last_boss := ""
@@ -103,7 +104,7 @@ func _chunk(t0: float) -> Array[WaveEvent]:
 		ev.append(WaveEvent.make(t0, K.DENSITY, _climate(_biome, d, mix)))
 
 	# Chefe no fim do ciclo: calmaria + aviso + chefe no último espaço do trecho.
-	var boss_chunk := not bosses.is_empty() and is_zero_approx(fmod(t0 + CHUNK, BOSS_EVERY))
+	var boss_chunk := not bosses.is_empty() and is_zero_approx(fmod(t0 + CHUNK, boss_every))
 	var slots: Array = SLOTS
 	if boss_chunk:
 		slots = [SLOTS[0]]
