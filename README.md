@@ -96,6 +96,17 @@ Instalar com o celular no USB (depuração USB ligada):
 
 > `package/unique_name` está como `com.astradodge.game` provisoriamente — defina o definitivo antes da Play Store (não muda depois).
 
+## Ver o jogo em modo rápido (demo com piloto automático)
+
+Abre uma janela com o jogo jogando sozinho, acelerado (escudo infinito por padrão):
+
+```
+Godot_v4.7.2-stable_win64_console.exe --path . --script res://tests/fast_demo.gd -- --velocidade=3
+```
+
+Opções depois de `--`: `--velocidade=N`, `--setor=N`, `--inicio=SEGUNDOS`, `--chefe`, `--mortal`, `--arma=N`.
+No Claude Code, a skill **ver-jogo-rapido** faz isso a pedido ("quero ver o jogo rápido", "ver o chefe do setor 2").
+
 ## Testes
 Teste de fumaça (simula 4 minutos de partidas sem abrir janela):
 

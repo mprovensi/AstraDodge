@@ -807,9 +807,14 @@ func _update_shake(delta: float) -> void:
 	_shake *= exp(-8.0 * delta)
 	if _shake < 0.3:
 		_shake = 0.0
-	var accel := -Tuning.KICK_STIFFNESS * _kick - Tuning.KICK_DAMPING * _kick_vel
-	_kick_vel += accel * delta
-	_kick = (_kick + _kick_vel * delta).limit_length(Tuning.KICK_MAX)  # várias quebras seguidas não "explodem"
+	# Mola em passos curtos: com um frame longo (engasgo, ou o jogo acelerado) a conta
+	# num passo só ficava instável e jogava o mundo para fora da tela.
+	var steps := maxi(1, ceili(delta / Tuning.KICK_MAX_STEP))
+	var h := delta / steps
+	for i in steps:
+		var accel := -Tuning.KICK_STIFFNESS * _kick - Tuning.KICK_DAMPING * _kick_vel
+		_kick_vel += accel * h
+		_kick = (_kick + _kick_vel * h).limit_length(Tuning.KICK_MAX)  # várias quebras seguidas não "explodem"
 	world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake + _kick
 
 
