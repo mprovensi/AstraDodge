@@ -40,6 +40,7 @@ func _run() -> void:
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
+	_test_dev_selector()
 	_test_music()
 	_test_enemies()
 	main.free()
@@ -853,6 +854,25 @@ func _test_endless_run() -> void:
 	main.endless_biomes.clear()
 	main.endless_bosses.clear()
 	game.checkpoint = {}
+
+
+## Seletor de fases (modo dev): botão no menu e ida direta ao setor/chefe.
+func _test_dev_selector() -> void:
+	main.go_to_menu()
+	assert(main.hud._buttons["dev"].visible, "build de desenvolvimento mostra FASES (DEV) no menu")
+	main.start_sector_dev(4, false)
+	assert(main.director.sector.id == "sector_5" and main.director.time == 0.0, "vai para o início do Setor 5")
+	main.start_sector_dev(6, true)
+	_touch(true)
+	var boss_id := ""
+	for i in 60 * 10:
+		main.ship.invuln = 1.0
+		main._process(DT)
+		if main.boss != null:
+			boss_id = main.boss.display_name
+			break
+	assert(boss_id == "SENTINELA", "CHEFE do Setor 7 começa direto no Sentinela (veio: %s)" % boss_id)
+	print("SELETOR DE FASES OK | setor 5 do inicio, chefe do setor 7 em segundos")
 
 
 func _test_music() -> void:

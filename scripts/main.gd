@@ -125,6 +125,11 @@ func _ready() -> void:
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
 	hud.endless_pressed.connect(start_endless)
+	hud.dev_sector_pressed.connect(start_sector_dev)
+	var sector_names: Array = []
+	for s in SECTORS:
+		sector_names.append([s.title, s.subtitle])
+	hud.setup_dev_selector(sector_names)  # só monta em build de desenvolvimento
 	hud.new_game_pressed.connect(start_new_game)
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
@@ -223,6 +228,21 @@ func start_new_game() -> void:
 	_touch_index = -1
 	Game.clear_checkpoint()
 	start_mode(Mode.CAMPAIGN)
+
+
+## SELETOR DE FASES (modo dev): começa o setor `index` do início ou já no ALERTA do chefe,
+## com uma arma razoável para o ponto da campanha. Só existe em build de desenvolvimento.
+func start_sector_dev(index: int, at_boss: bool) -> void:
+	if not OS.is_debug_build():
+		return
+	_touch_index = -1
+	start_mode(Mode.CAMPAIGN, clampi(index, 0, SECTORS.size() - 1))
+	ship.weapon_level = clampi(index + 1, 2, 4)
+	if at_boss:
+		for e in director.sector.events:
+			if e.kind == WaveEvent.Kind.BOSS:
+				director.seek(maxf(0.0, e.at - 4.0))
+				break
 
 
 ## Modo Infinito: nova semente a cada partida (o ponto salvo da campanha não é tocado).

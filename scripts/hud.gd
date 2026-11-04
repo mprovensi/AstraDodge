@@ -12,6 +12,7 @@ signal menu_pressed
 signal quit_pressed
 signal new_game_pressed
 signal next_pressed
+signal dev_sector_pressed(index: int, at_boss: bool)  ## seletor de fases (só build de desenvolvimento)
 
 const BAR_WIDTH := 300.0
 const BAR_HEIGHT := 12.0
@@ -81,6 +82,7 @@ var _info: Label
 var _buttons := {}  # id -> Button (na ordem em que aparecem)
 
 var _options_layer: Control
+var _dev_layer: Control  # seletor de fases: só existe em build de desenvolvimento (OS.is_debug_build)
 var _center_was_visible := false
 var _music_button: Button
 var _sfx_button: Button
@@ -264,6 +266,7 @@ func _ready() -> void:
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
 	_add_center_button("options", "OPÇÕES", open_options, false)
+	_add_center_button("dev", "FASES (DEV)", open_dev_selector, false)
 	_add_center_button("menu", "MENU PRINCIPAL", menu_pressed.emit)
 	_add_center_button("quit", "SAIR DO JOGO", quit_pressed.emit)
 
@@ -307,7 +310,7 @@ func set_safe_top(px: float) -> void:
 
 ## True se o toque caiu em algum botão/tela de opções (não deve iniciar a partida).
 func blocks_touch(pos: Vector2) -> bool:
-	if _options_layer.visible:
+	if _options_layer.visible or (_dev_layer != null and _dev_layer.visible):
 		return true
 	for b: Button in _buttons.values():
 		if b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
@@ -363,6 +366,8 @@ func show_menu(can_resume: bool, endless_unlocked := false) -> void:
 	var buttons := ["resume" if can_resume else "campaign", "options", "quit"]
 	if endless_unlocked:
 		buttons.append("endless")  # liberado ao completar o Setor 2
+	if OS.is_debug_build():
+		buttons.append("dev")  # seletor de fases: nunca aparece no APK de release
 	_show("ASTRA DODGE", "", "", buttons)
 	_top.visible = false  # pontuação/barras só fazem sentido durante uma partida
 
@@ -468,6 +473,71 @@ func _add_center_button(id: String, text: String, action: Callable, click := tru
 
 
 # ---------------------------------------------------------------- opções
+
+## SELETOR DE FASES (modo dev): uma linha por setor — começar do início ou direto no chefe.
+## Só é montado e mostrado em build de desenvolvimento (APK debug / editor).
+## `sectors`: [[título, subtítulo], ...] na ordem da campanha.
+func setup_dev_selector(sectors: Array) -> void:
+	if not OS.is_debug_build() or _dev_layer != null:
+		return
+	_dev_layer = Control.new()
+	_dev_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dev_layer.visible = false
+	_options_layer.get_parent().add_child(_dev_layer)
+
+	var backdrop := ColorRect.new()
+	backdrop.color = Color(0.0, 0.0, 0.03, 0.92)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dev_layer.add_child(backdrop)
+
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 18)
+	_dev_layer.add_child(box)
+	box.add_child(_make_label("FASES (DEV)", 70, Palette.MAGENTA))
+	box.add_child(_make_label("Só no APK de desenvolvimento", 26, Palette.TEXT_DIM))
+
+	for i in sectors.size():
+		var row := HBoxContainer.new()
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_theme_constant_override("separation", 16)
+		box.add_child(row)
+		var start := _make_button("%d · %s" % [i + 1, str(sectors[i][1]).to_upper()])
+		start.custom_minimum_size = Vector2(600, 96)
+		start.add_theme_font_size_override("font_size", 34)
+		start.pressed.connect(_pick_dev_sector.bind(i, false))
+		row.add_child(start)
+		var boss := _make_button("CHEFE")
+		boss.custom_minimum_size = Vector2(200, 96)
+		boss.add_theme_font_size_override("font_size", 34)
+		boss.pressed.connect(_pick_dev_sector.bind(i, true))
+		row.add_child(boss)
+
+	var back := _make_button("VOLTAR")
+	back.pressed.connect(func() -> void:
+		Sfx.play("click", -4.0, 1.0, 0.0)
+		_dev_layer.visible = false
+		_center.visible = true)
+	box.add_child(back)
+
+
+func open_dev_selector() -> void:
+	if _dev_layer == null:
+		return
+	Sfx.play("click", -4.0, 1.0, 0.0)
+	_center.visible = false
+	_dev_layer.visible = true
+
+
+func _pick_dev_sector(index: int, at_boss: bool) -> void:
+	Sfx.play("click", -4.0, 1.0, 0.0)
+	_dev_layer.visible = false
+	_center.visible = true
+	dev_sector_pressed.emit(index, at_boss)
+
 
 func open_options() -> void:
 	Sfx.play("click", -4.0, 1.0, 0.0)
