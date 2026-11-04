@@ -76,7 +76,7 @@ func _ready() -> void:
 
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
-	ship.fired.connect(func() -> void: Sfx.play("laser", -19.0, 1.0, 0.08, ship.position))
+	ship.fired.connect(func() -> void: Sfx.play("laser", -9.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
 	hud.new_game_pressed.connect(start_new_game)
@@ -404,7 +404,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 		b.alive = false
 		fx.spark(b.pos, Palette.METAL_LINE)
 		asteroids.impact(a, b.vel.normalized())
-		Sfx.play("ricochet", -13.0, 1.0, 0.1, b.pos)
+		Sfx.play("ricochet", -3.0, 1.0, 0.1, b.pos)
 		if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
 			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 		return
