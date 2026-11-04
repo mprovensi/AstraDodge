@@ -1,0 +1,139 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_3rwmm"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_vog2s"]
+
+[sub_resource type="Resource" id="Resource_op0fu"]
+script = ExtResource("1_3rwmm")
+kind = 1
+density = 0.85
+
+[sub_resource type="Resource" id="Resource_s1n5j"]
+script = ExtResource("1_3rwmm")
+at = 0.5
+duration = 2.5
+text = "SETOR 4
+Destroços da Frota"
+
+[sub_resource type="Resource" id="Resource_nuume"]
+script = ExtResource("1_3rwmm")
+at = 5.0
+kind = 1
+density = 0.85
+turrets = 0.3
+
+[sub_resource type="Resource" id="Resource_4de2c"]
+script = ExtResource("1_3rwmm")
+at = 5.0
+duration = 4.0
+text = "Torretas nos destroços atiram em você.
+O cano brilha antes do tiro!"
+
+[sub_resource type="Resource" id="Resource_yti8e"]
+script = ExtResource("1_3rwmm")
+at = 20.0
+kind = 10
+text = "Drones à frente!"
+count = 3
+
+[sub_resource type="Resource" id="Resource_xtt42"]
+script = ExtResource("1_3rwmm")
+at = 32.0
+kind = 10
+count = 5
+
+[sub_resource type="Resource" id="Resource_75r4i"]
+script = ExtResource("1_3rwmm")
+at = 45.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_ip7f7"]
+script = ExtResource("1_3rwmm")
+at = 55.0
+kind = 1
+moving = 0.25
+armored = 0.25
+turrets = 0.35
+
+[sub_resource type="Resource" id="Resource_6ko17"]
+script = ExtResource("1_3rwmm")
+at = 62.0
+kind = 10
+text = "EMBOSCADA!"
+count = 5
+
+[sub_resource type="Resource" id="Resource_jl8oa"]
+script = ExtResource("1_3rwmm")
+at = 64.0
+kind = 10
+count = 3
+
+[sub_resource type="Resource" id="Resource_xmt7y"]
+script = ExtResource("1_3rwmm")
+at = 80.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_0lrsv"]
+script = ExtResource("1_3rwmm")
+at = 80.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_7i056"]
+script = ExtResource("1_3rwmm")
+at = 95.0
+kind = 8
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_rqqt8"]
+script = ExtResource("1_3rwmm")
+at = 108.0
+kind = 10
+count = 5
+
+[sub_resource type="Resource" id="Resource_s2jge"]
+script = ExtResource("1_3rwmm")
+at = 115.0
+kind = 1
+density = 1.1
+moving = 0.3
+armored = 0.3
+mines = 0.15
+turrets = 0.4
+
+[sub_resource type="Resource" id="Resource_wc34r"]
+script = ExtResource("1_3rwmm")
+at = 128.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_nbsgg"]
+script = ExtResource("1_3rwmm")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_jc0ot"]
+script = ExtResource("1_3rwmm")
+at = 140.0
+duration = 3.0
+text = "Uma nave enorme surge dos destroços..."
+
+[sub_resource type="Resource" id="Resource_5n2ii"]
+script = ExtResource("1_3rwmm")
+at = 144.0
+kind = 7
+text = "cruiser"
+
+[resource]
+script = ExtResource("2_vog2s")
+id = "sector_4"
+number = 4
+title = "SETOR 4"
+subtitle = "Destroços da Frota"
+difficulty_start = 0.5
+difficulty_end = 0.85
+events = Array[ExtResource("1_3rwmm")]([SubResource("Resource_op0fu"), SubResource("Resource_s1n5j"), SubResource("Resource_nuume"), SubResource("Resource_4de2c"), SubResource("Resource_yti8e"), SubResource("Resource_xtt42"), SubResource("Resource_75r4i"), SubResource("Resource_ip7f7"), SubResource("Resource_6ko17"), SubResource("Resource_jl8oa"), SubResource("Resource_xmt7y"), SubResource("Resource_0lrsv"), SubResource("Resource_7i056"), SubResource("Resource_rqqt8"), SubResource("Resource_s2jge"), SubResource("Resource_wc34r"), SubResource("Resource_nbsgg"), SubResource("Resource_jc0ot"), SubResource("Resource_5n2ii")])
+music = "sector4"
+nebula_a = Color(0.3, 0.09, 0.04, 1)
+nebula_b = Color(0.32, 0.19, 0.05, 1)

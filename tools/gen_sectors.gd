@@ -11,7 +11,48 @@ func _initialize() -> void:
 	_save(_sector_1())
 	_save(_sector_2())
 	_save(_sector_3())
+	_save(_sector_4())
 	quit()
+
+
+## Setor 4 — Destroços da Frota: torretas, drones em V, emboscada; chefe Cruzador Fantasma.
+func _sector_4() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_4"
+	s.number = 4
+	s.title = "SETOR 4"
+	s.subtitle = "Destroços da Frota"
+	s.duration = 150.0
+	s.difficulty_start = 0.5
+	s.difficulty_end = 0.85
+	s.music = "sector4"
+	s.nebula_a = Color(0.30, 0.09, 0.04)  # ferrugem
+	s.nebula_b = Color(0.32, 0.19, 0.05)  # laranja queimado
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.85, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 4\nDestroços da Frota", "duration": 2.5}),
+		WaveEvent.make(5.0, K.DENSITY, {"density": 0.85, "metals": true, "turrets": 0.3}),
+		WaveEvent.make(5.0, K.MESSAGE, {"text": "Torretas nos destroços atiram em você.\nO cano brilha antes do tiro!", "duration": 4.0}),
+		WaveEvent.make(20.0, K.DRONES, {"count": 3, "text": "Drones à frente!"}),
+		WaveEvent.make(32.0, K.DRONES, {"count": 5}),
+		WaveEvent.make(45.0, K.METAL_WALL),
+		WaveEvent.make(55.0, K.DENSITY, {"density": 1.0, "metals": true, "moving": 0.25, "armored": 0.25,
+				"turrets": 0.35}),
+		WaveEvent.make(62.0, K.DRONES, {"count": 5, "text": "EMBOSCADA!"}),
+		WaveEvent.make(64.0, K.DRONES, {"count": 3}),
+		WaveEvent.make(80.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(80.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(95.0, K.CORRIDOR, {"duration": 8.0}),
+		WaveEvent.make(108.0, K.DRONES, {"count": 5}),
+		WaveEvent.make(115.0, K.DENSITY, {"density": 1.1, "metals": true, "moving": 0.3, "armored": 0.3,
+				"turrets": 0.4, "mines": 0.15}),
+		WaveEvent.make(128.0, K.METAL_WALL),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "Uma nave enorme surge dos destroços...", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "cruiser"}),
+	])
+	return s
 
 
 ## Setor 3 — Nebulosa Iônica: nuvens que drenam o escudo, minas, tempestade; chefe Medusa.

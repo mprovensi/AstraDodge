@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="256" viewBox="0 0 512 256">
+  <!-- CRUZADOR FANTASMA (chefe do Setor 4): nave de guerra abandonada, vista de cima, LARGA.
+       As partes (canhões, lançador, ponte) são desenhadas pelo código nos encaixes:
+       canhão esq (110,150) · canhão dir (402,150) · lançador (256,92) · ponte (256,140). -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3c4250"/>
+      <stop offset="1" stop-color="#171a21"/>
+    </linearGradient>
+  </defs>
+  <!-- Casco -->
+  <path d="M30 128 L80 82 L200 70 L312 70 L432 82 L482 128 L432 174 L312 190 L200 190 L80 174 Z"
+        fill="url(#hull)" stroke="#8f9bb3" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Placas enferrujadas -->
+  <g fill="#7a3a1c" fill-opacity="0.85">
+    <path d="M90 92 L170 84 L172 110 L92 116 Z"/>
+    <path d="M342 84 L422 92 L420 116 L340 110 Z"/>
+    <path d="M150 162 L210 170 L208 182 L148 176 Z"/>
+    <path d="M304 170 L364 162 L366 176 L306 182 Z"/>
+  </g>
+  <!-- Linhas do casco -->
+  <g stroke="#59627a" stroke-width="3" fill="none">
+    <path d="M80 128 L432 128"/>
+    <path d="M200 70 L200 190 M312 70 L312 190"/>
+  </g>
+  <!-- Rombos (casco danificado) -->
+  <g fill="#0b0c10" stroke="#ff7a3c" stroke-width="2.5">
+    <path d="M250 168 L262 160 L274 170 L266 182 L252 180 Z"/>
+    <path d="M60 120 L72 112 L78 126 L66 134 Z"/>
+    <path d="M440 132 L452 124 L458 138 L446 144 Z"/>
+  </g>
+  <!-- Luzes espectrais ("fantasma") -->
+  <g fill="#6ff5d8" fill-opacity="0.85">
+    <rect x="100" y="124" width="10" height="6" rx="2"/><rect x="124" y="124" width="10" height="6" rx="2"/>
+    <rect x="378" y="124" width="10" height="6" rx="2"/><rect x="402" y="124" width="10" height="6" rx="2"/>
+    <rect x="216" y="80" width="8" height="5" rx="2"/><rect x="288" y="80" width="8" height="5" rx="2"/>
+  </g>
+  <!-- Encaixes das partes -->
+  <g fill="#0f1116" stroke="#8f9bb3" stroke-width="4">
+    <circle cx="110" cy="150" r="28"/>
+    <circle cx="402" cy="150" r="28"/>
+    <rect x="228" y="72" width="56" height="40" rx="6"/>
+    <rect x="216" y="124" width="80" height="34" rx="8"/>
+  </g>
+</svg>

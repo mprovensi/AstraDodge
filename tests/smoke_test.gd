@@ -31,6 +31,7 @@ func _run() -> void:
 	_test_campaign()
 	_test_sector2()
 	_test_sector3()
+	_test_sector4()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -236,9 +237,58 @@ func _test_sector3() -> void:
 	assert(mines_seen >= 5, "minas iônicas (vi %d)" % mines_seen)
 	assert(strikes >= 15, "tempestade com raios (vi %d)" % strikes)
 	assert(boss_seen and phase2_seen and nodes_killed, "Medusa, fase 2 e os 3 nódulos")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "Setor 3 completo mostra PRÓXIMO SETOR")
 	print("SETOR 3 OK | %.1fs | minas=%d | raios=%d | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, mines_seen, strikes, boss_time, str(main.star_checks())])
+
+
+## Continua do Setor 3 completo: PRÓXIMO SETOR → Setor 4 inteiro (torretas, drones, Cruzador).
+func _test_sector4() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_4")
+	assert(sfx.current_track() == "sector4", "Setor 4 tem trilha própria")
+	_touch(true)
+	var seen := {}
+	var turrets_killed := 0
+	var missiles_seen := 0
+	var boss_seen := false
+	var phase2_seen := false
+	var parts_min := 3
+	var boss_time := 0.0
+	var frames := 0
+	var destroyed_before: int = main.enemies_destroyed
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 360:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			parts_min = mini(parts_min, boss.alive_parts())
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		for e in main.enemies.enemies:
+			if not seen.has(e.id):
+				seen[e.id] = e.kind
+				if e.kind == 3:
+					missiles_seen += 1
+		frames += 1
+	var kinds := {}
+	for id in seen:
+		kinds[seen[id]] = true
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 4 deveria terminar (Cruzador derrotado)")
+	assert(kinds.has(0) and kinds.has(2), "drones e torretas aparecem")
+	assert(missiles_seen >= 2, "o Cruzador lança mísseis (vi %d)" % missiles_seen)
+	assert(main.enemies_destroyed > destroyed_before, "inimigos são destruídos")
+	assert(boss_seen and phase2_seen and parts_min == 0, "Cruzador: fase 2 e todas as partes destruídas")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 4 OK | %.1fs | inimigos=%d | misseis=%d | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, seen.size(), missiles_seen, boss_time, str(main.star_checks())])
 
 
 ## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
@@ -279,8 +329,42 @@ func _test_boss_safety() -> void:
 	assert(dome_out <= 5.0, "cúpula da Medusa: %.0f%% da colisão fora do desenho" % dome_out)
 	print("ROTA SEGURA S3 OK | brecha=%.0f | espiral=%.0f | mina=%.0f | cupula fora do desenho=%.0f%%" % [
 		md.sweep_gap(), spiral_gap, mine_gap, dome_out])
+
+	# Setor 4 / Cruzador: leque dos canhões (a 600 px), anel da ponte (a 300 px), casco x desenho.
+	var cr: GDScript = load("res://scripts/bosses/cruiser.gd")
+	var cannon_gap: float = cr.cannon_min_gap(600.0)
+	assert(cannon_gap >= ship_gap, "canhão: vão de %.0f px" % cannon_gap)
+	var ring_gap: float = cr.ring_min_gap(300.0)
+	assert(ring_gap >= ship_gap, "anel da ponte: vão de %.0f px" % ring_gap)
+	var hull_out := _hull_collision_outside_pct(cr)
+	assert(hull_out <= 5.0, "casco do Cruzador: %.0f%% da colisão fora do desenho" % hull_out)
+	print("ROTA SEGURA S4 OK | canhao=%.0f | anel=%.0f | casco fora do desenho=%.0f%%" % [cannon_gap, ring_gap, hull_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+func _hull_collision_outside_pct(cr: GDScript) -> float:
+	var boss = cr.new()
+	boss.view_size = Vector2(1080, 2340)
+	boss.state = 1  # FIGHT
+	var c := Vector2(540, 600)
+	boss.center = c
+	var img: Image = root.get_node("Game").art.cruiser_body.get_image()
+	var hw: float = cr.SPRITE_W * 0.5
+	var hh: float = cr.SPRITE_H * 0.5
+	var hits := 0
+	var outside := 0
+	for y in range(-230, 231, 10):
+		for x in range(-460, 461, 10):
+			if not boss.touches(c + Vector2(x, y), 0.0):
+				continue
+			hits += 1
+			var u := int((x + hw) / (2.0 * hw) * img.get_width())
+			var v := int((y + hh) / (2.0 * hh) * img.get_height())
+			if u < 0 or v < 0 or u >= img.get_width() or v >= img.get_height() or img.get_pixel(u, v).a <= 0.5:
+				outside += 1
+	boss.free()
+	return 100.0 * outside / maxf(1.0, hits)
 
 
 func _dome_collision_outside_pct(md: GDScript) -> float:

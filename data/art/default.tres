@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" path="res://sprites/dust_1.png" id="1_0djt3"]
 [ext_resource type="Texture2D" path="res://sprites/dust_shell.png" id="1_5hgmi"]
+[ext_resource type="Texture2D" path="res://sprites/boss_cruiser.png" id="1_5u5ty"]
 [ext_resource type="Texture2D" path="res://sprites/dust_2.png" id="2_7ck5r"]
 [ext_resource type="Texture2D" path="res://sprites/dust_3.png" id="3_pucd1"]
 [ext_resource type="Texture2D" path="res://sprites/metal_1.png" id="4_tff5p"]
@@ -25,3 +26,4 @@ rock_mother_body = ExtResource("7_pucd1")
 rock_mother_half = ExtResource("8_tff5p")
 miner_body = ExtResource("8_ik4b2")
 medusa_body = ExtResource("5_ik4b2")
+cruiser_body = ExtResource("1_5u5ty")

@@ -184,10 +184,14 @@ func _danger(x: float, ship_y: float) -> float:
 		if above_c > -c.radius and above_c < LOOK_AHEAD and absf(x - c.pos.x) < c.radius * 0.85 + 40.0:
 			d += 250.0
 	for e in main.enemies.enemies:
+		var above_e: float = ship_y - e.pos.y
 		if e.kind == 1:  # mina
-			var above_m: float = ship_y - e.pos.y
-			if above_m > -80.0 and above_m < LOOK_AHEAD and absf(x - e.pos.x) < Tuning.MINE_TRIGGER + 20.0:
-				d += 500.0 * (1.0 - above_m / LOOK_AHEAD * 0.5)
+			if above_e > -80.0 and above_e < LOOK_AHEAD and absf(x - e.pos.x) < Tuning.MINE_TRIGGER + 20.0:
+				d += 500.0 * (1.0 - above_e / LOOK_AHEAD * 0.5)
+		elif above_e > -60.0 and above_e < LOOK_AHEAD:  # drone, torreta, míssil: não encostar
+			var reach_e: float = e.radius + 80.0
+			if absf(x - e.pos.x) < reach_e:
+				d += (reach_e - absf(x - e.pos.x)) * 5.0
 	if main.boss != null:
 		for yy in [ship_y, ship_y - 150.0, ship_y - 300.0]:
 			if main.boss.touches(Vector2(x, yy), 70.0):

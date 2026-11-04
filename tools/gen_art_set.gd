@@ -26,6 +26,7 @@ func _initialize() -> void:
 	art.dust_shell_texture = load("res://sprites/dust_shell.png")
 	art.miner_body = load("res://sprites/boss_miner.png")
 	art.medusa_body = load("res://sprites/boss_medusa.png")
+	art.cruiser_body = load("res://sprites/boss_cruiser.png")
 	var err := ResourceSaver.save(art, OUT)
 	print("%s -> %s" % [OUT, "OK" if err == OK else "ERRO %d" % err])
 	quit()

@@ -280,4 +280,10 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] Medusa (`scripts/bosses/medusa.gd`): chicotada com brecha (aviso em colunas), espiral de tiros lentos; fase 2 com escudo no núcleo até destruir os 3 nódulos dos tentáculos
 - [x] Testes: Setor 3 inteiro (bot), rota segura (brecha, espiral, raio, anel da mina), colisão da cúpula x desenho
 - [x] Demo em modo rápido (`tests/fast_demo.gd` + skill ver-jogo-rapido) desvia de nuvens, minas e raios
+
+**Sprint 6 — Setor 4: concluído (04/11/2026)**
+- [x] Nebulosa ferrugem/laranja e lofi própria (Dó menor, 100 BPM)
+- [x] Torretas em destroços (cano segue a nave e brilha antes do tiro), drones em formação em V (`WaveEvent.Kind.DRONES`, incl. "emboscada"), mísseis teleguiados lentos (abatíveis)
+- [x] Cruzador Fantasma (`scripts/bosses/cruiser.gd`): chefe de várias partes — 2 canhões (leque mirado), lançador de mísseis e ponte de comando com escudo até os canhões caírem; fase 2 com casco "fantasma" e anéis de tiros
+- [x] Testes: Setor 4 inteiro (bot), rota segura (leque e anel) e colisão do casco x desenho
 - [ ] Volume de música/efeitos em 0–100%

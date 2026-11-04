@@ -25,6 +25,7 @@ const MUSIC_TRACKS := {
 	"boss": ["res://audio/music_boss.wav", -4.0],
 	"sector2": ["res://audio/music_sector2.wav", 0.0],
 	"sector3": ["res://audio/music_sector3.wav", 0.0],
+	"sector4": ["res://audio/music_sector4.wav", 0.0],
 }
 const MUSIC_FADE_DB_PER_SEC := 40.0  # velocidade do crossfade (≈ 1,5 s até silenciar)
 const ENGINE_IDLE_DB := -30.0

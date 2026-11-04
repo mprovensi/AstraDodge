@@ -13,6 +13,7 @@ enum Kind {
 	BOSS,        ## ALERTA + chefe: `text` = id do chefe ("rock_mother"); o setor acaba quando ele cai
 	CORRIDOR,    ## `duration` s de paredes seguidas com a brecha andando pouco (aviso na 1ª)
 	STORM,       ## `duration` s de tempestade: raios em colunas, cada um avisado antes
+	DRONES,      ## formação em V de `count` drones entrando pelo topo
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -25,6 +26,8 @@ enum Kind {
 @export_range(0.0, 1.0) var armored := 0.0  ## DENSITY: chance de poeira blindada
 @export_range(0.0, 1.0) var clouds := 0.0   ## DENSITY: chance de nuvem iônica por linha
 @export_range(0.0, 1.0) var mines := 0.0    ## DENSITY: chance de mina iônica por linha
+@export_range(0.0, 1.0) var turrets := 0.0  ## DENSITY: chance de torreta (em destroço) por linha
+@export var count := 0                      ## DRONES: quantos drones na formação
 
 
 static func make(at_seconds: float, event_kind: Kind, props := {}) -> WaveEvent:

@@ -10,6 +10,7 @@ const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_1.tres"),
 	preload("res://data/sectors/sector_2.tres"),
 	preload("res://data/sectors/sector_3.tres"),
+	preload("res://data/sectors/sector_4.tres"),
 ]
 
 var state := State.MENU
@@ -459,6 +460,11 @@ func _on_wave_event(e: WaveEvent) -> void:
 				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
 			hud.show_hint("PAREDÃO! Procure a brecha", 2.5)
 			Sfx.play("alarm", -8.0, 1.2, 0.0)
+		WaveEvent.Kind.DRONES:
+			var margin := Tuning.DRONE_V_SPACING * (e.count - 1) * 0.5 + 60.0
+			enemies.spawn_drone_v(e.count, randf_range(margin, view_size.x - margin))
+			if e.text != "":
+				hud.show_hint(e.text, 2.5)
 		WaveEvent.Kind.STORM:
 			_storm_left = e.duration
 			_storm_timer = 0.3
@@ -482,12 +488,19 @@ func _on_row_spawned(gap_x: float) -> void:
 	if randf() < director.clouds:
 		var r := randf_range(Tuning.CLOUD_RADIUS_MIN, Tuning.CLOUD_RADIUS_MAX)
 		hazards.spawn_cloud(Vector2(randf_range(r * 0.5, view_size.x - r * 0.5), -r), r)
+	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5 + 60.0
 	if randf() < director.mines:
-		var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5 + 60.0
 		for attempt in 6:
 			var x := randf_range(60.0, view_size.x - 60.0)
 			if absf(x - gap_x) > half_gap:
 				enemies.spawn_mine(Vector2(x, -60.0))
+				break
+	# Setor 4: torretas em destroços, sempre fora do corredor livre.
+	if randf() < director.turrets:
+		for attempt in 6:
+			var x := randf_range(70.0, view_size.x - 70.0)
+			if absf(x - gap_x) > half_gap:
+				enemies.spawn_turret(Vector2(x, -70.0))
 				break
 
 
@@ -769,6 +782,10 @@ func _spawn_boss(boss_id: String) -> void:
 	match boss_id:
 		"rock_mother":
 			boss = RockMother.new()
+		"cruiser":
+			var cruiser := Cruiser.new()
+			cruiser.enemies = enemies  # lança mísseis pela camada de inimigos
+			boss = cruiser
 		"medusa":
 			boss = Medusa.new()
 		"miner":

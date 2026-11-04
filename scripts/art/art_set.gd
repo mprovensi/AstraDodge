@@ -46,6 +46,8 @@ extends Resource
 @export var miner_body: Texture2D
 ## Medusa (Setor 3): cúpula de plasma. Núcleo e tentáculos são desenhados pelo código.
 @export var medusa_body: Texture2D
+## Cruzador Fantasma (Setor 4): casco LARGO (2:1). As partes são desenhadas pelo código.
+@export var cruiser_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

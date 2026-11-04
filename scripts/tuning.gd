@@ -85,6 +85,19 @@ const MINE_BLAST := 110.0          # raio da explosão (dano em área)
 const MINE_SHOTS := 10             # tiros em anel na explosão
 const MINE_SHOT_SPEED := 380.0
 
+# --- Setor 4: Destroços da Frota ---
+const TURRET_HP := 4
+const TURRET_RADIUS := 42.0
+const TURRET_FIRE_INTERVAL := 2.2
+const TURRET_CHARGE := 0.5         # brilho de carga antes do tiro (aviso)
+const TURRET_SHOT_SPEED := 330.0
+const MISSILE_HP := 1
+const MISSILE_RADIUS := 18.0
+const MISSILE_SPEED := 300.0
+const MISSILE_TURN := 1.6          # rad/s: curva devagar, dá para fugir de lado
+const MISSILE_LIFE := 7.0
+const DRONE_V_SPACING := 90.0      # formação em V
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3
