@@ -25,7 +25,7 @@ O jogador decide o tempo todo duas coisas: *"arrisco buscar aquele orbe?"* e *"p
 ### 2.1 Controle — arraste relativo com um dedo
 - **Movimento relativo:** a nave se desloca o mesmo delta do dedo (1:1, padrão 1,2×). O toque pode começar **em qualquer ponto da tela** — o dedo nunca precisa cobrir a nave.
 - **Sensibilidade ajustável** nas opções: 0,8× a 1,6×.
-- **Movimento livre em X e Y**, porém **Y limitado aos ~55% inferiores da tela** (garante tempo de reação).
+- **Movimento livre em X e Y**, porém **Y limitado aos ~67% inferiores da tela** (garante tempo de reação).
 - **Suavização leve** (lerp de 1–2 frames) para evitar tremor sem sensação de atraso.
 - **Ao soltar o dedo:** câmera lenta (~30%) por 0,4 s → **pausa** com "Toque para continuar". Retoma instantaneamente ao tocar de novo (sem contagem). Evita mortes por soltar sem querer e permite reposicionar a mão.
 

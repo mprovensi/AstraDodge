@@ -8,7 +8,7 @@ Plano completo em [PLANO.md](PLANO.md).
 2. Aperte **F5**. O mouse simula o dedo: clique e arraste para pilotar, solte para pausar.
 
 ## Controles (protótipo)
-- **Arrastar (qualquer ponto da tela):** move a nave (movimento relativo, até ~55% da altura).
+- **Arrastar (qualquer ponto da tela):** move a nave (movimento relativo, até ~67% da altura).
 - **Soltar o dedo:** câmera lenta por 0,4 s e depois pausa. Tocar de novo retoma na hora.
 - **Tiro:** automático, evolui com cristais magenta (5 níveis).
 - **Escudo:** automático, drena com o tempo e com impactos; orbes ciano recarregam.

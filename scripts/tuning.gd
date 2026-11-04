@@ -5,7 +5,7 @@ extends RefCounted
 # --- Controle ---
 const DRAG_SENSITIVITY_DEFAULT := 1.2
 const SHIP_FOLLOW_SHARPNESS := 25.0      # quanto maior, mais "colada" ao dedo
-const SHIP_MIN_Y_RATIO := 0.45           # a nave não sobe acima de 45% da altura
+const SHIP_MIN_Y_RATIO := 0.33           # a nave não sobe acima de 33% da altura
 const SHIP_MARGIN := 60.0
 const SHIP_HITBOX_RADIUS := 26.0         # menor que o desenho, para ser justo
 const RELEASE_SLOWMO_SCALE := 0.3
