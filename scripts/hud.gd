@@ -9,6 +9,7 @@ signal restart_pressed
 signal continue_pressed
 signal menu_pressed
 signal quit_pressed
+signal new_game_pressed
 
 const BAR_WIDTH := 320.0
 const BAR_HEIGHT := 12.0
@@ -17,6 +18,7 @@ const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
 const PAUSE_TOP_MARGIN := 460.0
+const NEW_GAME_CONFIRM_TIME := 3.0  # segundos para o 2º toque confirmar o novo jogo
 
 var _top: VBoxContainer
 var _score_label: Label
@@ -50,6 +52,8 @@ var _music_button: Button
 var _sfx_button: Button
 var _vibration_button: Button
 var _sensitivity_label: Label
+var _new_game_button: Button
+var _new_game_armed := 0.0  # > 0: aguardando o toque de confirmação
 
 
 func _ready() -> void:
@@ -111,7 +115,7 @@ func _ready() -> void:
 	_center.add_child(_info)
 
 	_add_center_button("resume", "CONTINUAR", resume_pressed.emit)
-	_add_center_button("campaign", "NOVO JOGO", campaign_pressed.emit)
+	_add_center_button("campaign", "JOGAR", campaign_pressed.emit)
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
 	_add_center_button("options", "OPÇÕES", open_options, false)
@@ -126,6 +130,11 @@ func _process(delta: float) -> void:
 	if _levelup_timer > 0.0:
 		_levelup_timer -= delta
 		_levelup_label.modulate.a = clampf(_levelup_timer / 0.4, 0.0, 1.0)
+
+	if _new_game_armed > 0.0:
+		_new_game_armed -= delta
+		if _new_game_armed <= 0.0:
+			_new_game_button.text = "NOVO JOGO"
 
 	if _hint_timer > 0.0:
 		_hint_timer -= delta
@@ -203,9 +212,10 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 
 # ---------------------------------------------------------------- telas
 
-## `can_resume`: existe um ponto salvo para o botão CONTINUAR.
+## `can_resume`: existe um ponto salvo. Com ponto salvo o 1º botão é CONTINUAR;
+## sem ele, JOGAR (começa do Setor 1). NOVO JOGO fica em Opções.
 func show_menu(can_resume: bool) -> void:
-	var buttons := ["resume", "campaign", "options", "quit"] if can_resume else ["campaign", "options", "quit"]
+	var buttons := ["resume" if can_resume else "campaign", "options", "quit"]
 	_show("ASTRA DODGE", "", "", buttons)
 	_top.visible = false  # pontuação/barras só fazem sentido durante uma partida
 
@@ -270,6 +280,8 @@ func _add_center_button(id: String, text: String, action: Callable, click := tru
 func open_options() -> void:
 	Sfx.play("click", -4.0, 1.0, 0.0)
 	_refresh_options()
+	_new_game_armed = 0.0
+	_new_game_button.text = "NOVO JOGO"
 	_center_was_visible = _center.visible
 	_center.visible = false  # evita texto "vazando" atrás das opções
 	_options_layer.visible = true
@@ -346,6 +358,22 @@ func _build_options(root: Control) -> void:
 	var spacer2 := Control.new()
 	spacer2.custom_minimum_size.y = 20
 	box.add_child(spacer2)
+
+	# Novo jogo apaga o progresso salvo: pede um 2º toque para confirmar.
+	_new_game_button = _make_button("NOVO JOGO")
+	_new_game_button.pressed.connect(func() -> void:
+		Sfx.play("click", -4.0, 1.0, 0.0)
+		if _new_game_armed > 0.0:
+			_new_game_armed = 0.0
+			_new_game_button.text = "NOVO JOGO"
+			_options_layer.visible = false
+			Game.save_data()
+			new_game_pressed.emit()
+		else:
+			_new_game_armed = NEW_GAME_CONFIRM_TIME
+			_new_game_button.text = "TOQUE P/ CONFIRMAR")
+	box.add_child(_new_game_button)
+
 	var back := _make_button("VOLTAR")
 	back.pressed.connect(close_options)
 	box.add_child(back)

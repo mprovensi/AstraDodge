@@ -138,6 +138,18 @@ func _test_checkpoint() -> void:
 	assert(game.checkpoint.is_empty(), "fim de jogo deveria limpar o ponto salvo")
 	main.go_to_menu()
 	assert(not main.hud._buttons["resume"].visible, "sem ponto salvo, sem CONTINUAR")
+	assert(main.hud._buttons["campaign"].visible, "sem ponto salvo, o menu mostra JOGAR")
+
+	# NOVO JOGO (em Opções) pede confirmação e descarta o ponto salvo.
+	game.checkpoint = {"sector": 0, "time": 80.0}
+	main.go_to_menu()
+	assert(main.hud._buttons["resume"].visible and not main.hud._buttons["campaign"].visible)
+	main.hud.open_options()
+	main.hud._new_game_button.pressed.emit()
+	assert(main.state == main.State.MENU, "1º toque em NOVO JOGO só pede confirmação")
+	main.hud._new_game_button.pressed.emit()
+	assert(main.state == main.State.READY and main.director.time == 0.0, "2º toque começa do zero")
+	assert(game.checkpoint.is_empty(), "novo jogo descarta o ponto salvo")
 	print("CONTINUAR OK | voltou em %.1fs do setor, pontos=%d, arma=%d" % [saved_time, saved_score, saved_weapon])
 
 

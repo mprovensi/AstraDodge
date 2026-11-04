@@ -73,9 +73,8 @@ func _ready() -> void:
 	ship.shield_depleted.connect(_on_shield_depleted)
 	ship.fired.connect(func() -> void: Sfx.play("laser", -14.0, 1.0, 0.08))
 	hud.resume_pressed.connect(resume_checkpoint)
-	hud.campaign_pressed.connect(func() -> void:
-		Game.clear_checkpoint()  # novo jogo descarta o ponto salvo
-		start_mode(Mode.CAMPAIGN))
+	hud.campaign_pressed.connect(start_new_game)
+	hud.new_game_pressed.connect(start_new_game)
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
 	hud.menu_pressed.connect(go_to_menu)
@@ -159,6 +158,13 @@ func go_to_menu() -> void:
 	ship.visible = false
 	hud.clear_hint()
 	_set_state(State.MENU)
+
+
+## Começa a campanha do Setor 1, descartando o ponto salvo.
+func start_new_game() -> void:
+	_touch_index = -1
+	Game.clear_checkpoint()
+	start_mode(Mode.CAMPAIGN)
 
 
 func start_mode(new_mode: Mode, index := 0) -> void:
