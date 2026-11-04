@@ -103,7 +103,7 @@ Objetivo: loop completo com formas geométricas, já divertido.
 - [x] HUD, telas de início/pausa/fim, "continuar" de teste (sem anúncio)
 - [x] Teste de fumaça headless
 - [ ] Ajuste fino de balanceamento jogando de verdade
-- [x] Opções (música, efeitos, vibração, sensibilidade) e botão de pausa
+- [x] Opções (música, efeitos, vibração, sensibilidade)
 - [x] APK de debug rodando no celular (Galaxy S20 FE)
 - [x] Repositório Git
 

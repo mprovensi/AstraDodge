@@ -35,7 +35,6 @@ var _info: Label
 var _restart_button: Button
 var _continue_button: Button
 var _options_button: Button
-var _pause_button: Button
 
 var _options_layer: Control
 var _center_was_visible := false
@@ -104,17 +103,7 @@ func _ready() -> void:
 	_options_button.pressed.connect(open_options)
 	_center.add_child(_options_button)
 
-	# --- Pausa (canto superior direito). O toque é tratado pelo Main, para funcionar
-	# mesmo com outro dedo arrastando a nave. ---
-	_pause_button = _make_button("II")
-	_pause_button.custom_minimum_size = Vector2(110, 110)
-	_pause_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_pause_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_pause_button.visible = false
-	root.add_child(_pause_button)
-
 	_build_options(root)
-	set_safe_top(0.0)
 	hide_center()
 
 
@@ -141,18 +130,6 @@ func _process(delta: float) -> void:
 ## Margem superior para não ficar embaixo do notch/câmera.
 func set_safe_top(px: float) -> void:
 	_top.offset_top = px + 24.0
-	_pause_button.offset_left = -150.0
-	_pause_button.offset_right = -40.0
-	_pause_button.offset_top = px + 30.0
-	_pause_button.offset_bottom = px + 140.0
-
-
-func set_pause_visible(on: bool) -> void:
-	_pause_button.visible = on
-
-
-func is_pause_button(pos: Vector2) -> bool:
-	return _pause_button.visible and _pause_button.get_global_rect().grow(30.0).has_point(pos)
 
 
 ## True se o toque caiu em algum botão/tela de opções (não deve iniciar a partida).

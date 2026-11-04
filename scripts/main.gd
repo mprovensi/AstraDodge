@@ -75,11 +75,6 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed:
-			if (state == State.PLAYING or state == State.SLOWMO) and hud.is_pause_button(touch.position):
-				_touch_index = -1
-				Sfx.play("click", -4.0, 1.0, 0.0)
-				_set_state(State.PAUSED)
-				return
 			if hud.blocks_touch(touch.position):
 				return  # toque em botão/opções: não inicia a partida
 			if _touch_index == -1 and state in [State.READY, State.PLAYING, State.SLOWMO, State.PAUSED]:
@@ -281,7 +276,6 @@ func _new_run() -> void:
 
 func _set_state(new_state: State) -> void:
 	state = new_state
-	hud.set_pause_visible(new_state == State.PLAYING or new_state == State.SLOWMO)
 	match new_state:
 		State.PLAYING:
 			hud.hide_center()
