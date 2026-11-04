@@ -104,8 +104,8 @@ Objetivo: loop completo com formas geométricas, já divertido.
 - [x] Teste de fumaça headless
 - [ ] Ajuste fino de balanceamento jogando de verdade
 - [ ] Opções de sensibilidade/vibração na tela de menu
-- [ ] APK de debug rodando no celular
-- [ ] Repositório Git
+- [x] APK de debug rodando no celular (Galaxy S20 FE)
+- [x] Repositório Git
 
 ### Fase 2 — Arte, áudio e "juice" (Dias 9 a 14)
 1. **Assets visuais:** Kenney.nl (*Space Shooter Redux*, *Space Kit* — CC0). Substituir placeholders; parallax com `Parallax2D`.
