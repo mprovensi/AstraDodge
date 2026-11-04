@@ -82,10 +82,14 @@ func _ready() -> void:
 	_info = _make_label("", 36, Palette.TEXT_DIM)
 	_center.add_child(_info)
 	_restart_button = _make_button("REINICIAR")
-	_restart_button.pressed.connect(func() -> void: restart_pressed.emit())
+	_restart_button.pressed.connect(func() -> void:
+		Sfx.play("click", -4.0, 1.0, 0.0)
+		restart_pressed.emit())
 	_center.add_child(_restart_button)
 	_continue_button = _make_button("CONTINUAR (TESTE)")
-	_continue_button.pressed.connect(func() -> void: continue_pressed.emit())
+	_continue_button.pressed.connect(func() -> void:
+		Sfx.play("click", -4.0, 1.0, 0.0)
+		continue_pressed.emit())
 	_center.add_child(_continue_button)
 
 	hide_center()

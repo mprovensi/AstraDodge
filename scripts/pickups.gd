@@ -62,10 +62,10 @@ func _draw() -> void:
 		var pulse := 1.0 + 0.15 * sin(p.t * 8.0)
 		if p.kind == Kind.SHIELD:
 			draw_circle(p.pos, 26.0 * pulse, Color(Palette.NEON, 0.25))
-			draw_circle(p.pos, 13.0, Palette.NEON)
-			draw_circle(p.pos, 6.0, Color.WHITE)
+			draw_circle(p.pos, 13.0, Palette.NEON_HDR)
+			draw_circle(p.pos, 6.0, Palette.WHITE_HDR)
 		else:
 			var s := 18.0 * pulse
 			var diamond := PackedVector2Array([p.pos + Vector2(0, -s * 1.3), p.pos + Vector2(s, 0), p.pos + Vector2(0, s * 1.3), p.pos + Vector2(-s, 0)])
-			draw_colored_polygon(diamond, Color(Palette.MAGENTA, 0.9))
+			draw_colored_polygon(diamond, Palette.MAGENTA_HDR)
 			draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color(Palette.MAGENTA, 0.3), 10.0, true)

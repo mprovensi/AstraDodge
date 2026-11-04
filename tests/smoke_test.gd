@@ -57,6 +57,7 @@ func _run() -> void:
 
 	print("SMOKE OK | mortes=%d nivel_arma_max=%d asteroides_max=%d pontos_max=%d pool_tiros=%d recorde=%d" % [
 		deaths, max_level, max_asteroids, max_score, main.bullets.pool.size(), root.get_node("Game").high_score])
+	main.free()
 	quit()
 
 

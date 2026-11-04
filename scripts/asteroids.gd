@@ -181,7 +181,7 @@ func _draw() -> void:
 			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
 			var fill := Palette.DUST_FILL.darkened(dmg * 0.35)
 			if a.flash > 0.0:
-				fill = Color.WHITE
+				fill = Palette.WHITE_HDR
 			draw_colored_polygon(a.shape, fill)
 			draw_polyline(outline, Palette.DUST_LINE, 3.0, true)
 	draw_set_transform(Vector2.ZERO, 0.0)

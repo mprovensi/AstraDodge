@@ -31,11 +31,25 @@ func burst(pos: Vector2, color: Color, count: int, speed: float, life: float, si
 
 func explosion(pos: Vector2, radius: float, color: Color) -> void:
 	burst(pos, color, 10 + int(radius / 5.0), 300.0 + radius * 3.0, 0.55, 6.0)
-	burst(pos, Color(1.0, 0.9, 0.7), 6 + int(radius / 12.0), 200.0 + radius * 2.0, 0.3, 8.0)
+	burst(pos, Palette.BLAST_HDR, 6 + int(radius / 12.0), 200.0 + radius * 2.0, 0.3, 8.0)
 
 
 func spark(pos: Vector2, color: Color) -> void:
 	burst(pos, color, 4, 260.0, 0.18, 3.0)
+
+
+## Rastro do propulsor: chamado a cada passo enquanto a nave está viva.
+func trail(pos: Vector2, scroll_speed: float) -> void:
+	if _particles.size() >= MAX_PARTICLES:
+		return
+	var p := Particle.new()
+	p.pos = pos + Vector2(randf_range(-6.0, 6.0), 0.0)
+	p.vel = Vector2(randf_range(-30.0, 30.0), 220.0 + scroll_speed * 0.5)
+	p.max_life = randf_range(0.18, 0.3)
+	p.life = p.max_life
+	p.size = randf_range(4.0, 7.0)
+	p.color = Palette.FLAME_HDR if randf() < 0.6 else Palette.NEON_HDR
+	_particles.append(p)
 
 
 func clear() -> void:

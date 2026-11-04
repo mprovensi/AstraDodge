@@ -29,7 +29,19 @@ Plano completo em [PLANO.md](PLANO.md).
 | `scripts/starfield.gd` | Fundo de estrelas com parallax. |
 | `scripts/hud.gd` | HUD e telas de início, pausa e fim de jogo. |
 
-Todo o visual atual é desenhado por código (placeholders da Fase 1); a Fase 2 troca por sprites.
+| `scripts/sfx.gd` | Autoload `Sfx`: pool de efeitos, música, buses Music/SFX e limitador. |
+| `tools/gen_audio.gd` | Sintetiza todos os sons e a música em `audio/*.wav` (sem assets de terceiros). |
+
+Visual vetorial desenhado por código com glow HDR: só as cores `*_HDR` da `Palette` brilham
+(nave, tiros, pickups, explosões); metálicos e poeira ficam opacos de propósito.
+
+Para regenerar o áudio depois de mexer no sintetizador:
+
+```
+Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/gen_audio.gd
+```
+
+(`audio/music.wav.import` usa `edit/loop_mode=2` para a música tocar em loop.)
 
 ## Android (APK de debug)
 Ambiente já configurado nesta máquina: JDK 17/21, Android SDK em `%LOCALAPPDATA%\Android\Sdk`

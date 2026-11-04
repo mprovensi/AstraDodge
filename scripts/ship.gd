@@ -4,6 +4,7 @@ extends Node2D
 
 signal weapon_level_changed(level: int, went_up: bool)
 signal shield_depleted
+signal fired
 
 enum HitResult { IGNORED, ABSORBED, LAST_CHANCE, DEAD }
 
@@ -151,6 +152,7 @@ func _fire() -> void:
 	var muzzle := position + Vector2(0, -44)
 	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
 	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
+	fired.emit()
 	match weapon_level:
 		1:
 			bullets.spawn(muzzle, 0.0, false)
@@ -175,23 +177,24 @@ func _draw() -> void:
 	# Chama do propulsor
 	var flick := 0.75 + 0.25 * sin(_t * 40.0)
 	var flame := PackedVector2Array([Vector2(-12, 24), Vector2(12, 24), Vector2(0, 24 + 34 * flick)])
-	draw_colored_polygon(flame, Color(Palette.FLAME, 0.85))
+	draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.85))
 
-	# Corpo com contorno "neon" (traço largo translúcido + traço fino)
+	# Corpo com contorno "neon" (traço largo translúcido + traço fino HDR que brilha)
 	var body := PackedVector2Array(BODY)
 	draw_colored_polygon(body, Palette.NEON_DARK)
 	var outline := body + PackedVector2Array([body[0]])
 	draw_polyline(outline, Color(Palette.NEON, 0.3), 12.0, true)
-	draw_polyline(outline, Palette.NEON, 4.0, true)
+	draw_polyline(outline, Palette.NEON_HDR, 4.0, true)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia
 	if last_chance:
 		if int(_t * 8.0) % 2 == 0:
-			draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS, 0.0, TAU, 48, Color(Palette.DANGER, 0.9), 4.0, true)
+			draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS, 0.0, TAU, 48, Color(Palette.DANGER_HDR, 0.9), 4.0, true)
 		return
 	var ratio := shield_ratio()
 	var alpha := 0.25 + 0.55 * ratio
 	if ratio < Tuning.SHIELD_LOW_RATIO and int(_t * 6.0) % 2 == 0:
 		alpha *= 0.3
 	draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS, 0.0, TAU, 48, Color(Palette.NEON, alpha * 0.35), 4.0 + 10.0 * ratio, true)
-	draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS, 0.0, TAU, 48, Color(Palette.NEON, alpha), 2.0 + 3.0 * ratio, true)
+	var ring := Palette.NEON.lerp(Palette.NEON_HDR, ratio * 0.6)  # escudo cheio brilha mais
+	draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS, 0.0, TAU, 48, Color(ring, alpha), 2.0 + 3.0 * ratio, true)

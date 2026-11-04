@@ -31,6 +31,7 @@ var _revive_used := false
 
 
 func _ready() -> void:
+	_setup_glow()
 	world = Node2D.new()
 	add_child(world)
 	starfield = Starfield.new()
@@ -51,6 +52,7 @@ func _ready() -> void:
 
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
+	ship.fired.connect(func() -> void: Sfx.play("laser", -14.0, 1.0, 0.08))
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
 	get_viewport().size_changed.connect(_on_resized)
@@ -110,6 +112,7 @@ func _process(delta: float) -> void:
 	# As estrelas nunca param totalmente, para o menu e a pausa não parecerem "travados".
 	starfield.update(delta, scroll_speed * maxf(time_scale, 0.15))
 	_update_shake(delta)
+	Sfx.set_music_intensity(time_scale, state == State.PAUSED or state == State.READY or state == State.GAME_OVER)
 	hud.set_values(score, maxi(score, Game.high_score), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
 
@@ -121,6 +124,7 @@ func _step(dt: float) -> void:
 	scroll_speed = lerpf(Tuning.SCROLL_SPEED_START, Tuning.SCROLL_SPEED_MAX, difficulty)
 	if ship.alive:
 		distance += scroll_speed * dt
+		fx.trail(ship.position + Vector2(0, 40), scroll_speed)
 
 	asteroids.update(dt, scroll_speed, difficulty)
 	bullets.update(dt)
@@ -146,6 +150,7 @@ func _check_bullet_hits() -> void:
 			b.alive = false
 			fx.spark(b.pos, Palette.METAL_LINE)
 			asteroids.impact(a, b.vel.normalized())
+			Sfx.play("ricochet", -12.0, 1.0, 0.12)
 			if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
 				a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 			continue
@@ -158,6 +163,7 @@ func _check_bullet_hits() -> void:
 		else:
 			asteroids.impact(a, b.vel.normalized())
 			fx.spark(b.pos, Palette.DUST_LINE)
+			Sfx.play("hit", -12.0, 1.0, 0.1)
 
 
 func _check_ship_hits() -> void:
@@ -180,7 +186,8 @@ func _check_ship_hits() -> void:
 			_on_ship_died()
 			return
 		_shake = maxf(_shake, 18.0)
-		fx.burst(ship.position, Palette.NEON, 16, 380.0, 0.35, 4.0)
+		fx.burst(ship.position, Palette.NEON_HDR, 16, 380.0, 0.35, 4.0)
+		Sfx.play("shield_hit", -2.0)
 		Game.vibrate(60)
 
 
@@ -188,6 +195,8 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 	bonus_score += Tuning.SCORE_PER_DUST_HP * a.max_hp
 	fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
 	_shake = maxf(_shake, 3.0 + a.radius * 0.04)
+	# Asteroides maiores soam mais graves.
+	Sfx.play("explosion", -5.0, lerpf(1.35, 0.8, clampf((a.radius - 40.0) / 45.0, 0.0, 1.0)))
 
 	var shield_chance := Tuning.DROP_SHIELD_CHANCE
 	if ship.last_chance or ship.shield_ratio() < Tuning.SHIELD_LOW_RATIO:
@@ -203,28 +212,33 @@ func _on_pickup(kind: int) -> void:
 	if kind == PickupLayer.Kind.SHIELD:
 		if ship.add_shield(Tuning.SHIELD_ORB_VALUE):
 			bonus_score += Tuning.SCORE_LAST_CHANCE_SAVE
-		fx.burst(ship.position, Palette.NEON, 10, 220.0, 0.3, 4.0)
+		fx.burst(ship.position, Palette.NEON_HDR, 10, 220.0, 0.3, 4.0)
+		Sfx.play("pickup_shield", -6.0)
 	else:
 		ship.add_crystal()
-		fx.burst(ship.position, Palette.MAGENTA, 10, 220.0, 0.3, 4.0)
+		fx.burst(ship.position, Palette.MAGENTA_HDR, 10, 220.0, 0.3, 4.0)
+		Sfx.play("pickup_crystal", -6.0)
 
 
 func _on_weapon_level_changed(level: int, went_up: bool) -> void:
 	hud.on_weapon_level(level, went_up)
 	if went_up:
-		fx.burst(ship.position, Palette.MAGENTA, 28, 520.0, 0.5, 5.0)
+		fx.burst(ship.position, Palette.MAGENTA_HDR, 28, 520.0, 0.5, 5.0)
+	Sfx.play("level_up" if went_up else "level_down", -4.0, 1.0, 0.0)
 
 
 func _on_shield_depleted() -> void:
 	Game.vibrate(120)
 	_shake = maxf(_shake, 10.0)
+	Sfx.play("alarm", -4.0, 1.0, 0.0)
 
 
 func _on_ship_died() -> void:
-	fx.explosion(ship.position, 120.0, Palette.NEON)
-	fx.explosion(ship.position, 80.0, Palette.FLAME)
+	fx.explosion(ship.position, 120.0, Palette.NEON_HDR)
+	fx.explosion(ship.position, 80.0, Palette.FLAME_HDR)
 	_shake = 40.0
 	Game.vibrate(250)
+	Sfx.play("death", 0.0, 1.0, 0.0)
 	_set_state(State.DYING)
 
 
@@ -263,6 +277,7 @@ func _set_state(new_state: State) -> void:
 	match new_state:
 		State.PLAYING:
 			hud.hide_center()
+			Sfx.start_music()
 		State.SLOWMO:
 			_state_timer = Tuning.RELEASE_SLOWMO_TIME
 		State.PAUSED:
@@ -289,6 +304,24 @@ func _on_resized() -> void:
 		if window_h > 0.0:
 			safe_top = DisplayServer.get_display_safe_area().position.y * view_size.y / window_h
 	hud.set_safe_top(safe_top)
+
+
+## Glow neon: só as cores HDR (> 1.0) da Palette acendem. O HUD (CanvasLayer acima) fica nítido.
+func _setup_glow() -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_CANVAS
+	env.glow_enabled = true
+	env.glow_intensity = 0.9
+	env.glow_strength = 1.0
+	# Só os níveis menores: brilho curto e "neon", sem halo enorme.
+	for level in 7:
+		env.set_glow_level(level, [1.0, 0.55, 0.12, 0.0, 0.0, 0.0, 0.0][level])
+	env.glow_bloom = 0.0
+	env.glow_hdr_threshold = 1.0
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
+	var we := WorldEnvironment.new()
+	we.environment = env
+	add_child(we)
 
 
 func _update_shake(delta: float) -> void:

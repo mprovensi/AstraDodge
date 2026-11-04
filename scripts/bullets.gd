@@ -59,4 +59,5 @@ func _draw() -> void:
 		var length := 52.0 if b.pierce else 36.0
 		var tail := b.pos - b.vel.normalized() * length
 		draw_line(tail, b.pos, Color(color, 0.3), 16.0 if b.pierce else 12.0)
-		draw_line(tail, b.pos, Color(1, 1, 1, 0.95).lerp(color, 0.4), 5.0)
+		var core := Palette.MAGENTA_HDR if b.pierce else Palette.NEON_HDR
+		draw_line(tail, b.pos, core.lerp(Palette.WHITE_HDR, 0.5), 5.0)
