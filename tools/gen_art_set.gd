@@ -31,6 +31,7 @@ func _initialize() -> void:
 	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
 	art.hive_queen_body = load("res://sprites/boss_hive_queen.png")
 	art.sentinel_body = load("res://sprites/boss_sentinel.png")
+	art.rift_core_body = load("res://sprites/boss_rift_core.png")
 	var err := ResourceSaver.save(art, OUT)
 	print("%s -> %s" % [OUT, "OK" if err == OK else "ERRO %d" % err])
 	quit()

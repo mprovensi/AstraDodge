@@ -14,6 +14,7 @@ const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_5.tres"),
 	preload("res://data/sectors/sector_6.tres"),
 	preload("res://data/sectors/sector_7.tres"),
+	preload("res://data/sectors/sector_8.tres"),
 ]
 
 var state := State.MENU
@@ -74,6 +75,11 @@ var _gates_left := 0            # portões de laser que ainda faltam na sequênc
 var _gate_timer := 0.0
 var _slides_left := 0           # paredes móveis que ainda faltam
 var _slide_timer := 0.0
+var _invert_warn := 0.0         # s de aviso antes da inversão
+var _invert_left := 0.0         # s restantes de inversão
+var _invert_settle := 0.0       # s sem rochas novas depois da inversão
+var _invert_duration := 0.0
+var _escape_t := -1.0           # >= 0: cena de fuga depois do chefe final
 var ice_shards := 0             # lascas criadas por gelo rachado (testes)
 var eggs_destroyed := 0         # ovos destruídos antes de eclodir (testes)
 var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
@@ -198,8 +204,10 @@ func _process(delta: float) -> void:
 		_step(dt)
 
 	# As estrelas nunca param totalmente, para o menu e a pausa não parecerem "travados".
-	starfield.update(delta, scroll_speed * maxf(time_scale, 0.15))
-	nebula.update(delta, scroll_speed * maxf(time_scale, 0.15))
+	# Na inversão o fundo também "sobe".
+	var flow := -1.0 if asteroids.inverted else 1.0
+	starfield.update(delta, flow * scroll_speed * maxf(time_scale, 0.15))
+	nebula.update(delta, flow * scroll_speed * maxf(time_scale, 0.15))
 	_update_shake(delta)
 	var quiet := state != State.PLAYING and state != State.SLOWMO and state != State.DYING
 	Sfx.set_music_intensity(time_scale, quiet)
@@ -281,6 +289,10 @@ func _new_run() -> void:
 	_comets_left = 0
 	_gates_left = 0
 	_slides_left = 0
+	_invert_warn = 0.0
+	_invert_left = 0.0
+	_invert_settle = 0.0
+	_escape_t = -1.0
 	ice_shards = 0
 	eggs_destroyed = 0
 	bosses_defeated = 0
@@ -461,7 +473,8 @@ func _set_state(new_state: State) -> void:
 			var checks := star_checks()
 			Game.submit_stars(director.sector.id, checks.count(true))
 			hud.clear_hint()
-			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record, checks,
+			var clear_title := director.sector.title if _has_next_sector() else "CAMPANHA\nCOMPLETA!"
+			hud.show_sector_clear(clear_title, score, _best_for_mode(), is_record, checks,
 					_has_next_sector())
 			Sfx.play("level_up", -2.0, 1.0, 0.0)
 
@@ -488,17 +501,20 @@ func _step(dt: float) -> void:
 		asteroids.ice = director.ice
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
 				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0 \
-				and _gates_left <= 0 and hazards.gates.is_empty() and _slides_left <= 0
+				and _gates_left <= 0 and hazards.gates.is_empty() and _slides_left <= 0 \
+				and _invert_warn <= 0.0 and _invert_settle <= 0.0
 		_update_corridor(dt)
 		_update_storm(dt)
 		_update_comets(dt)
 		_update_station(dt)
+		_update_invert(dt)
 	else:
 		difficulty = Tuning.difficulty(elapsed)
 
 	_update_boss_flow(dt)
 
 	scroll_speed = lerpf(Tuning.SCROLL_SPEED_START, Tuning.SCROLL_SPEED_MAX, difficulty)
+	_update_escape(dt)
 	if ship.alive:
 		distance += scroll_speed * dt
 		fx.trail(ship.position + Vector2(0, 40), scroll_speed)
@@ -511,6 +527,7 @@ func _step(dt: float) -> void:
 	asteroids.update(dt, scroll_speed, difficulty)
 	enemies.update(dt, ship.position, scroll_speed)
 	hazards.update(dt, scroll_speed)
+	_apply_rift(dt)
 	# Drenagem do escudo: menor durante chefes, 3x dentro de nuvem iônica.
 	var boss_drain := Tuning.BOSS_SHIELD_DRAIN_SCALE if boss != null else 1.0
 	var cloud_drain := Tuning.ION_DRAIN_MULT if hazards.in_cloud(ship.position) else 1.0
@@ -530,7 +547,7 @@ func _step(dt: float) -> void:
 
 	# Fim do setor: depois do END (ou do chefe derrotado), quando a tela esvaziar
 	# — inclusive a chuva de orbes/cristais da vitória, para dar tempo de coletar.
-	if mode == Mode.CAMPAIGN and director.finished and ship.alive and boss == null \
+	if mode == Mode.CAMPAIGN and director.finished and ship.alive and boss == null and _escape_t < 0.0 \
 			and asteroids.asteroids.is_empty() and enemies.enemies.is_empty() and pickups.pickups.is_empty() \
 			and (state == State.PLAYING or state == State.SLOWMO):
 		_set_state(State.SECTOR_CLEAR)
@@ -571,6 +588,11 @@ func _on_wave_event(e: WaveEvent) -> void:
 				enemies.spawn_egg(Vector2(x, -60.0 - randf_range(0.0, 160.0)))
 			hud.show_hint("ECLOSÃO! Destrua os ovos\nantes do anel fechar", 2.5)
 			Sfx.play("alarm", -10.0, 0.9, 0.0)
+		WaveEvent.Kind.INVERT:
+			_invert_warn = Tuning.INVERT_WARN
+			_invert_duration = e.duration
+			hud.show_hint("INVERSÃO!\nAs rochas vão subir — fique no alto", 3.0)
+			Sfx.play("alarm", -4.0, 0.7, 0.0)
 		WaveEvent.Kind.GATES:
 			_gates_left = e.count
 			_gate_timer = 0.0
@@ -627,6 +649,18 @@ func _on_row_spawned(gap_x: float) -> void:
 			if absf(x - gap_x) > half_gap:
 				enemies.spawn_egg(Vector2(x, -60.0))
 				break
+	# Setor 8: poços gravitacionais e pares de portais (saída longe da entrada).
+	if randf() < director.wells:
+		hazards.spawn_well(randf_range(150.0, view_size.x - 150.0))
+	if randf() < director.portals:
+		var xa := randf_range(Tuning.PORTAL_RADIUS, view_size.x - Tuning.PORTAL_RADIUS)
+		var xb := xa
+		for attempt in 10:
+			xb = randf_range(Tuning.PORTAL_RADIUS, view_size.x - Tuning.PORTAL_RADIUS)
+			if absf(xb - xa) >= Tuning.PORTAL_SHIFT_MIN:
+				break
+		if absf(xb - xa) >= Tuning.PORTAL_SHIFT_MIN:
+			hazards.spawn_portal(xa, xb)
 	# Setor 5: cometa avulso de vez em quando.
 	if randf() < director.comets:
 		_spawn_comet()
@@ -674,6 +708,45 @@ func _update_storm(dt: float) -> void:
 				else randf_range(0.0, view_size.x)
 		hazards.spawn_strike(x, telegraph)
 		Sfx.play("alarm", -14.0, 1.5, 0.0, Vector2(x, 0))
+
+
+## Setor 8 — INVERSÃO: aviso (sem rochas novas) → rochas vindo de baixo → respiro → normal.
+func _update_invert(dt: float) -> void:
+	if _invert_warn > 0.0:
+		_invert_warn -= dt
+		if _invert_warn <= 0.0:
+			asteroids.inverted = true
+			_invert_left = _invert_duration
+		return
+	if _invert_left > 0.0:
+		_invert_left -= dt
+		if _invert_left <= 0.0:
+			asteroids.inverted = false
+			_invert_settle = Tuning.INVERT_SETTLE
+		return
+	_invert_settle = maxf(0.0, _invert_settle - dt)
+
+
+## Setor 8: gravidade dos poços (puxa a nave, curva os tiros) e portais (rochas teleportam).
+func _apply_rift(dt: float) -> void:
+	if not hazards.wells.is_empty():
+		if ship.alive:
+			ship.move_by(hazards.well_pull(ship.position) * dt)
+		for b in bullets.pool:
+			if b.alive:
+				var speed := b.vel.length()
+				b.vel = (b.vel + hazards.well_bend(b.pos) * dt).normalized() * speed
+	if not hazards.portals.is_empty():
+		for a in asteroids.asteroids:
+			if a.ported or not a.alive:
+				continue
+			var jump := hazards.portal_jump(a.pos)
+			if jump != Vector2.ZERO:
+				fx.burst(a.pos, Palette.NEON_HDR, 10, 260.0, 0.3, 4.0)
+				a.pos += jump
+				a.ported = true
+				fx.burst(a.pos, Palette.MAGENTA_HDR, 10, 260.0, 0.3, 4.0)
+				Sfx.play("pickup_crystal", -12.0, 0.5, 0.1, a.pos)
 
 
 ## Setor 7: sequências de portões de laser e de paredes móveis.
@@ -1008,6 +1081,8 @@ func _spawn_boss(boss_id: String) -> void:
 			boss = cruiser
 		"medusa":
 			boss = Medusa.new()
+		"rift_core":
+			boss = RiftCore.new()
 		"sentinel":
 			boss = Sentinel.new()
 		"hive_queen":
@@ -1043,13 +1118,49 @@ func _on_boss_defeated() -> void:
 		pickups.spawn(Vector2(randf_range(view_size.x * 0.15, view_size.x * 0.85),
 				at.y + randf_range(-80.0, 120.0)), kind)
 	hud.show_hint("%s DERROTADA!" % boss.display_name, 3.0)
+	var final_boss := mode == Mode.CAMPAIGN and not _has_next_sector()
 	_clear_boss()
-	Sfx.play_music(SECTORS[_biome].music)  # volta a trilha do setor/bioma
 	Game.vibrate(200)
+	if final_boss:
+		# Chefe final: a Fenda se fecha e o motor de dobra volta — cena de fuga + tema de vitória.
+		_escape_t = 0.0
+		Sfx.play_music("victory")
+		hud.show_hint("A FENDA SE FECHOU!\nMOTOR DE DOBRA RESTAURADO", Tuning.ESCAPE_TIME)
+	else:
+		Sfx.play_music(SECTORS[_biome].music)  # volta a trilha do setor/bioma
 	if mode == Mode.CAMPAIGN:
 		director.finished = true  # o setor acaba quando a tela esvaziar
 	else:
 		bosses_defeated += 1      # o Infinito segue: a linha do tempo volta a andar
+
+
+## Cena de fuga (depois do chefe final): a nave sobe, as estrelas viram riscos e, no fim,
+## um clarão. Os orbes e cristais da vitória são recolhidos no caminho.
+func _update_escape(dt: float) -> void:
+	if _escape_t < 0.0:
+		return
+	_escape_t += dt
+	var k := clampf(_escape_t / Tuning.ESCAPE_TIME, 0.0, 1.0)
+	scroll_speed = lerpf(scroll_speed, Tuning.ESCAPE_SCROLL, smoothstep(0.0, 1.0, k))
+	ship.invuln = 1.0
+	ship.move_by(Vector2((view_size.x * 0.5 - ship.target.x) * 2.0 * dt, -260.0 * dt))
+	for p in pickups.pickups:
+		p.pos = p.pos.move_toward(ship.position, 1600.0 * dt)
+	_shake = maxf(_shake, 4.0 * k)
+	if _escape_t >= Tuning.ESCAPE_TIME:
+		_escape_t = -1.0
+		fx.explosion(ship.position, 400.0, Palette.WHITE_HDR)
+		asteroids.reset()
+		enemies.clear()
+		enemy_shots.clear()
+		hazards.clear()
+		for i in pickups.pickups.size():
+			_on_pickup(pickups.pickups[i].kind)
+		pickups.clear()
+
+
+func escaping() -> bool:
+	return _escape_t >= 0.0
 
 
 static func _clock(seconds: float) -> String:
@@ -1141,7 +1252,12 @@ func _update_shake(delta: float) -> void:
 		var accel := -Tuning.KICK_STIFFNESS * _kick - Tuning.KICK_DAMPING * _kick_vel
 		_kick_vel += accel * h
 		_kick = (_kick + _kick_vel * h).limit_length(Tuning.KICK_MAX)  # várias quebras seguidas não "explodem"
-	world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake + _kick
+	# Chefe final (fase 3): a tela inteira balança devagar, girando em volta do centro.
+	var tilt: float = boss.screen_tilt() if boss != null and boss.has_method("screen_tilt") else 0.0
+	world.rotation = tilt
+	var pivot := view_size * 0.5
+	world.position = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * _shake + _kick \
+			+ pivot - pivot.rotated(tilt)
 
 
 ## Tranco ao quebrar: empurra a tela para baixo e ela volta com uma pequena mola.

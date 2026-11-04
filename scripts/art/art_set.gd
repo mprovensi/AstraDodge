@@ -56,6 +56,8 @@ extends Resource
 @export var hive_queen_body: Texture2D
 ## Sentinela (Setor 7): núcleo de IA blindado, preso ao teto. Olho, braços e drones pelo código.
 @export var sentinel_body: Texture2D
+## Núcleo da Fenda (Setor 8, chefe final): esfera escura com borda magenta. Núcleo e halo pelo código.
+@export var rift_core_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

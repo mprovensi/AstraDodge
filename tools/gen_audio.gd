@@ -33,6 +33,10 @@ func _initialize() -> void:
 	_save("music_sector6", _lofi(92.0, SECTOR6_CHORDS, SECTOR6_MELODY, true))
 	seed(7077)
 	_save("music_sector7", _lofi(104.0, SECTOR7_CHORDS, SECTOR7_MELODY, true))
+	seed(8088)
+	_save("music_sector8", _lofi(110.0, SECTOR8_CHORDS, SECTOR8_MELODY, true))
+	seed(9099)
+	_save("music_victory", _lofi(96.0, VICTORY_CHORDS, VICTORY_MELODY, true, true))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -399,6 +403,35 @@ const SECTOR7_MELODY := [
 	[69, -1, -1, -1, 69, -1, -1, -1, 73, -1, -1, -1, 69, -1, 66, -1],
 	[71, -1, -1, -1, 71, -1, -1, -1, 74, -1, -1, -1, 73, -1, 71, -1],
 	[68, -1, -1, -1, 71, -1, -1, -1, 73, -1, -1, -1, 75, -1, -1, -1],
+]
+
+
+## Setor 8 (music_sector8.wav): 110 BPM, épico em Si menor: Bm9 · Gmaj7 · Dmaj9 · F#7sus4.
+const SECTOR8_CHORDS := [
+	[47, 50, 54, 57, 61],  # Bm9
+	[43, 47, 50, 54],      # Gmaj7
+	[38, 42, 45, 49, 52],  # Dmaj9
+	[42, 47, 49, 52],      # F#7sus4
+]
+const SECTOR8_MELODY := [
+	[78, -1, -1, 81, -1, -1, 83, -1, 81, -1, 78, -1, -1, -1, 76, -1],
+	[74, -1, -1, 78, -1, -1, 79, -1, -1, 78, -1, -1, 74, -1, -1, -1],
+	[73, -1, -1, 76, -1, 78, -1, -1, 81, -1, -1, 78, -1, 76, -1, -1],
+	[78, -1, -1, -1, 76, -1, -1, 73, -1, -1, 71, -1, -1, -1, -1, -1],
+]
+
+## Vitória (music_victory.wav): o tema do jogo em tom MAIOR (Si maior), com sinos — fim da campanha.
+const VICTORY_CHORDS := [
+	[47, 51, 54, 58, 61],  # Bmaj9
+	[44, 47, 51, 54],      # G#m7
+	[40, 44, 47, 51],      # Emaj7
+	[42, 46, 49, 52],      # F#7
+]
+const VICTORY_MELODY := [
+	[78, -1, -1, 82, -1, -1, 83, -1, 85, -1, -1, 83, -1, 82, -1, -1],
+	[80, -1, -1, 83, -1, -1, 85, -1, -1, 87, -1, -1, 85, -1, -1, -1],
+	[83, -1, -1, 82, -1, 80, -1, -1, 78, -1, -1, 80, -1, 82, -1, -1],
+	[85, -1, -1, -1, 82, -1, -1, 78, -1, -1, 82, -1, 83, -1, -1, -1],
 ]
 
 

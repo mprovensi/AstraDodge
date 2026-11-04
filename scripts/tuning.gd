@@ -141,6 +141,21 @@ const BLACKOUT_DARKNESS := 0.72     # quanto escurece fora da luz da nave
 const BLACKOUT_LIGHT := 430.0       # raio da luz em volta da nave
 const BLACKOUT_FADE := 0.8
 
+# --- Setor 8: Fenda Gravitacional ---
+const WELL_RADIUS := 300.0          # alcance da gravidade (o contorno tracejado)
+const WELL_CORE := 40.0             # "olho" do poço (só visual)
+const WELL_PULL := 120.0            # px/s puxando a nave no centro (cai até 0 na borda)
+const WELL_BEND := 2600.0           # px/s² que curvam os tiros no centro
+const WELL_FALL_FACTOR := 0.6       # o poço desce mais devagar que as rochas
+const PORTAL_RADIUS := 70.0
+const PORTAL_FALL_FACTOR := 0.6
+const PORTAL_SHIFT_MIN := 260.0     # distância lateral mínima entre a entrada e a saída
+const INVERT_WARN := 2.0            # s de aviso antes da inversão
+const INVERT_SPEED_K := 0.55        # na inversão as rochas sobem mais devagar (dá para reagir)
+const INVERT_SETTLE := 1.5          # s sem rochas novas depois da inversão
+const ESCAPE_TIME := 4.5            # cena de fuga depois do chefe final
+const ESCAPE_SCROLL := 2600.0       # "motor de dobra": estrelas viram riscos
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

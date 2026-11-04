@@ -31,6 +31,7 @@ class Asteroid:
 	var sliding := false       # parede móvel (Setor 7): desliza em volta de slide_base
 	var slide_base := 0.0
 	var slide_phase := 0.0
+	var ported := false        # já passou por um portal (Setor 8): não teleporta de novo
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -45,6 +46,7 @@ var dust_rain := false
 var moving_metals := 0.0   # chance de uma linha trazer um metálico com propulsor (Setor 2+)
 var armored := 0.0         # chance de cada poeira vir blindada (Setor 2+)
 var ice := 0.0             # chance de cada poeira ser de gelo (Setor 5)
+var inverted := false      # INVERSÃO (Setor 8): rochas vêm de baixo e sobem
 
 var _next_id := 0
 var _distance_to_next_row := 0.0
@@ -67,13 +69,15 @@ func reset() -> void:
 	moving_metals = 0.0
 	armored = 0.0
 	ice = 0.0
+	inverted = false
 	dust_spawned = 0
 	queue_redraw()
 
-
 func update(dt: float, scroll_speed: float, difficulty: float) -> void:
+	# Na inversão as rochas sobem (mais devagar) e as linhas novas nascem embaixo.
+	var flow := -scroll_speed * Tuning.INVERT_SPEED_K if inverted else scroll_speed
 	if spawn_enabled:
-		_distance_to_next_row -= scroll_speed * dt
+		_distance_to_next_row -= absf(flow) * dt
 		if _distance_to_next_row <= 0.0:
 			_spawn_row(difficulty)
 			var spacing := lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
@@ -81,7 +85,7 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 
 	_slide_t += dt
 	for a in asteroids:
-		a.pos += (Vector2(a.vel.x, a.vel.y + scroll_speed) + a.knock) * dt
+		a.pos += (Vector2(a.vel.x, a.vel.y + flow) + a.knock) * dt
 		if a.sliding:
 			# Parede móvel: todos os blocos da fileira deslizam juntos, a brecha vai e volta.
 			a.pos.x = a.slide_base + Tuning.SLIDE_AMP * sin(TAU * _slide_t / Tuning.SLIDE_PERIOD + a.slide_phase)
@@ -95,7 +99,7 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 			a.pos.x += a.drift * dt
 			if (a.pos.x < a.radius and a.drift < 0.0) or (a.pos.x > view_size.x - a.radius and a.drift > 0.0):
 				a.drift = -a.drift  # quica na borda
-		if a.pos.y - a.radius > view_size.y:
+		if a.pos.y - a.radius > view_size.y + (300.0 if inverted else 0.0) or (inverted and a.pos.y + a.radius < -60.0):
 			a.alive = false
 
 	for i in range(asteroids.size() - 1, -1, -1):
@@ -201,6 +205,7 @@ func clear_around(center: Vector2, radius: float) -> void:
 
 
 func _spawn_row(difficulty: float) -> void:
+	var first := asteroids.size()
 	var w := view_size.x
 	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
 	_gap_x = clampf(_gap_x + randf_range(-Tuning.SAFE_GAP_MAX_SHIFT, Tuning.SAFE_GAP_MAX_SHIFT),
@@ -250,6 +255,14 @@ func _spawn_row(difficulty: float) -> void:
 			elif randf() < armored:
 				a.shell = Tuning.ARMOR_SHELL_HITS
 			break
+	if inverted:
+		# Inversão: a linha nasce espelhada embaixo da tela e sobe. Perigos do topo (minas,
+		# nuvens...) não acompanham, então o sinal da linha não é emitido.
+		for i in range(first, asteroids.size()):
+			var a := asteroids[i]
+			a.pos.y = view_size.y - a.pos.y
+			a.vel.y = -a.vel.y
+		return
 	row_spawned.emit(_gap_x)
 
 

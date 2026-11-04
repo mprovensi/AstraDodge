@@ -9,6 +9,10 @@ extends Node2D
 ## - Portões de laser (Setor 7): feixe na largura toda que liga e desliga no compasso
 ##   (2 tempos ligado, 2 desligado). Piscam e fazem "tique" antes de ligar. Descem devagar:
 ##   subir ou descer a nave escolhe a hora de cruzar.
+## - Poços gravitacionais (Setor 8): puxam a nave de leve e curvam os tiros. O contorno
+##   tracejado é o alcance exato da gravidade. Não machucam.
+## - Portais (Setor 8): pares ligados (entrada ciano, saída magenta). Rocha que entra num sai
+##   pelo outro, na mesma altura. A saída brilha quando algo vai sair.
 
 class Cloud:
 	var pos := Vector2.ZERO
@@ -37,6 +41,8 @@ var clouds: Array[Cloud] = []
 var strikes: Array[Strike] = []
 var comets: Array[Comet] = []
 var gates: Array[float] = []  # Setor 7: altura (y) de cada portão de laser
+var wells: Array[Vector2] = []   # Setor 8: centro de cada poço gravitacional
+var portals: Array[Dictionary] = []  # Setor 8: {a: Vector2 (entrada), b: Vector2 (saída), glow}
 var _gate_t := 0.0             # relógio do compasso (todos os portões ligam juntos)
 var _gate_was_on := false
 var view_size := Vector2.ZERO
@@ -53,6 +59,8 @@ func clear() -> void:
 	strikes.clear()
 	comets.clear()
 	gates.clear()
+	wells.clear()
+	portals.clear()
 	_gate_t = 0.0
 	_struck_now.clear()
 	queue_redraw()
@@ -96,6 +104,46 @@ func spawn_comet(from: Vector2, to: Vector2, telegraph: TelegraphLayer) -> void:
 	c.pos = from
 	comets.append(c)
 	telegraph.line(from, to, Tuning.COMET_WARN_WIDTH, Tuning.COMET_TELEGRAPH)
+
+
+## Poço gravitacional entrando por cima em `x`.
+func spawn_well(x: float) -> void:
+	wells.append(Vector2(x, -Tuning.WELL_RADIUS * 0.5))
+
+
+## Par de portais entrando por cima: entrada em `xa`, saída em `xb` (mesma altura).
+func spawn_portal(xa: float, xb: float) -> void:
+	var y := -Tuning.PORTAL_RADIUS
+	portals.append({"a": Vector2(xa, y), "b": Vector2(xb, y), "glow": 0.0})
+
+
+## Puxão da gravidade (px/s) na nave em `p`: soma dos poços, mais forte perto do centro.
+func well_pull(p: Vector2) -> Vector2:
+	var pull := Vector2.ZERO
+	for w in wells:
+		var d := p.distance_to(w)
+		if d < Tuning.WELL_RADIUS and d > 1.0:
+			pull += (w - p) / d * Tuning.WELL_PULL * (1.0 - d / Tuning.WELL_RADIUS)
+	return pull
+
+
+## Aceleração (px/s²) que os poços aplicam num tiro em `p` (curva a trajetória).
+func well_bend(p: Vector2) -> Vector2:
+	var acc := Vector2.ZERO
+	for w in wells:
+		var d := p.distance_to(w)
+		if d < Tuning.WELL_RADIUS and d > 1.0:
+			acc += (w - p) / d * Tuning.WELL_BEND * (1.0 - d / Tuning.WELL_RADIUS)
+	return acc
+
+
+## Se `p` está dentro da ENTRADA de um portal, devolve o deslocamento até a saída (senão ZERO).
+func portal_jump(p: Vector2) -> Vector2:
+	for pt in portals:
+		if p.distance_to(pt.a) < Tuning.PORTAL_RADIUS:
+			pt.glow = 0.4
+			return (pt.b as Vector2) - (pt.a as Vector2)
+	return Vector2.ZERO
 
 
 ## Portão de laser entrando por cima.
@@ -152,6 +200,19 @@ func update(dt: float, scroll_speed: float) -> void:
 		for i in range(gates.size() - 1, -1, -1):
 			if gates[i] > view_size.y + 40.0:
 				gates.remove_at(i)
+	for i in wells.size():
+		wells[i] = wells[i] + Vector2(0, scroll_speed * Tuning.WELL_FALL_FACTOR * dt)
+	for i in range(wells.size() - 1, -1, -1):
+		if wells[i].y - Tuning.WELL_RADIUS > view_size.y:
+			wells.remove_at(i)
+	for pt in portals:
+		var fall := scroll_speed * Tuning.PORTAL_FALL_FACTOR * dt
+		pt.a = (pt.a as Vector2) + Vector2(0, fall)
+		pt.b = (pt.b as Vector2) + Vector2(0, fall)
+		pt.glow = maxf(0.0, pt.glow - dt)
+	for i in range(portals.size() - 1, -1, -1):
+		if (portals[i].a as Vector2).y - Tuning.PORTAL_RADIUS > view_size.y:
+			portals.remove_at(i)
 	for c in clouds:
 		c.pos.y += scroll_speed * Tuning.CLOUD_FALL_FACTOR * dt
 		c.t += dt
@@ -212,6 +273,39 @@ func _draw() -> void:
 			var p0 := c.pos + Vector2.from_angle(a) * r * 0.3
 			var p1 := c.pos + Vector2.from_angle(a + 0.6) * r * 0.7
 			draw_line(p0, p1, Palette.ION_HDR, 2.0, true)
+
+	# Poços: disco escuro com anel de acreção girando e contorno tracejado do alcance.
+	for w in wells:
+		var spin := _t * 1.6
+		draw_circle(w, Tuning.WELL_RADIUS * 0.45, Color(0.0, 0.0, 0.0, 0.25))
+		for k in 3:
+			var r := Tuning.WELL_CORE * (1.4 + k * 0.7)
+			draw_arc(w, r, spin * (1.0 + k * 0.3), spin * (1.0 + k * 0.3) + PI * 1.2, 24,
+					Color(1.6, 0.5, 1.8, 0.7 - k * 0.2), 4.0 - k, true)
+		draw_circle(w, Tuning.WELL_CORE, Color(0.02, 0.0, 0.04))
+		draw_arc(w, Tuning.WELL_CORE, 0.0, TAU, 32, Palette.MAGENTA_HDR, 3.0, true)
+		var dashes := 24
+		for i in dashes:
+			var a0 := TAU * i / dashes - _t * 0.3
+			draw_arc(w, Tuning.WELL_RADIUS, a0, a0 + TAU / dashes * 0.5, 6, Color(Palette.MAGENTA, 0.45), 3.0, true)
+
+	# Portais: entrada ciano, saída magenta, ligados por uma linha pontilhada.
+	for pt in portals:
+		var a: Vector2 = pt.a
+		var b: Vector2 = pt.b
+		var x := 0.0
+		var dir := (b - a).normalized()
+		var length := a.distance_to(b)
+		while x < length:
+			draw_line(a + dir * x, a + dir * minf(x + 14.0, length), Color(1, 1, 1, 0.18), 2.0)
+			x += 30.0
+		for side in 2:
+			var c: Vector2 = a if side == 0 else b
+			var col: Color = Palette.NEON_HDR if side == 0 else Palette.MAGENTA_HDR
+			var r := Tuning.PORTAL_RADIUS
+			draw_circle(c, r, Color(col, 0.08 + (0.25 * pt.glow if side == 1 else 0.0)))
+			draw_arc(c, r, _t * 3.0, _t * 3.0 + PI * 1.5, 32, col, 5.0, true)
+			draw_arc(c, r * 0.7, -_t * 4.0, -_t * 4.0 + PI, 24, Color(col, 0.6), 3.0, true)
 
 	# Portões: pilares nas bordas; feixe vermelho forte ligado, tracejado apagado desligado,
 	# piscando nos instantes antes de ligar.

@@ -31,7 +31,7 @@ func update(dt: float) -> void:
 		if not b.alive:
 			continue
 		b.pos += b.vel * dt
-		if b.pos.y < -60.0 or b.pos.x < -60.0 or b.pos.x > view_size.x + 60.0:
+		if b.pos.y < -60.0 or b.pos.y > view_size.y + 60.0 or b.pos.x < -60.0 or b.pos.x > view_size.x + 60.0:
 			b.alive = false
 	queue_redraw()
 

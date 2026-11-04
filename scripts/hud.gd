@@ -398,7 +398,7 @@ func show_game_over(score: int, best: int, is_record: bool, can_continue: bool, 
 func show_sector_clear(title: String, score: int, best: int, is_record: bool, checks: Array[bool],
 		has_next := false) -> void:
 	_show(
-		"%s COMPLETO!" % title,
+		title if title.ends_with("!") else "%s COMPLETO!" % title,  # o fim da campanha vem pronto
 		("NOVO RECORDE! %d" if is_record else "PONTOS %d") % score,
 		"RECORDE DO SETOR %d" % best,
 		["next", "restart", "menu"] if has_next else ["restart", "menu"])

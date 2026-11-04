@@ -33,6 +33,8 @@ func update(dt: float, speed: float) -> void:
 			p.y += speed * factor * dt
 			if p.y > view_size.y:
 				p = Vector2(randf() * view_size.x, p.y - view_size.y)
+			elif p.y < 0.0:  # fundo "subindo" (inversão do Setor 8)
+				p = Vector2(randf() * view_size.x, p.y + view_size.y)
 			arr[i] = p
 		_stars[li] = arr
 	queue_redraw()

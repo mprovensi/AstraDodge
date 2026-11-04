@@ -35,6 +35,7 @@ func _run() -> void:
 	_test_sector5()
 	_test_sector6()
 	_test_sector7()
+	_test_sector8()
 	_test_endless_generator()
 	_test_endless_run()
 	_test_boss_safety()
@@ -439,9 +440,63 @@ func _test_sector7() -> void:
 	assert(blackout_seen, "blecaute acontece")
 	assert(boss_seen and phase2_seen, "Sentinela: fase 2")
 	assert(arms_min < 2 and drones_seen, "braços destruídos e drones de reparo saindo")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "depois do Setor 7 vem o Setor 8")
 	print("SETOR 7 OK | %.1fs | portoes na tela max=%d | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, gates_max, boss_time, str(main.star_checks())])
+
+
+## Continua do Setor 7: PRÓXIMO SETOR → Setor 8 (FINAL) inteiro: poços, portais, inversão,
+## Núcleo da Fenda em 3 fases, cena de fuga, tema de vitória e "CAMPANHA COMPLETA".
+func _test_sector8() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_8")
+	assert(sfx.current_track() == "sector8", "Setor 8 tem trilha própria")
+	_touch(true)
+	var wells_seen := false
+	var ported := 0
+	var inverted_seen := false
+	var bent := false
+	var boss_seen := false
+	var phase3_seen := false
+	var tilt_max := 0.0
+	var escape_seen := false
+	var boss_time := 0.0
+	var frames := 0
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 380:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase3_seen = phase3_seen or boss.phase == 3
+			tilt_max = maxf(tilt_max, absf(main.world.rotation))
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		wells_seen = wells_seen or not main.hazards.wells.is_empty()
+		inverted_seen = inverted_seen or main.asteroids.inverted
+		escape_seen = escape_seen or main.escaping()
+		for a in main.asteroids.asteroids:
+			ported += int(a.ported)
+		if not main.hazards.wells.is_empty() and not bent:
+			for b in main.bullets.pool:
+				bent = bent or (b.alive and absf(b.vel.x) > 50.0)
+		frames += 1
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 8 deveria terminar (Núcleo derrotado)")
+	assert(wells_seen and bent, "poços aparecem e curvam os tiros")
+	assert(ported > 0, "rochas passam pelos portais")
+	assert(inverted_seen, "inversão acontece")
+	assert(boss_seen and phase3_seen and tilt_max > 0.02, "Núcleo: 3 fases e tela balançando na 3ª")
+	assert(escape_seen and sfx.current_track() == "victory", "cena de fuga e tema de vitória")
+	assert(main.hud._title.text == "CAMPANHA\nCOMPLETA!", "tela final da campanha")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(is_zero_approx(main.world.rotation), "a tela volta ao normal")
+	print("SETOR 8 OK | %.1fs | portais=%d | chefe em %.1fs | inclinacao max=%.3f | CAMPANHA COMPLETA" % [
+		frames * DT, ported, boss_time, tilt_max])
 
 
 func HiveQueenGuards() -> int:
@@ -548,6 +603,19 @@ func _test_boss_safety() -> void:
 	assert(st.walls_free_width(1080.0) >= ship_gap * 6.0, "paredes da arena: meio livre")
 	var sent_out := _round_body_outside_pct(st, root.get_node("Game").art.sentinel_body)
 	assert(sent_out <= 5.0, "corpo do Sentinela: %.0f%% da colisão fora do desenho" % sent_out)
+	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,
+	# raios do eco do Minerador, corpo x desenho.
+	var rc: GDScript = load("res://scripts/bosses/rift_core.gd")
+	assert(rc.ring_gap(250.0) >= ship_gap, "anel: brecha de %.0f px a 250 px" % rc.ring_gap(250.0))
+	var rift_fan := INF
+	for h: float in [1920.0, 2340.0]:
+		rift_fan = minf(rift_fan, rc.fan_min_gap(h * 0.8 - (h * rc.REST_Y_RATIO + rc.BODY_RADIUS)))
+	assert(rift_fan >= ship_gap, "eco da Rocha-Mãe: vão de %.0f px" % rift_fan)
+	assert(rc.beams_free_width(1080.0) >= ship_gap * 6.0, "raios do eco: tela livre")
+	var rift_out := _round_body_outside_pct(rc, root.get_node("Game").art.rift_core_body)
+	assert(rift_out <= 5.0, "corpo do Núcleo: %.0f%% da colisão fora do desenho" % rift_out)
+	print("ROTA SEGURA S8 OK | brecha do anel=%.0f | leque=%.0f | corpo fora do desenho=%.0f%%" % [
+		rc.ring_gap(250.0), rift_fan, rift_out])
 	print("ROTA SEGURA S7 OK | portao: escolha de %.1fs (compasso %.1fs) | grade=%.0f | meio livre=%.0f | corpo fora do desenho=%.0f%%" % [
 		1920.0 * (0.92 - Tuning.SHIP_MIN_Y_RATIO) / Tuning.GATE_SPEED, Tuning.GATE_PERIOD, st.grid_min_gap(),
 		st.walls_free_width(1080.0), sent_out])
@@ -737,8 +805,8 @@ func _test_checkpoint() -> void:
 ## Infinito procedural: mesma semente = mesma partida; 100 sementes respeitam as regras de ritmo.
 func _test_endless_generator() -> void:
 	var K := WaveEvent.Kind
-	var biomes: Array[int] = [0, 1, 2, 3, 4, 5, 6]
-	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel"]
+	var biomes: Array[int] = [0, 1, 2, 3, 4, 5, 6, 7]
+	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel", "rift_core"]
 	var horizon := 900.0  # 15 min de linha do tempo
 	var a := _endless_timeline(42, biomes, bosses, horizon)
 	var b := _endless_timeline(42, biomes, bosses, horizon)
@@ -755,7 +823,7 @@ func _test_endless_generator() -> void:
 		var boss_times: Array[float] = []
 		var last_boss := ""
 		for e in events:
-			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS, K.HATCH, K.GATES, K.SLIDE] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
+			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS, K.HATCH, K.GATES, K.SLIDE, K.INVERT] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
 			if heavy:
 				assert(e.at - last_heavy >= 18.0, "semente %d: dois blocos pesados seguidos (%.1fs)" % [seed_value, e.at])
 				assert(e.duration <= 8.5, "bloco pesado longo demais")
@@ -807,8 +875,8 @@ func _test_endless_run() -> void:
 	var saved_cp := {"sector": 2, "time": 33.0, "weapon": 3}
 	game.checkpoint = saved_cp.duplicate()
 	main.endless_seed = 7
-	main.endless_biomes.assign([0, 1, 2, 3, 4, 5, 6])
-	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel"])
+	main.endless_biomes.assign([0, 1, 2, 3, 4, 5, 6, 7])
+	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel", "rift_core"])
 	main.start_endless()
 	assert(main.state == main.State.READY and main.mode == main.Mode.ENDLESS)
 	_touch(true)

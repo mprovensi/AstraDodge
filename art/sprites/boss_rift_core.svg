@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- NÚCLEO DA FENDA (chefe final, Setor 8): esfera escura de matéria distorcida, borda
+       magenta, rachaduras de luz branca. O núcleo (128,128) e o halo giratório são do código.
+       Raio útil ~110 (colisão: círculo ~93 na imagem). -->
+  <defs>
+    <radialGradient id="void" cx="45%" cy="40%" r="62%">
+      <stop offset="0" stop-color="#3a1046"/>
+      <stop offset="0.55" stop-color="#14041c"/>
+      <stop offset="1" stop-color="#05010a"/>
+    </radialGradient>
+    <radialGradient id="rim" cx="50%" cy="50%" r="50%">
+      <stop offset="0.82" stop-color="#ff4fd8" stop-opacity="0"/>
+      <stop offset="0.95" stop-color="#ff4fd8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.9"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#void)"/>
+  <circle cx="128" cy="128" r="112" fill="url(#rim)"/>
+  <!-- Rachaduras de luz -->
+  <g fill="none" stroke="#ffd6f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.85">
+    <path d="M128 72 L120 50 L132 30"/>
+    <path d="M180 120 L204 112 L222 124"/>
+    <path d="M150 182 L162 206 L154 226"/>
+    <path d="M78 150 L54 160 L36 150"/>
+    <path d="M86 90 L64 74"/>
+  </g>
+  <!-- Anel interno e encaixe do núcleo -->
+  <circle cx="128" cy="128" r="54" fill="none" stroke="#c03aa8" stroke-width="4" stroke-dasharray="14 9"/>
+  <circle cx="128" cy="128" r="40" fill="#0a0010" stroke="#ffd6f6" stroke-width="4"/>
+</svg>

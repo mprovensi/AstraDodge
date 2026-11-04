@@ -21,6 +21,7 @@ enum Kind {
 	GATES,       ## `count` portões de laser em sequência (ligam e desligam no compasso)
 	SLIDE,       ## `count` paredes móveis em sequência (a brecha desliza de lado)
 	BLACKOUT,    ## blecaute por `duration` s: só a luz em volta da nave
+	INVERT,      ## inversão: aviso e depois `duration` s de rochas vindo de baixo
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -38,6 +39,8 @@ enum Kind {
 @export_range(0.0, 1.0) var comets := 0.0   ## DENSITY: chance de um cometa avulso por linha
 @export_range(0.0, 1.0) var swarm := 0.0    ## DENSITY: chance de um grupo pequeno do enxame por linha
 @export_range(0.0, 1.0) var eggs := 0.0     ## DENSITY: chance de um ovo por linha
+@export_range(0.0, 1.0) var wells := 0.0    ## DENSITY: chance de um poço gravitacional por linha
+@export_range(0.0, 1.0) var portals := 0.0  ## DENSITY: chance de um par de portais por linha
 @export var count := 0                      ## DRONES/COMETS/SWARM/HATCH/GATES/SLIDE: quantos
 
 

@@ -214,3 +214,15 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Trilha própria (Fá# menor, 104 BPM, "metrônomo") e nebulosa grafite/vermelho
 - [x] Infinito: bioma Estação (portões, paredes móveis, blecaute) e o Sentinela no sorteio
 - [x] Testes: Setor 7 inteiro (bot), tempo de escolha do portão > 1 compasso, brecha móvel dentro da tela, grade e paredes com espaço livre, corpo x desenho
+
+**S11 — Setor 8 (Fenda Gravitacional) + final: concluído (05/11/2026)**
+- [x] Poços gravitacionais (`HazardLayer`): puxam a nave de leve e curvam os tiros; contorno tracejado = alcance
+- [x] Portais: pares entrada (ciano) → saída (magenta); a rocha que entra sai pelo outro, na mesma altura
+- [x] Inversão (`WaveEvent.Kind.INVERT`): aviso de 2 s, depois as rochas vêm de baixo e sobem (o fundo também), e um respiro no fim
+- [x] Núcleo da Fenda (`scripts/bosses/rift_core.gd`), chefe final em 3 fases: anéis com brecha que gira → ecos (leque de pedras da Rocha-Mãe, raios do Minerador) → a tela balança + espiral
+- [x] Cena de fuga ("motor de dobra restaurado"): a nave dispara, as estrelas viram riscos, clarão; tema de vitória em tom maior (`music_victory`); tela "CAMPANHA COMPLETA!"
+- [x] Trilha do setor (Si menor, 110 BPM) e nebulosa preto/magenta
+- [x] Infinito: bioma Fenda (poços, portais, inversão) e o Núcleo no sorteio de chefes
+- [x] Testes: Setor 8 inteiro até a tela final (bot), brecha do anel, leque do eco, raios, corpo x desenho
+
+**A campanha de 8 setores está completa.** Próximos: S12 (Desafio do Dia) e S13 (polimento).

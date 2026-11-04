@@ -15,7 +15,47 @@ func _initialize() -> void:
 	_save(_sector_5())
 	_save(_sector_6())
 	_save(_sector_7())
+	_save(_sector_8())
 	quit()
+
+
+## Setor 8 — Fenda Gravitacional (FINAL): poços, portais, inversão; chefe Núcleo da Fenda.
+func _sector_8() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_8"
+	s.number = 8
+	s.title = "SETOR 8"
+	s.subtitle = "Fenda Gravitacional"
+	s.duration = 150.0
+	s.difficulty_start = 0.7
+	s.difficulty_end = 1.0
+	s.music = "sector8"
+	s.nebula_a = Color(0.03, 0.02, 0.05)  # preto
+	s.nebula_b = Color(0.30, 0.05, 0.26)  # magenta
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.8, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 8\nFenda Gravitacional", "duration": 2.5}),
+		WaveEvent.make(5.0, K.DENSITY, {"density": 0.8, "metals": true, "wells": 0.15}),
+		WaveEvent.make(5.0, K.MESSAGE, {"text": "Poços gravitacionais puxam a nave\ne curvam os seus tiros", "duration": 4.0}),
+		WaveEvent.make(25.0, K.DENSITY, {"density": 0.85, "metals": true, "wells": 0.12, "portals": 0.15}),
+		WaveEvent.make(25.0, K.MESSAGE, {"text": "Portais: a rocha que entra no ciano\nsai pelo magenta!", "duration": 4.0}),
+		WaveEvent.make(45.0, K.INVERT, {"duration": 8.0}),
+		WaveEvent.make(62.0, K.DENSITY, {"density": 0.95, "metals": true, "wells": 0.12, "portals": 0.12,
+				"moving": 0.2, "ice": 0.2, "swarm": 0.1}),
+		WaveEvent.make(72.0, K.METAL_WALL),
+		WaveEvent.make(82.0, K.COMETS, {"count": 3}),
+		WaveEvent.make(92.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(92.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(104.0, K.INVERT, {"duration": 8.0}),
+		WaveEvent.make(118.0, K.DENSITY, {"density": 1.05, "metals": true, "wells": 0.15, "portals": 0.15,
+				"moving": 0.25, "turrets": 0.15, "mines": 0.1}),
+		WaveEvent.make(126.0, K.GATES, {"count": 2}),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "O centro da Fenda desperta...", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "rift_core"}),
+	])
+	return s
 
 
 ## Setor 7 — Estação Abandonada: portões de laser no compasso, paredes móveis, blecaute; chefe Sentinela.

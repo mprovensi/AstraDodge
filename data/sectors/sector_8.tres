@@ -1,0 +1,139 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_vdmle"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_sbs21"]
+
+[sub_resource type="Resource" id="Resource_sottq"]
+script = ExtResource("1_vdmle")
+kind = 1
+density = 0.8
+
+[sub_resource type="Resource" id="Resource_gj1kg"]
+script = ExtResource("1_vdmle")
+at = 0.5
+duration = 2.5
+text = "SETOR 8
+Fenda Gravitacional"
+
+[sub_resource type="Resource" id="Resource_rq5td"]
+script = ExtResource("1_vdmle")
+at = 5.0
+kind = 1
+density = 0.8
+wells = 0.15
+
+[sub_resource type="Resource" id="Resource_gt0kn"]
+script = ExtResource("1_vdmle")
+at = 5.0
+duration = 4.0
+text = "Poços gravitacionais puxam a nave
+e curvam os seus tiros"
+
+[sub_resource type="Resource" id="Resource_xqht1"]
+script = ExtResource("1_vdmle")
+at = 25.0
+kind = 1
+density = 0.85
+wells = 0.12
+portals = 0.15
+
+[sub_resource type="Resource" id="Resource_ulvyi"]
+script = ExtResource("1_vdmle")
+at = 25.0
+duration = 4.0
+text = "Portais: a rocha que entra no ciano
+sai pelo magenta!"
+
+[sub_resource type="Resource" id="Resource_v0ehw"]
+script = ExtResource("1_vdmle")
+at = 45.0
+kind = 18
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_hwhqp"]
+script = ExtResource("1_vdmle")
+at = 62.0
+kind = 1
+density = 0.95
+moving = 0.2
+ice = 0.2
+swarm = 0.1
+wells = 0.12
+portals = 0.12
+
+[sub_resource type="Resource" id="Resource_cge04"]
+script = ExtResource("1_vdmle")
+at = 72.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_esg1o"]
+script = ExtResource("1_vdmle")
+at = 82.0
+kind = 12
+count = 3
+
+[sub_resource type="Resource" id="Resource_xru8c"]
+script = ExtResource("1_vdmle")
+at = 92.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_ioakf"]
+script = ExtResource("1_vdmle")
+at = 92.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_w5f1i"]
+script = ExtResource("1_vdmle")
+at = 104.0
+kind = 18
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_8icpx"]
+script = ExtResource("1_vdmle")
+at = 118.0
+kind = 1
+density = 1.05
+moving = 0.25
+mines = 0.1
+turrets = 0.15
+wells = 0.15
+portals = 0.15
+
+[sub_resource type="Resource" id="Resource_yog1t"]
+script = ExtResource("1_vdmle")
+at = 126.0
+kind = 15
+count = 2
+
+[sub_resource type="Resource" id="Resource_ptikp"]
+script = ExtResource("1_vdmle")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_mr4n4"]
+script = ExtResource("1_vdmle")
+at = 140.0
+duration = 3.0
+text = "O centro da Fenda desperta..."
+
+[sub_resource type="Resource" id="Resource_lryo5"]
+script = ExtResource("1_vdmle")
+at = 144.0
+kind = 7
+text = "rift_core"
+
+[resource]
+script = ExtResource("2_sbs21")
+id = "sector_8"
+number = 8
+title = "SETOR 8"
+subtitle = "Fenda Gravitacional"
+difficulty_start = 0.7
+difficulty_end = 1.0
+events = Array[ExtResource("1_vdmle")]([SubResource("Resource_sottq"), SubResource("Resource_gj1kg"), SubResource("Resource_rq5td"), SubResource("Resource_gt0kn"), SubResource("Resource_xqht1"), SubResource("Resource_ulvyi"), SubResource("Resource_v0ehw"), SubResource("Resource_hwhqp"), SubResource("Resource_cge04"), SubResource("Resource_esg1o"), SubResource("Resource_xru8c"), SubResource("Resource_ioakf"), SubResource("Resource_w5f1i"), SubResource("Resource_8icpx"), SubResource("Resource_yog1t"), SubResource("Resource_ptikp"), SubResource("Resource_mr4n4"), SubResource("Resource_lryo5")])
+music = "sector8"
+nebula_a = Color(0.03, 0.02, 0.05, 1)
+nebula_b = Color(0.3, 0.05, 0.26, 1)

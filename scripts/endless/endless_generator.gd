@@ -21,8 +21,8 @@ const BOSS_HP_STEP := 0.15        ## +15% a cada repetição do mesmo chefe (at�
 
 ## Um bloco de construção: tipo de evento, custo e de quais biomas (índice do setor) ele é.
 const BLOCKS := [
-	{"kind": WaveEvent.Kind.DUST_RAIN, "cost": 0, "biomes": [0, 1, 2, 3, 4, 5, 6]},
-	{"kind": WaveEvent.Kind.METAL_WALL, "cost": 2, "biomes": [0, 1, 2, 3, 4, 5, 6]},
+	{"kind": WaveEvent.Kind.DUST_RAIN, "cost": 0, "biomes": [0, 1, 2, 3, 4, 5, 6, 7]},
+	{"kind": WaveEvent.Kind.METAL_WALL, "cost": 2, "biomes": [0, 1, 2, 3, 4, 5, 6, 7]},
 	{"kind": WaveEvent.Kind.CORRIDOR, "cost": 3, "biomes": [1]},
 	{"kind": WaveEvent.Kind.STORM, "cost": 3, "biomes": [2]},
 	{"kind": WaveEvent.Kind.DRONES, "cost": 2, "biomes": [3]},
@@ -33,6 +33,7 @@ const BLOCKS := [
 	{"kind": WaveEvent.Kind.GATES, "cost": 3, "biomes": [6]},
 	{"kind": WaveEvent.Kind.SLIDE, "cost": 3, "biomes": [6]},
 	{"kind": WaveEvent.Kind.BLACKOUT, "cost": 2, "biomes": [6]},
+	{"kind": WaveEvent.Kind.INVERT, "cost": 3, "biomes": [7]},
 ]
 
 var biomes: Array[int] = []       ## setores liberados (índices em SECTORS)
@@ -150,6 +151,9 @@ func _climate(biome: int, d: float, mix: int) -> Dictionary:
 			6:
 				c["moving"] = maxf(c.get("moving", 0.0), (0.2 + 0.15 * d) * k)
 				c["turrets"] = maxf(c.get("turrets", 0.0), (0.15 + 0.1 * d) * k)
+			7:
+				c["wells"] = maxf(c.get("wells", 0.0), (0.15 + 0.1 * d) * k)
+				c["portals"] = maxf(c.get("portals", 0.0), (0.15 + 0.1 * d) * k)
 	return c
 
 
@@ -193,6 +197,8 @@ func _block_events(block: Dictionary, at: float, d: float) -> Array[WaveEvent]:
 			ev.append(WaveEvent.make(at, K.SLIDE, {"count": 2 if d < 0.5 else 3}))
 		K.BLACKOUT:
 			ev.append(WaveEvent.make(at, K.BLACKOUT, {"duration": 6.0}))
+		K.INVERT:
+			ev.append(WaveEvent.make(at, K.INVERT, {"duration": 6.0}))
 		K.DRONES:
 			if block.get("ambush", false):
 				ev.append(WaveEvent.make(at, K.DRONES, {"count": 5, "text": "EMBOSCADA!"}))

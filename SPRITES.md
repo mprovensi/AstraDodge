@@ -47,6 +47,7 @@ e colocá-los no jogo sem quebrar nada.
 | `boss_ice_colossus.png` | 512×512 | bloco de gelo gigante **redondo** (~94% do raio) | núcleo no **centro** (256,256), encaixe ~160 px; as placas em volta o jogo desenha |
 | `boss_hive_queen.png` | 512×512 | inseto rainha visto de cima, **cabeça para BAIXO**: abdômen em cima, tórax no centro, cabeça embaixo | coração no **centro** (256,256), encaixe ~120 px; corpo: abdômen centro (256,130) raio ~110, tórax raio ~120, cabeça centro (256,398) raio ~65 |
 | `boss_sentinel.png` | 512×512 | núcleo de IA **octogonal** de aço, preso ao teto (cabos em cima) | olho no **centro** (256,256), encaixe ~110 px; corpo: círculo de raio ~200 px; braços e drones o jogo desenha |
+| `boss_rift_core.png` | 512×512 | esfera escura de matéria distorcida com **borda magenta** e rachaduras de luz (~88% do raio) | núcleo no **centro** (256,256), encaixe ~110 px; halo giratório o jogo desenha |
 
 O jogo **desenha por cima** (não precisam estar na imagem): núcleos/olhos dos chefes,
 tentáculos da Medusa, canhões/lançador/ponte do Cruzador, chamas dos motores, escudo da nave.
@@ -193,4 +194,15 @@ grafite (ocupa ~90% da imagem), faixas de alarme vermelhas em cima e embaixo, re
 painéis nas laterais, cabos saindo do topo (preso ao teto), luzes de status.
 No CENTRO (256,256), um encaixe circular escuro de ~110 px com aro claro e anel tracejado
 vermelho (o jogo desenha o olho). Braços-canhão e drones são desenhados pelo jogo.
+```
+
+## Prompts prontos — Setor 8
+
+### Chefe final — Núcleo da Fenda — `boss_rift_core.png`
+```
+Sprite 2D de chefe FINAL para jogo mobile. PNG 512x512, fundo TRANSPARENTE.
+Esfera de energia escura (quase preta, roxo profundo) centralizada, ~88% do raio, como um
+buraco na realidade: borda brilhante MAGENTA com um leve branco na beirada, rachaduras de
+luz branco-rosada saindo da borda. No CENTRO (256,256), um encaixe circular escuro de ~110 px
+com aro claro e um anel tracejado magenta (o jogo desenha o núcleo e o halo girando).
 ```
