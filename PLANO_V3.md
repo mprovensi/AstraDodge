@@ -147,16 +147,16 @@ A recomendação é **procedural onde ele brilha e roteirizado onde a qualidade 
 
 ## 5. Roadmap
 
-O Infinito vem **antes** dos setores novos: reaproveita os 4 setores prontos, já dá rejogabilidade para os testadores, e o gerador de blocos facilita montar os setores 5–8.
+O Infinito (S7) veio **antes** dos setores novos: reaproveita os 4 setores prontos e o gerador de blocos facilita montar os setores 5–8. Depois dele, **os setores novos vêm antes do Desafio do Dia** (decisão de 04/11/2026).
 
 | Sprint | Entrega | Pronto quando |
 |---|---|---|
 | **S7 — Infinito procedural** | catálogo de blocos, orçamento, biomas 1–4, chefe a cada 3 min, recordes, item no menu | 100 sementes passam no teste; recorde salvo |
-| **S8 — Desafio do Dia** | semente diária, tentativa valendo, tela de estatísticas | mesma sequência em 2 aparelhos |
-| **S9 — Setor 5 (Anel Glacial)** | gelo que racha, cometas, Colosso de Gelo (reflexo de tiros) | setores 1–5 completos |
-| **S10 — Setor 6 (Colmeia)** | enxame, ovos, Rainha da Colmeia | setores 1–6 completos |
-| **S11 — Setor 7 (Estação)** | portões no ritmo, paredes móveis, blecaute, Sentinela | setores 1–7 completos |
-| **S12 — Setor 8 + final** | gravidade, portais, inversão, Núcleo da Fenda, cena de fuga | campanha completa |
+| **S8 — Setor 5 (Anel Glacial)** | gelo que racha, cometas, Colosso de Gelo (reflexo de tiros) | setores 1–5 completos |
+| **S9 — Setor 6 (Colmeia)** | enxame, ovos, Rainha da Colmeia | setores 1–6 completos |
+| **S10 — Setor 7 (Estação)** | portões no ritmo, paredes móveis, blecaute, Sentinela | setores 1–7 completos |
+| **S11 — Setor 8 + final** | gravidade, portais, inversão, Núcleo da Fenda, cena de fuga | campanha completa |
+| **S12 — Desafio do Dia** | semente diária, tentativa valendo, multiplicador sem dano, tela de estatísticas | mesma sequência em 2 aparelhos |
 | **S13 — Polimento** | skins, modificadores, volumes 0–100%, balanceamento com testadores, loja | release |
 
 Cada setor novo também entra no Infinito como bioma assim que fica pronto.
@@ -171,7 +171,7 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 
 ## 6. Decisões em aberto
 1. Liberar o Infinito após o Setor 2 (recomendado) ou só após zerar a campanha?
-2. Ordem: Infinito primeiro (recomendado) ou setores primeiro?
+2. ~~Ordem~~ — decidido: Infinito (S7), depois setores 5–8, depois Desafio do Dia.
 3. Placar online (Google Play Games) no lançamento ou depois?
 4. Os temas dos setores 5–7 (Gelo, Colmeia, Estação) estão bons ou prefere outros?
 
@@ -187,4 +187,4 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Botão INFINITO no menu ao completar o Setor 2; fim de jogo com tempo, chefes e recordes (pontos e tempo); o Infinito não mexe no "Continuar" da campanha
 - [x] Testes: 100 sementes x 15 min (ritmo, calmaria antes do chefe, todos os chefes aparecem), partida real com 2 chefes e troca de bioma; demo `--infinito`
 - [ ] Chefes mais rápidos a cada repetição — adiado: acelerar o chefe encurta os avisos (precisa de ajuste em cada chefe); por ora a repetição aumenta a vida
-- [ ] Multiplicador de pontos sem dano — fica para o S8 junto com o Desafio do Dia
+- [ ] Multiplicador de pontos sem dano — fica para o S12 junto com o Desafio do Dia
