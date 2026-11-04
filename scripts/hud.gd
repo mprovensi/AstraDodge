@@ -5,6 +5,7 @@ extends CanvasLayer
 
 signal resume_pressed
 signal campaign_pressed
+signal endless_pressed
 signal restart_pressed
 signal continue_pressed
 signal menu_pressed
@@ -229,6 +230,7 @@ func _ready() -> void:
 
 	_add_center_button("resume", "CONTINUAR", resume_pressed.emit)
 	_add_center_button("campaign", "JOGAR", campaign_pressed.emit)
+	_add_center_button("endless", "INFINITO", endless_pressed.emit)
 	_add_center_button("next", "PRÓXIMO SETOR", next_pressed.emit)
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
@@ -328,8 +330,10 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 
 ## `can_resume`: existe um ponto salvo. Com ponto salvo o 1º botão é CONTINUAR;
 ## sem ele, JOGAR (começa do Setor 1). NOVO JOGO fica em Opções.
-func show_menu(can_resume: bool) -> void:
+func show_menu(can_resume: bool, endless_unlocked := false) -> void:
 	var buttons := ["resume" if can_resume else "campaign", "options", "quit"]
+	if endless_unlocked:
+		buttons.append("endless")  # liberado ao completar o Setor 2
 	_show("ASTRA DODGE", "", "", buttons)
 	_top.visible = false  # pontuação/barras só fazem sentido durante uma partida
 
@@ -345,12 +349,13 @@ func show_paused() -> void:
 	_dim.visible = true
 
 
-func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) -> void:
+## `info`: linha de baixo (o Infinito mostra tempo, chefes e recordes); vazio = "RECORDE n".
+func show_game_over(score: int, best: int, is_record: bool, can_continue: bool, info := "") -> void:
 	var buttons := ["restart", "continue", "menu"] if can_continue else ["restart", "menu"]
 	_show(
 		"FIM DE JOGO",
 		("NOVO RECORDE! %d" if is_record else "PONTOS %d") % score,
-		"RECORDE %d" % best,
+		info if info != "" else "RECORDE %d" % best,
 		buttons)
 	_dim.visible = true
 

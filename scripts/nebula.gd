@@ -22,12 +22,40 @@ func resize(size: Vector2) -> void:
 	queue_redraw()
 
 
+const FADE_TIME := 3.0  # troca de bioma no Infinito: as cores mudam devagar
+
+var _color_a := Color.BLACK
+var _color_b := Color.BLACK
+var _from_a := Color.BLACK
+var _from_b := Color.BLACK
+var _fade := 1.0  # 0 → 1 durante a transição
+
+
 func set_colors(a: Color, b: Color) -> void:
+	_color_a = a
+	_color_b = b
+	_fade = 1.0
+	_apply(a, b)
+
+
+## Troca de cor suave (bioma novo).
+func fade_to(a: Color, b: Color) -> void:
+	_from_a = _material.get_shader_parameter("color_a")
+	_from_b = _material.get_shader_parameter("color_b")
+	_color_a = a
+	_color_b = b
+	_fade = 0.0
+
+
+func _apply(a: Color, b: Color) -> void:
 	_material.set_shader_parameter("color_a", a)
 	_material.set_shader_parameter("color_b", b)
 
 
 func update(dt: float, speed: float) -> void:
+	if _fade < 1.0:
+		_fade = minf(1.0, _fade + dt / FADE_TIME)
+		_apply(_from_a.lerp(_color_a, _fade), _from_b.lerp(_color_b, _fade))
 	_scroll += speed * SCROLL_FACTOR * dt / maxf(view_size.y, 1.0)
 	_material.set_shader_parameter("scroll", _scroll)
 

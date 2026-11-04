@@ -86,7 +86,7 @@ Igual ao Setor 5 do v2:
 - O jogo é uma sequência sem fim de **trechos** de 20–40 s gerados proceduralmente (ver seção 4).
 - A cada ~90 s o **bioma muda** (troca de nebulosa e música) entre os **setores já liberados**, usando as mecânicas de cada um.
 - A dificuldade sobe sem parar (velocidade, densidade, mistura de mecânicas).
-- **A cada 3 minutos:** um **chefe sorteado** entre os já derrotados, com vida reduzida (~60%) e mais rápido a cada repetição. Vencer dá orbes e cristais.
+- **A cada 3 minutos:** um **chefe sorteado** entre os já derrotados, com vida reduzida (~60%), que volta mais forte (mais vida) a cada repetição. Vencer dá orbes e cristais.
 - A arma começa no nível 1 e sobe normalmente. Não há checkpoint: morreu, acabou.
 
 ### 3.2 Pontuação e metas
@@ -174,3 +174,17 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 2. Ordem: Infinito primeiro (recomendado) ou setores primeiro?
 3. Placar online (Google Play Games) no lançamento ou depois?
 4. Os temas dos setores 5–7 (Gelo, Colmeia, Estação) estão bons ou prefere outros?
+
+---
+
+## Status
+
+**S7 — Infinito procedural: concluído (04/11/2026)**
+- [x] `EndlessGenerator` (`scripts/endless/endless_generator.gd`): trechos de 30 s com blocos (chuva, paredão, corredor, tempestade, drones, emboscada), orçamento crescente, nada de dois blocos pesados seguidos, mistura de biomas no fim, semente reproduzível
+- [x] `SectorDirector` aceita um gerador: a linha do tempo cresce sob demanda e para durante o chefe
+- [x] Biomas a cada 90 s entre os setores completos (nebulosa muda suave + trilha do setor)
+- [x] Chefe a cada 3 min (sorteado entre os derrotados, nunca o mesmo seguido); 1ª aparição com 60% da vida, +15% a cada repetição
+- [x] Botão INFINITO no menu ao completar o Setor 2; fim de jogo com tempo, chefes e recordes (pontos e tempo); o Infinito não mexe no "Continuar" da campanha
+- [x] Testes: 100 sementes x 15 min (ritmo, calmaria antes do chefe, todos os chefes aparecem), partida real com 2 chefes e troca de bioma; demo `--infinito`
+- [ ] Chefes mais rápidos a cada repetição — adiado: acelerar o chefe encurta os avisos (precisa de ajuste em cada chefe); por ora a repetição aumenta a vida
+- [ ] Multiplicador de pontos sem dano — fica para o S8 junto com o Desafio do Dia

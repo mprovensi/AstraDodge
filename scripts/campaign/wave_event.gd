@@ -14,6 +14,7 @@ enum Kind {
 	CORRIDOR,    ## `duration` s de paredes seguidas com a brecha andando pouco (aviso na 1ª)
 	STORM,       ## `duration` s de tempestade: raios em colunas, cada um avisado antes
 	DRONES,      ## formação em V de `count` drones entrando pelo topo
+	BIOME,       ## (Modo Infinito) troca de cenário: `count` = índice do setor (nebulosa + trilha)
 }
 
 @export var at := 0.0                ## segundos desde o início do setor

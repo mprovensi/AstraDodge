@@ -17,15 +17,25 @@ var finished := false
 var music_track := "main"  # última trilha pedida pela linha do tempo (para o "Continuar")
 var boss_id := ""          # chefe já anunciado neste setor (o "Continuar" recomeça a luta)
 
+## Modo Infinito: a linha do tempo não vem do .tres, é gerada sob demanda por aqui.
+var generator: EndlessGenerator
+
 var _events: Array[WaveEvent] = []
 var _next := 0
 
 
-func _init(data: SectorData) -> void:
+func _init(data: SectorData, endless_generator: EndlessGenerator = null) -> void:
 	sector = data
 	music_track = data.music
+	generator = endless_generator
 	_events = data.events.duplicate()
-	_events.sort_custom(func(a: WaveEvent, b: WaveEvent) -> bool: return a.at < b.at)
+	if generator != null:
+		_events.append_array(generator.generate_until(0.0))
+	_events.sort_custom(_by_time)
+
+
+static func _by_time(a: WaveEvent, b: WaveEvent) -> bool:
+	return a.at < b.at
 
 
 func progress() -> float:
@@ -33,7 +43,20 @@ func progress() -> float:
 
 
 func difficulty() -> float:
+	if generator != null:
+		return EndlessGenerator.difficulty(time)
 	return sector.difficulty_at(time)
+
+
+## Acrescenta à linha do tempo os trechos gerados que faltam (só no Modo Infinito).
+func _extend() -> void:
+	if generator == null or generator.generated_until > time + EndlessGenerator.CHUNK:
+		return
+	var rest := _events.slice(_next)
+	rest.append_array(generator.generate_until(time))
+	rest.sort_custom(_by_time)
+	_events = rest
+	_next = 0
 
 
 ## Pula direto para o tempo `t` (continuar de onde parou): aplica o "clima" dos
@@ -67,6 +90,7 @@ func seek(t: float) -> void:
 ## Avança o tempo e devolve os eventos que dispararam neste passo.
 func update(dt: float) -> Array[WaveEvent]:
 	time += dt
+	_extend()
 	rain_left = maxf(0.0, rain_left - dt)
 	calm_left = maxf(0.0, calm_left - dt)
 	var fired: Array[WaveEvent] = []

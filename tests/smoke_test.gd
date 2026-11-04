@@ -32,6 +32,8 @@ func _run() -> void:
 	_test_sector2()
 	_test_sector3()
 	_test_sector4()
+	_test_endless_generator()
+	_test_endless_run()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -479,6 +481,128 @@ func _test_checkpoint() -> void:
 	assert(main.state == main.State.READY and main.director.time == 0.0, "2º toque começa do zero")
 	assert(game.checkpoint.is_empty(), "novo jogo descarta o ponto salvo")
 	print("CONTINUAR OK | voltou em %.1fs do setor, pontos=%d, arma=%d" % [saved_time, saved_score, saved_weapon])
+
+
+## Infinito procedural: mesma semente = mesma partida; 100 sementes respeitam as regras de ritmo.
+func _test_endless_generator() -> void:
+	var K := WaveEvent.Kind
+	var biomes: Array[int] = [0, 1, 2, 3]
+	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser"]
+	var horizon := 900.0  # 15 min de linha do tempo
+	var a := _endless_timeline(42, biomes, bosses, horizon)
+	var b := _endless_timeline(42, biomes, bosses, horizon)
+	assert(a == b, "mesma semente deveria gerar a mesma partida")
+	assert(a != _endless_timeline(43, biomes, bosses, horizon), "sementes diferentes, partidas diferentes")
+
+	var boss_count := {}
+	var heavy_total := 0
+	for seed_value in 100:
+		var gen := EndlessGenerator.new(seed_value, main.SECTORS, biomes, bosses)
+		var events := gen.generate_until(horizon)
+		events.sort_custom(func(x: WaveEvent, y: WaveEvent) -> bool: return x.at < y.at)
+		var last_heavy := -INF
+		var boss_times: Array[float] = []
+		var last_boss := ""
+		for e in events:
+			var heavy := e.kind == K.CORRIDOR or e.kind == K.STORM or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
+			if heavy:
+				assert(e.at - last_heavy >= 18.0, "semente %d: dois blocos pesados seguidos (%.1fs)" % [seed_value, e.at])
+				assert(e.duration <= 8.5, "bloco pesado longo demais")
+				last_heavy = e.at
+				heavy_total += 1
+			if e.kind == K.BIOME:
+				assert(e.count in biomes, "bioma não liberado")
+			if e.kind == K.BOSS:
+				assert(e.text in bosses)
+				assert(e.text != last_boss, "o mesmo chefe duas vezes seguidas")
+				last_boss = e.text
+				boss_count[e.text] = boss_count.get(e.text, 0) + 1
+				boss_times.append(e.at)
+		assert(boss_times.size() == int(horizon / EndlessGenerator.BOSS_EVERY), "um chefe a cada 3 min")
+		# Antes do chefe: calmaria (nenhum bloco começa na janela de limpeza da tela).
+		for t in boss_times:
+			for e in events:
+				if e.kind in [K.METAL_WALL, K.CORRIDOR, K.STORM, K.DRONES, K.DUST_RAIN]:
+					assert(e.at < t - EndlessGenerator.BOSS_CALM - 0.5 or e.at > t,
+							"semente %d: bloco em %.1fs atrapalha a entrada do chefe" % [seed_value, e.at])
+	for id in bosses:
+		assert(boss_count.get(id, 0) > 0, "o chefe %s deveria aparecer" % id)
+	# Sem chefes liberados (só o bioma 1): nenhum chefe, nenhuma troca de cenário.
+	var only_first: Array[int] = [0]
+	var no_bosses: Array[String] = []
+	var solo := _endless_timeline(1, only_first, no_bosses, 400.0)
+	assert(not solo.any(func(s: String) -> bool: return s.begins_with("%d:" % K.BOSS)))
+	print("INFINITO PROCEDURAL OK | 100 sementes x 15 min | chefes=%s | blocos pesados=%d" % [
+		str(boss_count), heavy_total])
+
+
+## Linha do tempo como texto comparável ("tipo:tempo:count:texto").
+func _endless_timeline(seed_value: int, biomes: Array[int], bosses: Array[String], horizon: float) -> Array[String]:
+	var gen := EndlessGenerator.new(seed_value, main.SECTORS, biomes, bosses)
+	var out: Array[String] = []
+	for e in gen.generate_until(horizon):
+		out.append("%d:%.2f:%d:%s" % [e.kind, e.at, e.count, e.text])
+	return out
+
+
+## Partida do Infinito de verdade: troca de bioma, 2 chefes (com vida reduzida), fim de jogo
+## com recorde de tempo — e o ponto salvo da campanha não é tocado.
+func _test_endless_run() -> void:
+	var game := root.get_node("Game")
+	var sfx := root.get_node("Sfx")
+	main.go_to_menu()
+	assert(game.endless_unlocked(), "Setor 2 completo libera o Infinito")
+	assert(main.hud._buttons["endless"].visible, "botão INFINITO no menu")
+	var saved_cp := {"sector": 2, "time": 33.0, "weapon": 3}
+	game.checkpoint = saved_cp.duplicate()
+	main.endless_seed = 7
+	main.endless_biomes.assign([0, 1, 2, 3])
+	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser"])
+	main.start_endless()
+	assert(main.state == main.State.READY and main.mode == main.Mode.ENDLESS)
+	_touch(true)
+	var biomes_seen := {}
+	var boss_hp := []
+	var frames := 0
+	var boss_frames := 0
+	while main.bosses_defeated < 2 and frames < 60 * 600:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if boss_frames == 0:
+				boss_hp.append(boss.max_hp)
+				main.ship.weapon_level = maxi(main.ship.weapon_level, 3)
+			boss_frames += 1
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		else:
+			boss_frames = 0
+			if frames % 20 == 0:
+				_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		biomes_seen[main._biome] = true
+		frames += 1
+	assert(main.bosses_defeated >= 2, "o Infinito deveria trazer chefes (derrotados: %d)" % main.bosses_defeated)
+	assert(biomes_seen.size() >= 2, "o cenário deveria trocar de bioma")
+	assert(boss_hp[0] < 235, "1ª aparição do chefe com vida reduzida")
+	for i in 240:  # crossfade de volta
+		main.ship.invuln = 1.0
+		main._process(DT)
+	assert(sfx.current_track() == main.SECTORS[main._biome].music, "depois do chefe volta a trilha do bioma")
+	# Fim de jogo: recorde de tempo salvo, checkpoint da campanha intacto.
+	var t: float = main.elapsed
+	main.ship.invuln = 0.0
+	main._on_ship_died()
+	for i in 120:
+		main._process(DT)
+	assert(main.state == main.State.GAME_OVER)
+	assert(game.endless_best_time >= t - 1.0, "recorde de tempo do Infinito")
+	assert(game.checkpoint == saved_cp, "o Infinito não mexe no ponto salvo da campanha")
+	print("INFINITO PARTIDA OK | %.0fs | biomas=%s | chefes=%d (vida %s) | recorde tempo=%.0fs" % [
+		t, str(biomes_seen.keys()), main.bosses_defeated, str(boss_hp), game.endless_best_time])
+	main.endless_seed = -1
+	main.endless_biomes.clear()
+	main.endless_bosses.clear()
+	game.checkpoint = {}
 
 
 func _test_music() -> void:

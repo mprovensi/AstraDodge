@@ -11,6 +11,7 @@ extends SceneTree
 ##   --chefe            começa direto no ALERTA do chefe do setor
 ##   --mortal           sem escudo infinito (a nave pode morrer; recomeça sozinha)
 ##   --arma=2           nível inicial da arma (1–5)
+##   --infinito         Modo Infinito procedural (todos os biomas e chefes liberados)
 ##
 ## O piloto automático foge de metálicos, tiros, avisos vermelhos e do corpo do chefe,
 ## e procura poeira para atirar (ou o ponto fraco do chefe).
@@ -25,6 +26,7 @@ var sector := 1
 var start_time := 0.0
 var mortal := false
 var weapon := 2
+var endless := false
 var _frame := 0
 var _clear_wait := 0.0
 var _label: Label
@@ -53,6 +55,8 @@ func _parse_args() -> void:
 				start_time = -1.0
 			"mortal":
 				mortal = true
+			"infinito":
+				endless = true
 			"arma":
 				weapon = clampi(int(kv[1]), 1, 5)
 
@@ -103,6 +107,13 @@ func _tick() -> void:
 
 func _start_sector(number: int) -> void:
 	Engine.time_scale = speed
+	if endless:
+		main.endless_biomes.assign([0, 1, 2, 3])
+		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser"])
+		main.start_endless()
+		main.ship.weapon_level = weapon
+		_touch()
+		return
 	var index := clampi(number - 1, 0, main.SECTORS.size() - 1)
 	var t := start_time
 	if t < 0.0:

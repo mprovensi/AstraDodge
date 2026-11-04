@@ -64,6 +64,12 @@ var _corridor_timer := 0.0      # s até a próxima parede do corredor
 var _corridor_walls := 0        # paredes já criadas no corredor atual
 var _storm_left := 0.0          # s restantes da TEMPESTADE
 var _storm_timer := 0.0         # s até o próximo raio
+var _biome := 0                 # setor cujo cenário está na tela (no Infinito, troca sozinho)
+# Modo Infinito
+var bosses_defeated := 0
+var endless_seed := -1                  # >= 0: semente fixa (testes, Desafio do Dia)
+var endless_biomes: Array[int] = []     # testes: força os biomas liberados
+var endless_bosses: Array[String] = []  # testes: força os chefes liberados
 
 
 func _ready() -> void:
@@ -102,6 +108,7 @@ func _ready() -> void:
 	ship.fired.connect(func() -> void: Sfx.play("laser", -12.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
+	hud.endless_pressed.connect(start_endless)
 	hud.new_game_pressed.connect(start_new_game)
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
@@ -188,8 +195,8 @@ func _process(delta: float) -> void:
 func go_to_menu() -> void:
 	_touch_index = -1
 	mode = Mode.ENDLESS
-	director = null
 	_new_run()
+	director = null  # o menu não roda linha do tempo
 	ship.visible = false
 	hud.clear_hint()
 	_set_state(State.MENU)
@@ -200,6 +207,12 @@ func start_new_game() -> void:
 	_touch_index = -1
 	Game.clear_checkpoint()
 	start_mode(Mode.CAMPAIGN)
+
+
+## Modo Infinito: nova semente a cada partida (o ponto salvo da campanha não é tocado).
+func start_endless() -> void:
+	_touch_index = -1
+	start_mode(Mode.ENDLESS)
 
 
 func start_mode(new_mode: Mode, index := 0) -> void:
@@ -228,6 +241,7 @@ func _new_run() -> void:
 	telegraph.clear()
 	hazards.clear()
 	_storm_left = 0.0
+	bosses_defeated = 0
 	bullets.clear()
 	pickups.clear()
 	fx.clear()
@@ -235,11 +249,34 @@ func _new_run() -> void:
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
-		nebula.set_colors(director.sector.nebula_a, director.sector.nebula_b)
-		Sfx.play_music(director.sector.music)
+		_biome = sector_index
 	else:
-		director = null
-		Sfx.play_music("main")
+		director = _make_endless_director()
+		_biome = director.generator.biomes[0]
+	nebula.set_colors(SECTORS[_biome].nebula_a, SECTORS[_biome].nebula_b)
+	Sfx.play_music(SECTORS[_biome].music)
+
+
+## Infinito: biomas = setores completos; chefes = os desses setores (ver PLANO_V3.md, seção 3).
+func _make_endless_director() -> SectorDirector:
+	var biomes: Array[int] = []
+	var boss_ids: Array[String] = []
+	for i in SECTORS.size():
+		if Game.sectors_cleared.has(SECTORS[i].id):
+			biomes.append(i)
+			for e in SECTORS[i].events:
+				if e.kind == WaveEvent.Kind.BOSS:
+					boss_ids.append(e.text)
+	if not endless_biomes.is_empty():
+		biomes = endless_biomes
+	if not endless_bosses.is_empty():
+		boss_ids = endless_bosses
+	var data := SectorData.new()
+	data.id = "endless"
+	data.title = "MODO INFINITO"
+	data.duration = 1.0e9
+	var seed_value := endless_seed if endless_seed >= 0 else randi()
+	return SectorDirector.new(data, EndlessGenerator.new(seed_value, SECTORS, biomes, boss_ids))
 
 
 ## Volta ao ponto salvo: mesmo setor e momento, mesma pontuação, escudo e arma.
@@ -299,7 +336,7 @@ func _on_quit() -> void:
 
 
 func _ready_title() -> String:
-	return director.sector.title if mode == Mode.CAMPAIGN else "MODO INFINITO"
+	return director.sector.title
 
 
 func _best_for_mode() -> int:
@@ -344,7 +381,7 @@ func _set_state(new_state: State) -> void:
 	state = new_state
 	match new_state:
 		State.MENU:
-			hud.show_menu(not Game.checkpoint.is_empty())
+			hud.show_menu(not Game.checkpoint.is_empty(), Game.endless_unlocked())
 		State.READY:
 			hud.show_ready(_ready_title())
 		State.PLAYING:
@@ -359,13 +396,16 @@ func _set_state(new_state: State) -> void:
 			_touch_index = -1
 			_state_timer = DYING_TIME
 		State.GAME_OVER:
-			Game.clear_checkpoint()  # a partida acabou: não há de onde continuar
-			var is_record: bool
 			if mode == Mode.CAMPAIGN:
-				is_record = Game.submit_sector(director.sector.id, score, false)
+				Game.clear_checkpoint()  # a partida acabou: não há de onde continuar
+				var is_record := Game.submit_sector(director.sector.id, score, false)
+				hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
 			else:
-				is_record = Game.submit_score(score)
-			hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
+				var records := Game.submit_endless(score, elapsed)
+				var info := "TEMPO %s%s · CHEFES %d\nRECORDE %d · %s" % [
+					_clock(elapsed), "  NOVO!" if records[1] else "", bosses_defeated,
+					Game.high_score, _clock(Game.endless_best_time)]
+				hud.show_game_over(score, Game.high_score, records[0], not _revive_used, info)
 		State.SECTOR_CLEAR:
 			_touch_index = -1
 			# Próximo setor liberado: o "Continuar" do menu já leva para ele, com a arma atual.
@@ -390,8 +430,10 @@ func _step(dt: float) -> void:
 		elapsed += dt
 
 	var difficulty: float
-	if mode == Mode.CAMPAIGN:
-		if ship.alive:
+	if director != null:
+		# No Infinito a linha do tempo para durante o chefe (o próximo trecho espera a luta acabar).
+		var boss_busy := mode == Mode.ENDLESS and (boss != null or _alert_timer >= 0.0)
+		if ship.alive and not boss_busy:
 			for e in director.update(dt):
 				_on_wave_event(e)
 		difficulty = director.difficulty()
@@ -452,6 +494,11 @@ func _on_wave_event(e: WaveEvent) -> void:
 			hud.show_hint(e.text, e.duration if e.duration > 0.0 else 3.5)
 		WaveEvent.Kind.MUSIC:
 			Sfx.play_music(e.text)
+		WaveEvent.Kind.BIOME:
+			_biome = clampi(e.count, 0, SECTORS.size() - 1)
+			nebula.fade_to(SECTORS[_biome].nebula_a, SECTORS[_biome].nebula_b)
+			if boss == null and _alert_timer < 0.0:
+				Sfx.play_music(SECTORS[_biome].music)
 		WaveEvent.Kind.BOSS:
 			_begin_boss_alert(e.text)
 		WaveEvent.Kind.METAL_WALL:
@@ -793,6 +840,9 @@ func _spawn_boss(boss_id: String) -> void:
 		_:
 			push_error("chefe desconhecido: " + boss_id)
 			return
+	if director.generator != null:
+		# Infinito: luta mais curta na 1ª aparição; cada repetição volta com mais vida.
+		boss.max_hp = maxi(1, roundi(boss.max_hp * director.generator.boss_hp_scale(boss_id)))
 	world.add_child(boss)
 	world.move_child(boss, asteroids.get_index() + 1)  # atrás de tiros, pickups da frente e nave
 	boss.setup(view_size, enemy_shots, telegraph, asteroids, fx)
@@ -812,9 +862,16 @@ func _on_boss_defeated() -> void:
 				at.y + randf_range(-80.0, 120.0)), kind)
 	hud.show_hint("%s DERROTADA!" % boss.display_name, 3.0)
 	_clear_boss()
-	Sfx.play_music(director.sector.music)  # volta a trilha do setor
+	Sfx.play_music(SECTORS[_biome].music)  # volta a trilha do setor/bioma
 	Game.vibrate(200)
-	director.finished = true
+	if mode == Mode.CAMPAIGN:
+		director.finished = true  # o setor acaba quando a tela esvaziar
+	else:
+		bosses_defeated += 1      # o Infinito segue: a linha do tempo volta a andar
+
+
+static func _clock(seconds: float) -> String:
+	return "%d:%02d" % [int(seconds) / 60, int(seconds) % 60]
 
 
 func _clear_boss() -> void:
