@@ -18,6 +18,26 @@ const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
 const PAUSE_TOP_MARGIN := 460.0
+const BOSS_BAR_WIDTH := 640.0
+const BOSS_BAR_HEIGHT := 18.0
+
+
+## Três estrelas desenhadas (a fonte padrão não tem o caractere ★).
+class StarsRow extends Control:
+	var earned := 0
+
+	func _draw() -> void:
+		for i in 3:
+			var c := Vector2(size.x * 0.5 + (i - 1) * 130.0, size.y * 0.5)
+			var pts := PackedVector2Array()
+			for j in 10:
+				var r := 52.0 if j % 2 == 0 else 22.0
+				pts.append(c + Vector2.from_angle(-PI / 2.0 + j * PI / 5.0) * r)
+			if i < earned:
+				draw_colored_polygon(pts, Color(1.0, 0.82, 0.25))
+				draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1.0, 0.95, 0.7), 3.0, true)
+			else:
+				draw_polyline(pts + PackedVector2Array([pts[0]]), Color(1, 1, 1, 0.3), 4.0, true)
 const NEW_GAME_CONFIRM_TIME := 3.0  # segundos para o 2º toque confirmar o novo jogo
 
 var _top: VBoxContainer
@@ -39,6 +59,14 @@ var _levelup_timer := 0.0
 var _hint_panel: PanelContainer
 var _hint_label: Label
 var _hint_timer := 0.0
+var _boss_box: VBoxContainer
+var _boss_label: Label
+var _boss_fill: ColorRect
+var _alert_layer: Control
+var _alert_bg: ColorRect
+var _alert_title: Label
+var _stars: StarsRow
+var _star_details: RichTextLabel
 
 var _center: VBoxContainer
 var _center_spacer: Control
@@ -85,6 +113,29 @@ func _ready() -> void:
 	_weapon_fill = _add_fill(weapon_bg, Palette.MAGENTA)
 
 
+	# Barra de vida do chefe (só durante a luta), com marca na troca de fase (50%).
+	_boss_box = VBoxContainer.new()
+	_boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_box.add_theme_constant_override("separation", 4)
+	_boss_box.visible = false
+	_top.add_child(_boss_box)
+	_boss_label = _make_label("", 32, Palette.DANGER)
+	_boss_box.add_child(_boss_label)
+	var boss_bg := ColorRect.new()
+	boss_bg.color = Color(Palette.DANGER, 0.18)
+	boss_bg.custom_minimum_size = Vector2(BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT)
+	boss_bg.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	boss_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_boss_box.add_child(boss_bg)
+	_boss_fill = _add_fill(boss_bg, Palette.DANGER)
+	_boss_fill.size = Vector2(BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT)
+	var mark := ColorRect.new()
+	mark.color = Color(1, 1, 1, 0.7)
+	mark.position = Vector2(BOSS_BAR_WIDTH * 0.5 - 1.5, -4)
+	mark.size = Vector2(3, BOSS_BAR_HEIGHT + 8)
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	boss_bg.add_child(mark)
+
 	_levelup_label = _make_label("", 48, Palette.MAGENTA)
 	_levelup_label.modulate.a = 0.0
 	_top.add_child(_levelup_label)
@@ -110,6 +161,25 @@ func _ready() -> void:
 	_hint_label.add_theme_constant_override("outline_size", 10)
 	_hint_panel.add_child(_hint_label)
 
+	# --- ALERTA de chefe (tela pisca em vermelho) ---
+	_alert_layer = Control.new()
+	_alert_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_alert_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_alert_layer.visible = false
+	root.add_child(_alert_layer)
+	_alert_bg = ColorRect.new()
+	_alert_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_alert_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_alert_layer.add_child(_alert_bg)
+	var alert_box := VBoxContainer.new()
+	alert_box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	alert_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	alert_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_alert_layer.add_child(alert_box)
+	_alert_title = _make_label("ALERTA", 150, Palette.DANGER)
+	alert_box.add_child(_alert_title)
+	alert_box.add_child(_make_label("CHEFE SE APROXIMANDO", 42, Color.WHITE))
+
 	# --- Centro (mensagens e botões) ---
 	_center = VBoxContainer.new()
 	_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -128,6 +198,20 @@ func _ready() -> void:
 	_center.add_child(_title)
 	_subtitle = _make_label("", 40, Color.WHITE)
 	_center.add_child(_subtitle)
+	_stars = StarsRow.new()
+	_stars.custom_minimum_size = Vector2(420, 130)
+	_stars.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_stars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center.add_child(_stars)
+	_star_details = RichTextLabel.new()
+	_star_details.bbcode_enabled = true
+	_star_details.fit_content = true
+	_star_details.scroll_active = false
+	_star_details.custom_minimum_size.x = 900
+	_star_details.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_star_details.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_star_details.add_theme_font_size_override("normal_font_size", 34)
+	_center.add_child(_star_details)
 	_info = _make_label("", 36, Palette.TEXT_DIM)
 	_center.add_child(_info)
 
@@ -256,12 +340,48 @@ func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) 
 		buttons)
 
 
-func show_sector_clear(title: String, score: int, best: int, is_record: bool) -> void:
+## `checks`: [setor completo, chefe sem "última chance", ≥ 70% da poeira] — uma estrela cada.
+func show_sector_clear(title: String, score: int, best: int, is_record: bool, checks: Array[bool]) -> void:
 	_show(
 		"%s COMPLETO!" % title,
 		("NOVO RECORDE! %d" if is_record else "PONTOS %d") % score,
 		"RECORDE DO SETOR %d" % best,
 		["restart", "menu"])
+	_stars.earned = checks.count(true)
+	_stars.queue_redraw()
+	_stars.visible = true
+	var lines := ["Setor completo", "Chefe sem \"última chance\"", "70% da poeira destruída"]
+	var text := "[center]"
+	for i in lines.size():
+		var color := "#3ff0ff" if i < checks.size() and checks[i] else "#ffffff55"
+		text += "[color=%s]• %s[/color]\n" % [color, lines[i]]
+	_star_details.text = text + "[/center]"
+	_star_details.visible = true
+
+
+## Tela "ALERTA" antes do chefe. `time_left` < 0 esconde.
+func set_alert(time_left: float) -> void:
+	_alert_layer.visible = time_left >= 0.0
+	if not _alert_layer.visible:
+		return
+	var blink := 0.5 + 0.5 * sin(_blink_t * 12.0)
+	# Com HDR 2D a mistura é linear: alfas baixos já aparecem bem fortes na tela.
+	_alert_bg.color = Color(Palette.DANGER, 0.012 + 0.025 * blink)
+	_alert_title.modulate.a = 0.55 + 0.45 * blink
+
+
+func show_boss_bar(boss_name: String) -> void:
+	_boss_label.text = boss_name
+	_boss_box.visible = true
+	set_boss_hp(1.0)
+
+
+func hide_boss_bar() -> void:
+	_boss_box.visible = false
+
+
+func set_boss_hp(ratio: float) -> void:
+	_boss_fill.size = Vector2(BOSS_BAR_WIDTH * clampf(ratio, 0.0, 1.0), BOSS_BAR_HEIGHT)
 
 
 func hide_center() -> void:
@@ -276,6 +396,8 @@ func _show(title: String, subtitle: String, info: String, buttons: Array) -> voi
 	_info.visible = info != ""
 	for id: String in _buttons:
 		_buttons[id].visible = id in buttons
+	_stars.visible = false
+	_star_details.visible = false
 	_center.alignment = BoxContainer.ALIGNMENT_CENTER
 	_center_spacer.visible = false
 	_top.visible = true

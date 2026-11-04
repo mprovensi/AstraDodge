@@ -40,9 +40,10 @@ func _sector_1() -> SectorData:
 		WaveEvent.make(115.0, K.DUST_RAIN, {"duration": 8.0}),
 		WaveEvent.make(115.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
 		WaveEvent.make(128.0, K.METAL_WALL),
-		WaveEvent.make(138.0, K.CALM, {"duration": 12.0}),
-		WaveEvent.make(140.0, K.MESSAGE, {"text": "Saindo do cinturão...", "duration": 3.0}),
-		WaveEvent.make(150.0, K.END),
+		# Calmaria até o fim: limpa a tela para o chefe (o setor acaba quando ele cai).
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "Algo enorme se aproxima...", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "rock_mother"}),
 	])
 	return s
 

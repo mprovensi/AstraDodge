@@ -108,18 +108,19 @@ kind = 3
 script = ExtResource("1_lcu4m")
 at = 138.0
 kind = 4
-duration = 12.0
+duration = 9999.0
 
 [sub_resource type="Resource" id="Resource_qjuq1"]
 script = ExtResource("1_lcu4m")
 at = 140.0
 duration = 3.0
-text = "Saindo do cinturão..."
+text = "Algo enorme se aproxima..."
 
 [sub_resource type="Resource" id="Resource_sd6l3"]
 script = ExtResource("1_lcu4m")
-at = 150.0
-kind = 5
+at = 144.0
+kind = 7
+text = "rock_mother"
 
 [resource]
 script = ExtResource("2_we7wr")

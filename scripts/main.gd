@@ -27,6 +27,7 @@ var hud: Hud
 
 var director: SectorDirector
 var sector_index := 0
+var boss: Boss = null
 
 var elapsed := 0.0
 var distance := 0.0
@@ -35,6 +36,7 @@ var score := 0
 var time_scale := 0.0
 var scroll_speed := Tuning.SCROLL_SPEED_START
 var enemies_destroyed := 0
+var dust_destroyed := 0
 
 var _state_timer := 0.0
 var _touch_index := -1
@@ -45,6 +47,12 @@ var _revive_used := false
 var _pending_wall := -1.0  # segundos até o paredão avisado aparecer (-1 = nenhum)
 var _last_ship_pos := Vector2.ZERO
 var _engine_level := 0.0
+# Chefe
+var _alert_timer := -1.0      # > = 0: tela "ALERTA" antes do chefe entrar
+var _alarm_beeps := 0
+var _pending_boss_id := ""
+var _boss_fought := false
+var _boss_last_chance := false  # entrou em "última chance" durante a luta (perde a 2ª estrela)
 
 
 func _ready() -> void:
@@ -155,6 +163,9 @@ func _process(delta: float) -> void:
 	_update_engine_sound(delta)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
+	hud.set_alert(_alert_timer)
+	if boss != null:
+		hud.set_boss_hp(boss.hp_ratio())
 
 
 # ---------------------------------------------------------------- fluxo
@@ -189,9 +200,11 @@ func _new_run() -> void:
 	bonus_score = 0
 	score = 0
 	enemies_destroyed = 0
+	dust_destroyed = 0
 	scroll_speed = Tuning.SCROLL_SPEED_START
 	_revive_used = false
 	_pending_wall = -1.0
+	_clear_boss()
 	asteroids.reset()
 	enemies.clear()
 	enemy_shots.clear()
@@ -227,7 +240,12 @@ func resume_checkpoint() -> void:
 	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.WEAPON_MAX_LEVEL)
 	ship.crystals = int(cp.get("crystals", 0))
 	ship.invuln = Tuning.REVIVE_INVULN_TIME
+	asteroids.dust_spawned = int(cp.get("dust_spawned", 0))
+	dust_destroyed = int(cp.get("dust_destroyed", 0))
 	Sfx.play_music(director.music_track)  # volta com a trilha do momento (ex.: chefe)
+	# Parou durante o chefe? A luta recomeça do início (com o alerta).
+	if director.boss_id != "":
+		_begin_boss_alert(director.boss_id)
 
 
 func _run_active() -> bool:
@@ -249,6 +267,8 @@ func _save_checkpoint() -> void:
 		"last_chance": ship.last_chance,
 		"weapon": ship.weapon_level,
 		"crystals": ship.crystals,
+		"dust_spawned": asteroids.dust_spawned,
+		"dust_destroyed": dust_destroyed,
 	})
 
 
@@ -314,8 +334,10 @@ func _set_state(new_state: State) -> void:
 			_touch_index = -1
 			Game.clear_checkpoint()
 			var is_record := Game.submit_sector(director.sector.id, score, true)
+			var checks := star_checks()
+			Game.submit_stars(director.sector.id, checks.count(true))
 			hud.clear_hint()
-			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record)
+			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record, checks)
 			Sfx.play("level_up", -2.0, 1.0, 0.0)
 
 
@@ -334,9 +356,12 @@ func _step(dt: float) -> void:
 		asteroids.density = director.density
 		asteroids.metals_enabled = director.metals
 		asteroids.dust_rain = director.rain_left > 0.0
-		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished
+		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
+				and boss == null and _alert_timer < 0.0
 	else:
 		difficulty = Tuning.difficulty(elapsed)
+
+	_update_boss_flow(dt)
 
 	scroll_speed = lerpf(Tuning.SCROLL_SPEED_START, Tuning.SCROLL_SPEED_MAX, difficulty)
 	if ship.alive:
@@ -362,9 +387,10 @@ func _step(dt: float) -> void:
 	_check_ship_hits()
 	score = int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
 
-	# Fim do setor: depois do evento END, quando a tela esvaziar.
-	if mode == Mode.CAMPAIGN and director.finished and ship.alive \
-			and asteroids.asteroids.is_empty() and enemies.enemies.is_empty() \
+	# Fim do setor: depois do END (ou do chefe derrotado), quando a tela esvaziar
+	# — inclusive a chuva de orbes/cristais da vitória, para dar tempo de coletar.
+	if mode == Mode.CAMPAIGN and director.finished and ship.alive and boss == null \
+			and asteroids.asteroids.is_empty() and enemies.enemies.is_empty() and pickups.pickups.is_empty() \
 			and (state == State.PLAYING or state == State.SLOWMO):
 		_set_state(State.SECTOR_CLEAR)
 
@@ -375,6 +401,8 @@ func _on_wave_event(e: WaveEvent) -> void:
 			hud.show_hint(e.text, e.duration if e.duration > 0.0 else 3.5)
 		WaveEvent.Kind.MUSIC:
 			Sfx.play_music(e.text)
+		WaveEvent.Kind.BOSS:
+			_begin_boss_alert(e.text)
 		WaveEvent.Kind.METAL_WALL:
 			_pending_wall = Tuning.WALL_TELEGRAPH_TIME
 			for span in asteroids.wall_spans():
@@ -386,6 +414,8 @@ func _on_wave_event(e: WaveEvent) -> void:
 func _check_bullet_hits() -> void:
 	for b in bullets.pool:
 		if not b.alive:
+			continue
+		if boss != null and _bullet_hits_boss(b):
 			continue
 		var a := asteroids.hit_test(b.pos, b.hit_ids)
 		if a != null:
@@ -402,6 +432,22 @@ func _check_bullet_hits() -> void:
 			else:
 				fx.spark(b.pos, Palette.ENEMY)
 				Sfx.play("hit", -12.0, 1.3, 0.1, b.pos)
+
+
+## Tiro no chefe: núcleo aberto leva dano; o resto é armadura (ricochete).
+func _bullet_hits_boss(b: BulletLayer.Bullet) -> bool:
+	var hit := boss.hit_bullet(b.pos)
+	if hit == Boss.Hit.NONE:
+		return false
+	b.alive = false
+	if hit == Boss.Hit.CORE:
+		boss.damage(Tuning.BULLET_DAMAGE)
+		fx.spark(b.pos, Palette.BLAST_HDR)
+		Sfx.play("hit", -12.0, 1.5, 0.1, b.pos)
+	else:
+		fx.spark(b.pos, Palette.METAL_LINE)
+		Sfx.play("ricochet", -8.0, 0.8, 0.1, b.pos)
+	return true
 
 
 func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> void:
@@ -451,6 +497,10 @@ func _check_ship_hits() -> void:
 				if not ship.alive:
 					return
 
+	if boss != null and boss.touches(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+		if _damage_ship(Tuning.SHIELD_DMG_METAL) and not ship.alive:
+			return
+
 	# Durante a invencibilidade os tiros inimigos atravessam a nave.
 	if ship.invuln <= 0.0 and enemy_shots.hit_ship(ship.position, Tuning.SHIP_HITBOX_RADIUS):
 		_damage_ship(Tuning.SHIELD_DMG_ENEMY_SHOT)
@@ -473,6 +523,7 @@ func _damage_ship(amount: float) -> bool:
 
 
 func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
+	dust_destroyed += 1
 	bonus_score += Tuning.SCORE_PER_DUST_HP * a.max_hp
 	fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
 	_break_kick(Tuning.KICK_BASE + a.radius * Tuning.KICK_PER_RADIUS)
@@ -535,6 +586,84 @@ func _on_ship_died() -> void:
 	Sfx.play("death", 0.0, 1.0, 0.0)
 	Sfx.duck(-12.0)
 	_set_state(State.DYING)
+
+
+# ---------------------------------------------------------------- chefe
+
+## Tela "ALERTA" + sirene + trilha de chefe; o chefe entra quando o alerta acaba.
+func _begin_boss_alert(boss_id: String) -> void:
+	if boss != null or _alert_timer >= 0.0:
+		return
+	_pending_boss_id = boss_id
+	_alert_timer = Tuning.BOSS_ALERT_TIME
+	_alarm_beeps = 0
+	hud.clear_hint()
+	Sfx.play_music("boss")
+	Sfx.duck(-6.0)
+	Game.vibrate(80)
+
+
+func _update_boss_flow(dt: float) -> void:
+	if _alert_timer >= 0.0:
+		var t := Tuning.BOSS_ALERT_TIME - _alert_timer
+		if _alarm_beeps < Tuning.BOSS_ALARM_BEEPS and t >= _alarm_beeps * 0.85:
+			Sfx.play("alarm", -2.0, 0.85, 0.0)
+			_alarm_beeps += 1
+		_alert_timer -= dt
+		if _alert_timer < 0.0:
+			_spawn_boss(_pending_boss_id)
+	if boss != null:
+		boss.update(dt, ship.position)
+		if ship.last_chance:
+			_boss_last_chance = true
+
+
+func _spawn_boss(boss_id: String) -> void:
+	match boss_id:
+		"rock_mother":
+			boss = RockMother.new()
+		_:
+			push_error("chefe desconhecido: " + boss_id)
+			return
+	world.add_child(boss)
+	world.move_child(boss, asteroids.get_index() + 1)  # atrás de tiros, pickups da frente e nave
+	boss.setup(view_size, enemy_shots, telegraph, asteroids, fx)
+	boss.impact = func(amount: float) -> void: _shake = maxf(_shake, amount)
+	boss.defeated.connect(_on_boss_defeated)
+	_boss_fought = true
+	_boss_last_chance = ship.last_chance
+	hud.show_boss_bar(boss.display_name)
+
+
+func _on_boss_defeated() -> void:
+	var at: Vector2 = boss.aim_x() * Vector2.RIGHT + Vector2(0.0, view_size.y * 0.25)
+	bonus_score += Tuning.BOSS_SCORE
+	for i in Tuning.BOSS_REWARD_ORBS + Tuning.BOSS_REWARD_CRYSTALS:
+		var kind := PickupLayer.Kind.SHIELD if i < Tuning.BOSS_REWARD_ORBS else PickupLayer.Kind.CRYSTAL
+		pickups.spawn(Vector2(randf_range(view_size.x * 0.15, view_size.x * 0.85),
+				at.y + randf_range(-80.0, 120.0)), kind)
+	hud.show_hint("%s DERROTADA!" % boss.display_name, 3.0)
+	_clear_boss()
+	Sfx.play_music("main")
+	Game.vibrate(200)
+	director.finished = true
+
+
+func _clear_boss() -> void:
+	if boss != null:
+		boss.queue_free()
+		boss = null
+	_alert_timer = -1.0
+	_pending_boss_id = ""
+	hud.hide_boss_bar()
+
+
+## As 3 estrelas do setor: [completou, chefe sem "última chance", ≥ 70% da poeira].
+func star_checks() -> Array[bool]:
+	var no_last_chance := (not _boss_last_chance) if _boss_fought else not ship.last_chance
+	var dust_ok := asteroids.dust_spawned > 0 \
+			and float(dust_destroyed) / float(asteroids.dust_spawned) >= Tuning.STAR_DUST_RATIO
+	return [true, no_last_chance, dust_ok]
 
 
 # ---------------------------------------------------------------- tela

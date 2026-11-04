@@ -26,6 +26,7 @@ class Asteroid:
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
+var dust_spawned := 0  # poeiras criadas (para a estrela de "70% da poeira")
 var view_size := Vector2.ZERO
 
 # Controlados pelo modo de jogo (campanha: SectorDirector; infinito: padrão).
@@ -51,6 +52,7 @@ func reset() -> void:
 	metals_enabled = true
 	density = 1.0
 	dust_rain = false
+	dust_spawned = 0
 	queue_redraw()
 
 
@@ -175,6 +177,11 @@ func _overlaps(placed: Array[Vector3], p: Vector2, r: float) -> bool:
 	return false
 
 
+## Solta uma poeira avulsa (ex.: o chefe soltando pedaços).
+func spawn_dust(pos: Vector2, radius: float, hp: int, vel: Vector2) -> void:
+	_add(Kind.DUST, pos, radius, hp, vel)
+
+
 func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> void:
 	var a := Asteroid.new()
 	_next_id += 1
@@ -190,6 +197,8 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> voi
 	a.sprite = randi() % maxi(1, _textures(kind).size())
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
+	if kind == Kind.DUST:
+		dust_spawned += 1
 
 
 func _textures(kind: Kind) -> Array[Texture2D]:

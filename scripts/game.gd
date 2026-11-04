@@ -18,6 +18,7 @@ var persist := true  # os testes desligam para não sobrescrever o save real
 var sector_best := {}       # id do setor -> melhor pontuação
 var sectors_cleared := {}   # id do setor -> true
 var checkpoint := {}        # ponto onde o jogador parou (vazio = nada para continuar)
+var sector_stars := {}      # id do setor -> melhor número de estrelas (0..3)
 
 
 func _ready() -> void:
@@ -37,6 +38,7 @@ func load_data() -> void:
 	sector_best = cfg.get_value("campaign", "best", {})
 	sectors_cleared = cfg.get_value("campaign", "cleared", {})
 	checkpoint = cfg.get_value("campaign", "checkpoint", {})
+	sector_stars = cfg.get_value("campaign", "stars", {})
 
 
 func save_data() -> void:
@@ -51,6 +53,7 @@ func save_data() -> void:
 	cfg.set_value("campaign", "best", sector_best)
 	cfg.set_value("campaign", "cleared", sectors_cleared)
 	cfg.set_value("campaign", "checkpoint", checkpoint)
+	cfg.set_value("campaign", "stars", sector_stars)
 	cfg.save(SAVE_PATH)
 
 
@@ -82,6 +85,15 @@ func submit_sector(id: String, score: int, cleared: bool) -> bool:
 func set_checkpoint(data: Dictionary) -> void:
 	checkpoint = data
 	save_data()
+
+
+## Guarda o melhor número de estrelas do setor. Retorna true se melhorou.
+func submit_stars(id: String, stars: int) -> bool:
+	if stars <= int(sector_stars.get(id, 0)):
+		return false
+	sector_stars[id] = stars
+	save_data()
+	return true
 
 
 func clear_checkpoint() -> void:

@@ -7,7 +7,9 @@
 [ext_resource type="Texture2D" path="res://sprites/metal_2.png" id="5_5hgmi"]
 [ext_resource type="Texture2D" path="res://sprites/metal_3.png" id="6_ik4b2"]
 [ext_resource type="Script" path="res://scripts/art/art_set.gd" id="7_5u5ty"]
+[ext_resource type="Texture2D" path="res://sprites/boss_rock_mother.png" id="7_pucd1"]
 [ext_resource type="Texture2D" path="res://sprites/ship.png" id="8_6f0oc"]
+[ext_resource type="Texture2D" path="res://sprites/boss_rock_mother_half.png" id="8_tff5p"]
 
 [resource]
 script = ExtResource("7_5u5ty")
@@ -15,3 +17,5 @@ ship_texture = ExtResource("8_6f0oc")
 ship_engines_px = Array[Vector2]([Vector2(117, 197), Vector2(139, 197)])
 dust_textures = Array[Texture2D]([ExtResource("1_0djt3"), ExtResource("2_7ck5r"), ExtResource("3_pucd1")])
 metal_textures = Array[Texture2D]([ExtResource("4_tff5p"), ExtResource("5_5hgmi"), ExtResource("6_ik4b2")])
+rock_mother_body = ExtResource("7_pucd1")
+rock_mother_half = ExtResource("8_tff5p")

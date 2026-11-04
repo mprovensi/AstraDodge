@@ -29,7 +29,9 @@ func _run() -> void:
 
 	_test_endless()
 	_test_campaign()
+	_test_boss_safety()
 	_test_checkpoint()
+	_test_boss_resume()
 	_test_music()
 	_test_enemies()
 	main.free()
@@ -80,30 +82,85 @@ func _test_endless() -> void:
 
 
 func _test_campaign() -> void:
+	var sfx := root.get_node("Sfx")
 	main.go_to_menu()
 	main.start_mode(main.Mode.CAMPAIGN)
 	assert(main.state == main.State.READY)
 	_touch(true)
 	var walls := 0
 	var rain_seen := false
+	var alert_seen := false
+	var boss_seen := false
+	var boss_music := false
+	var phase2_seen := false
+	var boss_time := 0.0
 	var frames := 0
-	# Nave invencível: aqui testamos o roteiro do setor, não a habilidade.
-	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 220:
+	# Nave invencível: aqui testamos o roteiro do setor e o chefe, não a habilidade.
+	# Durante o chefe, um "bot" fica embaixo do núcleo aberto (arma no nível 3).
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 330:
 		main.ship.invuln = 1.0
-		if frames % 20 == 0:
+		var boss = main.boss  # sem tipo: Boss só compila depois dos autoloads
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			# Fica embaixo do núcleo aberto, a uma distância segura (60% da tela).
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
 			_drag(Vector2(randf_range(-120, 120), 0))
 		var before: float = main._pending_wall
 		main._process(DT)
 		if before >= 0.0 and main._pending_wall < 0.0:
 			walls += 1
 		rain_seen = rain_seen or main.asteroids.dust_rain
+		alert_seen = alert_seen or main._alert_timer >= 0.0
+		boss_music = boss_music or sfx.current_track() == "boss"
 		frames += 1
-	assert(main.state == main.State.SECTOR_CLEAR, "o setor 1 deveria terminar")
+	assert(main.state == main.State.SECTOR_CLEAR, "o setor 1 deveria terminar (chefe derrotado)")
 	assert(walls == 3, "o setor 1 tem 3 paredões (vi %d)" % walls)
 	assert(rain_seen, "o setor 1 tem chuva de poeira")
-	var best: int = root.get_node("Game").get_sector_best("sector_1")
-	assert(best > 0 and root.get_node("Game").sectors_cleared.has("sector_1"))
-	print("CAMPANHA OK | setor 1 completo em %.1fs | paredoes=%d | pontos=%d" % [frames * DT, walls, main.score])
+	assert(alert_seen and boss_seen and boss_music, "ALERTA, chefe e trilha de chefe")
+	assert(phase2_seen, "a Rocha-Mãe deveria rachar (fase 2)")
+	assert(sfx.current_track() == "main", "depois do chefe volta a trilha normal")
+	var game := root.get_node("Game")
+	assert(game.get_sector_best("sector_1") > 0 and game.sectors_cleared.has("sector_1"))
+	assert(int(game.sector_stars.get("sector_1", 0)) >= 1, "pelo menos 1 estrela")
+	print("CAMPANHA OK | setor 1 completo em %.1fs | paredoes=%d | chefe em %.1fs | estrelas=%s | pontos=%d" % [
+		frames * DT, walls, boss_time, str(main.star_checks()), main.score])
+
+
+## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
+func _test_boss_safety() -> void:
+	var rm: GDScript = load("res://scripts/bosses/rock_mother.gd")  # carregado só agora (autoloads prontos)
+	var ship_gap := 2.0 * Tuning.SHIP_HITBOX_RADIUS + 20.0
+	for h: float in [1920.0, 2340.0]:
+		# Distância do leque (borda de baixo do chefe) até a linha padrão da nave (80% da tela).
+		var origin_y: float = h * rm.REST_Y_RATIO + rm.RADIUS
+		var d := h * 0.8 - origin_y
+		var gap: float = rm.fan_min_gap(d)
+		assert(gap >= ship_gap, "leque: vão de %.0f px < %.0f (tela %d)" % [gap, ship_gap, h])
+	var free: float = rm.lunge_free_width(1080.0)
+	assert(free >= ship_gap * 3.0, "avanço das metades: só %.0f px livres" % free)
+	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px" % [ship_gap, free])
+
+
+func _test_boss_resume() -> void:
+	var game := root.get_node("Game")
+	game.checkpoint = {"sector": 0, "time": 146.0}
+	main.go_to_menu()
+	main.resume_checkpoint()
+	assert(main.director.boss_id == "rock_mother", "o ponto salvo já passou pelo chefe")
+	_touch(true)
+	for i in 60 * 4:
+		main.ship.invuln = 1.0
+		main._process(DT)
+	assert(main.boss != null, "Continuar no meio do chefe recomeça a luta")
+	main.go_to_menu()
+	assert(main.boss == null, "voltar ao menu remove o chefe")
+	game.checkpoint = {}
+	print("CHEFE+CONTINUAR OK | luta recomeça ao continuar")
 
 
 func _test_checkpoint() -> void:

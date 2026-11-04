@@ -62,6 +62,14 @@ const WALL_METAL_RADIUS := 70.0
 const WALL_TELEGRAPH_TIME := 1.4         # aviso antes do paredão aparecer
 const WALL_EXTRA_SPEED := 600.0          # px/s a mais que a rolagem: o paredão avisado cai rápido
 
+# --- Chefes ---
+const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
+const BOSS_ALARM_BEEPS := 3
+const BOSS_SCORE := 1000
+const BOSS_REWARD_ORBS := 6        # chuva de orbes e cristais ao derrotar
+const BOSS_REWARD_CRYSTALS := 6
+const STAR_DUST_RATIO := 0.7       # 3ª estrela: destruir ≥ 70% da poeira do setor
+
 # --- Inimigos (base para os setores 2–5) ---
 const SHIELD_DMG_ENEMY_SHOT := 12.0
 const SHIELD_DMG_ENEMY_BODY := 30.0

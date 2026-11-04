@@ -3,7 +3,12 @@ extends Node2D
 ## Pool de projéteis inimigos com padrões reutilizáveis (mirado, leque, anel).
 ## Cada tipo tem forma própria — nunca diferenciar só pela cor.
 
-enum Kind { ORB, DIAMOND }
+enum Kind { ORB, DIAMOND, ROCK }
+
+const ROCK_RADIUS := 18.0
+## Contorno da pedra (unitário; escalado pelo raio e girando).
+const ROCK_SHAPE := [Vector2(1.0, 0.0), Vector2(0.55, 0.8), Vector2(-0.2, 0.95), Vector2(-0.85, 0.45),
+		Vector2(-0.9, -0.35), Vector2(-0.3, -0.9), Vector2(0.5, -0.8)]
 
 class Shot:
 	var kind := 0
@@ -26,7 +31,13 @@ func fire(pos: Vector2, vel: Vector2, kind := Kind.ORB) -> void:
 	s.kind = kind
 	s.pos = pos
 	s.vel = vel
-	s.radius = 14.0 if kind == Kind.ORB else 12.0
+	match kind:
+		Kind.ORB:
+			s.radius = 14.0
+		Kind.DIAMOND:
+			s.radius = 12.0
+		Kind.ROCK:
+			s.radius = ROCK_RADIUS
 	s.t = 0.0
 	s.alive = true
 
@@ -98,6 +109,13 @@ func _draw() -> void:
 			draw_circle(s.pos, s.radius * 1.7, Color(Palette.ENEMY, 0.25))
 			draw_circle(s.pos, s.radius, Palette.ENEMY_HDR)
 			draw_circle(s.pos, s.radius * 0.45, Palette.WHITE_HDR)
+		elif s.kind == Kind.ROCK:
+			# Pedra girando, com contorno de perigo em brasa.
+			var rock := PackedVector2Array()
+			for v: Vector2 in ROCK_SHAPE:
+				rock.append(s.pos + v.rotated(s.t * 4.0) * s.radius)
+			draw_colored_polygon(rock, Color(0.42, 0.33, 0.3))
+			draw_polyline(rock + PackedVector2Array([rock[0]]), Palette.ENEMY_HDR, 3.0, true)
 		else:
 			var dir := s.vel.normalized()
 			var side := dir.orthogonal()

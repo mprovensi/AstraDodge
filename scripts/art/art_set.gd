@@ -33,6 +33,14 @@ extends Resource
 @export_range(0.5, 1.0, 0.01) var dust_fill := 0.92
 @export_range(0.5, 1.0, 0.01) var metal_fill := 0.94
 
+@export_group("Chefes")
+## Rocha-Mãe inteira (fase 1). Os núcleos são desenhados pelo código na borda.
+@export var rock_mother_body: Texture2D
+## Metade ESQUERDA da Rocha-Mãe rachada (fase 2); a direita é a mesma imagem espelhada.
+@export var rock_mother_half: Texture2D
+## Fração do raio da imagem ocupada pela rocha do chefe.
+@export_range(0.5, 1.0, 0.01) var boss_fill := 0.95
+
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.
 func ship_point(px: Vector2) -> Vector2:

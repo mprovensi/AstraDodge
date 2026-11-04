@@ -254,5 +254,14 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 **Adiantado para o Sprint 3**
 - [x] Trilha de chefe amedrontadora (`audio/music_boss.wav`: Ré menor, 112 BPM, drone, baixo pulsante frígio, acordes dissonantes, cordas em tremolo, bateria pesada)
 - [x] Troca de trilha com crossfade (`Sfx.play_music`) e evento `WaveEvent.Kind.MUSIC` na linha do tempo do setor; volta à trilha normal ao recomeçar; o "Continuar" retoma a trilha do momento
-- [ ] Disparar `MUSIC "boss"` junto com o "ALERTA" de entrada de cada chefe
+- [x] Disparar a trilha de chefe junto com o "ALERTA" de entrada de cada chefe
+
+**Sprint 3 — Chefe 1 + resultado: concluído (04/11/2026)**
+- [x] Classe `Boss` (`scripts/bosses/boss.gd`): vida, fases, estados, núcleos x armadura, contato com a nave
+- [x] Rocha-Mãe (`scripts/bosses/rock_mother.gd`): fase 1 gira expondo 1 núcleo por vez, leque de pedras com aviso em círculo, solta poeira; fase 2 (50%) racha, metades avançam alternadas com aviso em coluna; morte em cadeia de explosões
+- [x] Evento `BOSS` na linha do tempo; Setor 1 termina quando a Rocha-Mãe cai (chuva de orbes/cristais, +1000 pontos)
+- [x] Tela "ALERTA" com sirene, barra de vida do chefe (marca de 50%), tela de resultado com 3 estrelas (salvas por setor)
+- [x] "Continuar" no meio da luta recomeça o chefe
+- [x] Testes: luta completa por um bot, rota segura (vão do leque e largura livre no avanço), retomada no chefe
+- [ ] Música adaptativa em camadas (hoje: crossfade entre trilha normal e de chefe)
 - [ ] Volume de música/efeitos em 0–100%

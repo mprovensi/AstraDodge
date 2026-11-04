@@ -6,6 +6,8 @@ extends SceneTree
 const SRC := "res://art/sprites"
 const OUT := "res://sprites"
 const SIZE := 256
+## Sprites desenhados grandes na tela são renderizados em resolução maior (nome -> px).
+const SIZES := {"boss_rock_mother": 512, "boss_rock_mother_half": 384}
 
 
 func _initialize() -> void:
@@ -16,7 +18,8 @@ func _initialize() -> void:
 			continue
 		var img := Image.new()
 		var svg := FileAccess.get_file_as_string("%s/%s" % [SRC, file])
-		var err := img.load_svg_from_string(svg, float(SIZE) / 256.0)
+		var size: int = SIZES.get(file.get_basename(), SIZE)
+		var err := img.load_svg_from_string(svg, float(size) / 256.0)
 		if err != OK:
 			push_error("falha ao renderizar " + file)
 			continue

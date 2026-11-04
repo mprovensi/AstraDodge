@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Rocha-Mãe (chefe do Setor 1): rocha gigante avermelhada com rachaduras incandescentes.
+       Os 4 núcleos (pontos fracos) são desenhados pelo código na borda. Raio útil ~122. -->
+  <defs>
+    <radialGradient id="rock" cx="40%" cy="34%" r="78%">
+      <stop offset="0" stop-color="#8f7873"/>
+      <stop offset="0.55" stop-color="#4f3e3a"/>
+      <stop offset="1" stop-color="#22191a"/>
+    </radialGradient>
+  </defs>
+  <path d="M128 6 L170 12 L206 32 L234 66 L248 108 L246 150 L230 192 L200 226 L158 246 L112 248 L70 234 L36 206 L14 166 L8 120 L18 76 L44 40 L84 14 Z"
+        fill="url(#rock)" stroke="#b49a93" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Crateras -->
+  <circle cx="92" cy="86" r="24" fill="#3c2f2c" stroke="#7d6a65" stroke-width="3"/>
+  <circle cx="170" cy="150" r="30" fill="#36292a" stroke="#7a6661" stroke-width="3"/>
+  <circle cx="78" cy="168" r="14" fill="#3c2f2c" stroke="#7d6a65" stroke-width="2"/>
+  <circle cx="176" cy="74" r="11" fill="#40322f"/>
+  <!-- Rachaduras incandescentes -->
+  <g fill="none" stroke="#ff6a3d" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M128 40 L120 78 L134 104 L122 128 L140 150" stroke-width="4"/>
+    <path d="M122 128 L96 136 L84 120" stroke-width="3"/>
+    <path d="M140 150 L150 186 L136 214" stroke-width="3"/>
+    <path d="M134 104 L168 112 L196 98" stroke-width="3"/>
+  </g>
+  <g fill="none" stroke="#ffc07a" stroke-linecap="round" stroke-width="1.5">
+    <path d="M128 40 L120 78 L134 104 L122 128 L140 150"/>
+  </g>
+</svg>

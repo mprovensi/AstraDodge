@@ -10,6 +10,7 @@ enum Kind {
 	CALM,        ## `duration` s sem novos asteroides (respiro / limpar a tela)
 	END,         ## fim do setor (quando a tela esvaziar)
 	MUSIC,       ## troca a trilha com crossfade: `text` = nome da faixa ("boss", "main")
+	BOSS,        ## ALERTA + chefe: `text` = id do chefe ("rock_mother"); o setor acaba quando ele cai
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
