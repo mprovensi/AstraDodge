@@ -16,7 +16,7 @@ const BAR_LABEL_WIDTH := 150.0
 const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
-const PAUSE_TOP_MARGIN := 300.0
+const PAUSE_TOP_MARGIN := 460.0
 
 var _top: VBoxContainer
 var _score_label: Label
