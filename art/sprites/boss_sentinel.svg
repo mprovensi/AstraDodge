@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- SENTINELA (chefe do Setor 7): núcleo de IA da estação, blindado, preso ao teto.
+       Octógono de aço grafite com faixas de alarme vermelhas. O olho (ponto fraco, 128,128),
+       os braços e os drones são desenhados pelo código. Raio útil ~110 (colisão: círculo ~100). -->
+  <defs>
+    <radialGradient id="steel" cx="42%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#6d7380"/>
+      <stop offset="0.6" stop-color="#2f333c"/>
+      <stop offset="1" stop-color="#14161b"/>
+    </radialGradient>
+  </defs>
+  <!-- Cabos e suporte para o teto -->
+  <g stroke="#3a3e48" stroke-width="10" stroke-linecap="round">
+    <path d="M96 30 L84 4"/><path d="M160 30 L172 4"/><path d="M128 22 L128 2"/>
+  </g>
+  <path d="M84 14 L172 14 L242 84 L242 172 L172 242 L84 242 L14 172 L14 84 Z"
+        fill="url(#steel)" stroke="#a6adbb" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Faixas de alarme -->
+  <g fill="#c4271c">
+    <path d="M84 14 L172 14 L164 30 L92 30 Z"/>
+    <path d="M84 242 L172 242 L164 226 L92 226 Z"/>
+  </g>
+  <!-- Painéis e respiros -->
+  <g fill="none" stroke="#5c6270" stroke-width="3">
+    <path d="M40 96 L72 96 L72 160 L40 160"/><path d="M216 96 L184 96 L184 160 L216 160"/>
+  </g>
+  <g fill="#1b1d22">
+    <rect x="46" y="104" width="20" height="6"/><rect x="46" y="118" width="20" height="6"/>
+    <rect x="46" y="132" width="20" height="6"/><rect x="46" y="146" width="20" height="6"/>
+    <rect x="190" y="104" width="20" height="6"/><rect x="190" y="118" width="20" height="6"/>
+    <rect x="190" y="132" width="20" height="6"/><rect x="190" y="146" width="20" height="6"/>
+  </g>
+  <!-- Luzes de status -->
+  <circle cx="100" cy="206" r="5" fill="#ff4a3a"/><circle cx="128" cy="210" r="5" fill="#ffb02a"/>
+  <circle cx="156" cy="206" r="5" fill="#ff4a3a"/>
+  <!-- Encaixe do olho -->
+  <circle cx="128" cy="128" r="40" fill="#0d0e12" stroke="#d9dee8" stroke-width="5"/>
+  <circle cx="128" cy="128" r="50" fill="none" stroke="#c4271c" stroke-width="4" stroke-dasharray="10 8"/>
+</svg>

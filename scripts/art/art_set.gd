@@ -54,6 +54,8 @@ extends Resource
 @export var ice_colossus_body: Texture2D
 ## Rainha da Colmeia (Setor 6): inseto visto de cima, cabeça para BAIXO. Coração e guardas pelo código.
 @export var hive_queen_body: Texture2D
+## Sentinela (Setor 7): núcleo de IA blindado, preso ao teto. Olho, braços e drones pelo código.
+@export var sentinel_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

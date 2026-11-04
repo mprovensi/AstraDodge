@@ -103,6 +103,12 @@ func touches(_p: Vector2, _radius: float) -> bool:
 	return false
 
 
+## Algum feixe do chefe (laser, parede de energia) atinge o círculo agora? Dano de feixe,
+## menor que encostar no corpo.
+func beam_hits(_p: Vector2, _radius: float) -> bool:
+	return false
+
+
 ## X do ponto fraco exposto agora (usado pelo teste automático para "jogar").
 func aim_x() -> float:
 	return view_size.x * 0.5

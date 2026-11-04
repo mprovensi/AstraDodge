@@ -14,7 +14,48 @@ func _initialize() -> void:
 	_save(_sector_4())
 	_save(_sector_5())
 	_save(_sector_6())
+	_save(_sector_7())
 	quit()
+
+
+## Setor 7 — Estação Abandonada: portões de laser no compasso, paredes móveis, blecaute; chefe Sentinela.
+func _sector_7() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_7"
+	s.number = 7
+	s.title = "SETOR 7"
+	s.subtitle = "Estação Abandonada"
+	s.duration = 150.0
+	s.difficulty_start = 0.65
+	s.difficulty_end = 0.95
+	s.music = "sector7"
+	s.nebula_a = Color(0.08, 0.08, 0.10)  # grafite
+	s.nebula_b = Color(0.30, 0.04, 0.04)  # vermelho de alarme
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.8, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 7\nEstação Abandonada", "duration": 2.5}),
+		WaveEvent.make(6.0, K.GATES, {"count": 3}),
+		WaveEvent.make(22.0, K.DENSITY, {"density": 0.85, "metals": true, "moving": 0.2, "turrets": 0.15}),
+		WaveEvent.make(32.0, K.SLIDE, {"count": 3}),
+		WaveEvent.make(48.0, K.DENSITY, {"density": 0.9, "metals": true, "moving": 0.2, "turrets": 0.2,
+				"swarm": 0.1}),
+		WaveEvent.make(58.0, K.BLACKOUT, {"duration": 8.0}),
+		WaveEvent.make(58.0, K.DENSITY, {"density": 0.7, "metals": true}),
+		WaveEvent.make(70.0, K.DENSITY, {"density": 1.0, "metals": true, "moving": 0.25, "turrets": 0.2,
+				"ice": 0.2}),
+		WaveEvent.make(78.0, K.GATES, {"count": 4}),
+		WaveEvent.make(98.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(98.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(110.0, K.SLIDE, {"count": 4}),
+		WaveEvent.make(122.0, K.DENSITY, {"density": 1.05, "metals": true, "moving": 0.3, "turrets": 0.25,
+				"swarm": 0.15, "comets": 0.05}),
+		WaveEvent.make(128.0, K.BLACKOUT, {"duration": 6.0}),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "SISTEMA DE DEFESA REATIVADO.", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "sentinel"}),
+	])
+	return s
 
 
 ## Setor 6 — Colmeia: enxame, ovos que eclodem, eclosão em massa; chefe Rainha da Colmeia.

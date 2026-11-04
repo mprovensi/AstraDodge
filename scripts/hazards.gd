@@ -6,6 +6,9 @@ extends Node2D
 ## - Raios da tempestade: aviso em coluna (TelegraphLayer) e depois o raio cai na coluna.
 ## - Cometas (Setor 5): aviso em linha (TelegraphLayer) e depois atravessam a tela na diagonal,
 ##   muito rápidos. Indestrutíveis: só desviar.
+## - Portões de laser (Setor 7): feixe na largura toda que liga e desliga no compasso
+##   (2 tempos ligado, 2 desligado). Piscam e fazem "tique" antes de ligar. Descem devagar:
+##   subir ou descer a nave escolhe a hora de cruzar.
 
 class Cloud:
 	var pos := Vector2.ZERO
@@ -33,6 +36,9 @@ class Comet:
 var clouds: Array[Cloud] = []
 var strikes: Array[Strike] = []
 var comets: Array[Comet] = []
+var gates: Array[float] = []  # Setor 7: altura (y) de cada portão de laser
+var _gate_t := 0.0             # relógio do compasso (todos os portões ligam juntos)
+var _gate_was_on := false
 var view_size := Vector2.ZERO
 var _struck_now: Array[float] = []
 var _t := 0.0
@@ -46,6 +52,8 @@ func clear() -> void:
 	clouds.clear()
 	strikes.clear()
 	comets.clear()
+	gates.clear()
+	_gate_t = 0.0
 	_struck_now.clear()
 	queue_redraw()
 
@@ -90,6 +98,31 @@ func spawn_comet(from: Vector2, to: Vector2, telegraph: TelegraphLayer) -> void:
 	telegraph.line(from, to, Tuning.COMET_WARN_WIDTH, Tuning.COMET_TELEGRAPH)
 
 
+## Portão de laser entrando por cima.
+func spawn_gate() -> void:
+	gates.append(-40.0)
+
+
+## Os portões estão ligados agora? (todos seguem o mesmo compasso)
+func gates_on() -> bool:
+	return fmod(_gate_t, Tuning.GATE_PERIOD) < Tuning.GATE_PERIOD * Tuning.GATE_ON_FRACTION
+
+
+## Faltam menos de GATE_WARN s para ligar (pisca + tique)?
+func gates_warning() -> bool:
+	return fmod(_gate_t, Tuning.GATE_PERIOD) >= Tuning.GATE_PERIOD - Tuning.GATE_WARN
+
+
+## Algum portão LIGADO encosta na nave?
+func gate_hits(p: Vector2, radius: float) -> bool:
+	if not gates_on():
+		return false
+	for y in gates:
+		if absf(p.y - y) < Tuning.GATE_HALF + radius * 0.6:
+			return true
+	return false
+
+
 ## Algum cometa em voo encosta no círculo (nave)?
 func comet_hits(p: Vector2, radius: float) -> bool:
 	for c in comets:
@@ -105,6 +138,20 @@ func take_strikes() -> Array[float]:
 
 func update(dt: float, scroll_speed: float) -> void:
 	_t += dt
+	# Portões: descem devagar; o relógio do compasso só anda enquanto há portão na tela.
+	if not gates.is_empty():
+		var was_warning := gates_warning()
+		var was_on := gates_on()
+		_gate_t += dt
+		if gates_warning() and not was_warning:
+			Sfx.play("click", -4.0, 1.6, 0.0)
+		if gates_on() and not was_on:
+			Sfx.play("alarm", -12.0, 2.0, 0.0)
+		for i in gates.size():
+			gates[i] += minf(scroll_speed, Tuning.GATE_SPEED) * dt
+		for i in range(gates.size() - 1, -1, -1):
+			if gates[i] > view_size.y + 40.0:
+				gates.remove_at(i)
 	for c in clouds:
 		c.pos.y += scroll_speed * Tuning.CLOUD_FALL_FACTOR * dt
 		c.t += dt
@@ -165,6 +212,26 @@ func _draw() -> void:
 			var p0 := c.pos + Vector2.from_angle(a) * r * 0.3
 			var p1 := c.pos + Vector2.from_angle(a + 0.6) * r * 0.7
 			draw_line(p0, p1, Palette.ION_HDR, 2.0, true)
+
+	# Portões: pilares nas bordas; feixe vermelho forte ligado, tracejado apagado desligado,
+	# piscando nos instantes antes de ligar.
+	var on := gates_on()
+	var warn := gates_warning() and int(_gate_t * 14.0) % 2 == 0
+	for y in gates:
+		for x: float in [0.0, view_size.x]:
+			draw_rect(Rect2(x - 18.0, y - 34.0, 36.0, 68.0), Color(0.22, 0.22, 0.26))
+			draw_rect(Rect2(x - 18.0, y - 34.0, 36.0, 68.0), Palette.ENEMY_HDR if on or warn else Palette.METAL_LINE,
+					false, 3.0)
+		if on:
+			draw_line(Vector2(0, y), Vector2(view_size.x, y), Color(Palette.DANGER, 0.25), Tuning.GATE_HALF * 3.0)
+			draw_line(Vector2(0, y), Vector2(view_size.x, y), Palette.DANGER_HDR, Tuning.GATE_HALF * 1.2)
+			draw_line(Vector2(0, y), Vector2(view_size.x, y), Palette.WHITE_HDR, 3.0)
+		else:
+			var c := Color(Palette.DANGER_HDR, 0.8) if warn else Color(Palette.DANGER, 0.35)
+			var x := 20.0
+			while x < view_size.x - 20.0:
+				draw_line(Vector2(x, y), Vector2(minf(x + 26.0, view_size.x - 20.0), y), c, 3.0)
+				x += 46.0
 
 	# Cometas: cabeça branco-gelo brilhante com cauda azul afinando para trás.
 	for c in comets:

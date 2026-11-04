@@ -18,6 +18,9 @@ enum Kind {
 	COMETS,      ## chuva de `count` cometas em sequência (cada um avisado em linha)
 	SWARM,       ## grupo do enxame com `count` insetos (`text` opcional: dica na tela)
 	HATCH,       ## eclosão: `count` ovos de uma vez (destrua antes do anel fechar!)
+	GATES,       ## `count` portões de laser em sequência (ligam e desligam no compasso)
+	SLIDE,       ## `count` paredes móveis em sequência (a brecha desliza de lado)
+	BLACKOUT,    ## blecaute por `duration` s: só a luz em volta da nave
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -35,7 +38,7 @@ enum Kind {
 @export_range(0.0, 1.0) var comets := 0.0   ## DENSITY: chance de um cometa avulso por linha
 @export_range(0.0, 1.0) var swarm := 0.0    ## DENSITY: chance de um grupo pequeno do enxame por linha
 @export_range(0.0, 1.0) var eggs := 0.0     ## DENSITY: chance de um ovo por linha
-@export var count := 0                      ## DRONES/COMETS/SWARM/HATCH: quantos
+@export var count := 0                      ## DRONES/COMETS/SWARM/HATCH/GATES/SLIDE: quantos
 
 
 static func make(at_seconds: float, event_kind: Kind, props := {}) -> WaveEvent:

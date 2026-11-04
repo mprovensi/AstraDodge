@@ -28,6 +28,9 @@ class Asteroid:
 	var shell := 0             # poeira blindada: tiros que a casca ainda aguenta
 	var drift := 0.0           # metálico com propulsor: velocidade lateral (quica nas bordas)
 	var ice := false           # gelo (Setor 5): ao quebrar racha em lascas
+	var sliding := false       # parede móvel (Setor 7): desliza em volta de slide_base
+	var slide_base := 0.0
+	var slide_phase := 0.0
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -46,6 +49,7 @@ var ice := 0.0             # chance de cada poeira ser de gelo (Setor 5)
 var _next_id := 0
 var _distance_to_next_row := 0.0
 var _gap_x := 0.0
+var _slide_t := 0.0  # relógio das paredes móveis
 
 
 func resize(size: Vector2) -> void:
@@ -75,8 +79,12 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 			var spacing := lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
 			_distance_to_next_row += spacing / (density * (Tuning.DUST_RAIN_DENSITY if dust_rain else 1.0))
 
+	_slide_t += dt
 	for a in asteroids:
 		a.pos += (Vector2(a.vel.x, a.vel.y + scroll_speed) + a.knock) * dt
+		if a.sliding:
+			# Parede móvel: todos os blocos da fileira deslizam juntos, a brecha vai e volta.
+			a.pos.x = a.slide_base + Tuning.SLIDE_AMP * sin(TAU * _slide_t / Tuning.SLIDE_PERIOD + a.slide_phase)
 		a.knock *= exp(-Tuning.HIT_KNOCKBACK_DECAY * dt)
 		a.punch = maxf(0.0, a.punch - dt * 8.0)
 		a.rot += a.rot_speed * dt
@@ -156,6 +164,34 @@ func spawn_corridor_wall() -> void:
 	_gap_x = clampf(_gap_x + randf_range(-Tuning.CORRIDOR_SHIFT, Tuning.CORRIDOR_SHIFT),
 			half_gap + 20.0, view_size.x - half_gap - 20.0)
 	spawn_wall(false)
+
+
+## PAREDE MÓVEL (Setor 7): fileira de metálicos mais larga que a tela, com uma brecha, que
+## desliza de um lado para o outro enquanto desce. A brecha fica sempre dentro da tela.
+func spawn_sliding_wall() -> void:
+	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
+	var r := Tuning.WALL_METAL_RADIUS
+	var amp := Tuning.SLIDE_AMP
+	# Centro da brecha no meio do movimento: o vaivém nunca a leva para fora da tela.
+	var gap := clampf(_gap_x, half_gap + amp + 20.0, view_size.x - half_gap - amp - 20.0)
+	var phase := randf() * TAU
+	var x := gap - half_gap - r
+	while x > -amp - r:
+		_add_slider(x, r, phase)
+		x -= r * 2.0 + 6.0
+	x = gap + half_gap + r
+	while x < view_size.x + amp + r:
+		_add_slider(x, r, phase)
+		x += r * 2.0 + 6.0
+	_distance_to_next_row = maxf(_distance_to_next_row, Tuning.ROW_SPACING_START)
+
+
+func _add_slider(x: float, r: float, phase: float) -> void:
+	var a := _add(Kind.METAL, Vector2(x, -r), r, 1, Vector2.ZERO)
+	a.sliding = true
+	a.slide_base = x
+	a.slide_phase = phase
+	a.rot_speed = 0.0
 
 
 func clear_around(center: Vector2, radius: float) -> void:

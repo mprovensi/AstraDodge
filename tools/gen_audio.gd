@@ -31,6 +31,8 @@ func _initialize() -> void:
 	_save("music_sector5", _lofi(88.0, SECTOR5_CHORDS, SECTOR5_MELODY, false, true))
 	seed(6066)
 	_save("music_sector6", _lofi(92.0, SECTOR6_CHORDS, SECTOR6_MELODY, true))
+	seed(7077)
+	_save("music_sector7", _lofi(104.0, SECTOR7_CHORDS, SECTOR7_MELODY, true))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -381,6 +383,22 @@ const SECTOR6_MELODY := [
 	[-1, 65, -1, -1, 69, -1, 70, -1, -1, 69, -1, -1, 65, -1, -1, -1],
 	[62, -1, 65, -1, -1, 69, -1, -1, 72, -1, -1, 69, -1, -1, -1, -1],
 	[-1, 68, -1, -1, 71, -1, -1, 70, -1, 68, -1, -1, 64, -1, -1, -1],
+]
+
+
+## Setor 7 (music_sector7.wav): 104 BPM (= compasso dos portões de laser), industrial em Fá# menor:
+## F#m9 · Dmaj7 · Bm9 · C#7sus4. Melodia "metrônomo" bem marcada nos tempos.
+const SECTOR7_CHORDS := [
+	[42, 45, 49, 52, 56],  # F#m9
+	[38, 42, 45, 49],      # Dmaj7
+	[35, 38, 42, 45, 49],  # Bm9
+	[37, 42, 44, 47],      # C#7sus4
+]
+const SECTOR7_MELODY := [
+	[73, -1, -1, -1, 73, -1, -1, -1, 76, -1, -1, -1, 73, -1, 71, -1],
+	[69, -1, -1, -1, 69, -1, -1, -1, 73, -1, -1, -1, 69, -1, 66, -1],
+	[71, -1, -1, -1, 71, -1, -1, -1, 74, -1, -1, -1, 73, -1, 71, -1],
+	[68, -1, -1, -1, 71, -1, -1, -1, 73, -1, -1, -1, 75, -1, -1, -1],
 ]
 
 

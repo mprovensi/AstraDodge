@@ -46,6 +46,7 @@ e colocá-los no jogo sem quebrar nada.
 | `ice_1.png`, `ice_2.png` | 256×256 | bloco de **gelo** facetado azul-claro, **redondo**, ~92% do raio (racha ao quebrar) | — |
 | `boss_ice_colossus.png` | 512×512 | bloco de gelo gigante **redondo** (~94% do raio) | núcleo no **centro** (256,256), encaixe ~160 px; as placas em volta o jogo desenha |
 | `boss_hive_queen.png` | 512×512 | inseto rainha visto de cima, **cabeça para BAIXO**: abdômen em cima, tórax no centro, cabeça embaixo | coração no **centro** (256,256), encaixe ~120 px; corpo: abdômen centro (256,130) raio ~110, tórax raio ~120, cabeça centro (256,398) raio ~65 |
+| `boss_sentinel.png` | 512×512 | núcleo de IA **octogonal** de aço, preso ao teto (cabos em cima) | olho no **centro** (256,256), encaixe ~110 px; corpo: círculo de raio ~200 px; braços e drones o jogo desenha |
 
 O jogo **desenha por cima** (não precisam estar na imagem): núcleos/olhos dos chefes,
 tentáculos da Medusa, canhões/lançador/ponte do Cruzador, chamas dos motores, escudo da nave.
@@ -180,4 +181,16 @@ em cima (centro ~256,130), tórax âmbar arredondado no centro, cabeça embaixo 
 com mandíbulas e olhos laranja, 6 patas escuras e asas translúcidas (bem transparentes) nos lados.
 No CENTRO (256,256), um encaixe circular escuro de ~120 px com aro dourado (o jogo desenha o coração).
 Os insetos e ovos são desenhados pelo jogo (não precisam de imagem).
+```
+
+## Prompts prontos — Setor 7
+
+### Chefe 7 — Sentinela — `boss_sentinel.png`
+```
+Sprite 2D de chefe para jogo mobile, vista de frente/de cima. PNG 512x512, fundo TRANSPARENTE.
+Núcleo de inteligência artificial de uma estação espacial abandonada: bloco OCTOGONAL de aço
+grafite (ocupa ~90% da imagem), faixas de alarme vermelhas em cima e embaixo, respiros e
+painéis nas laterais, cabos saindo do topo (preso ao teto), luzes de status.
+No CENTRO (256,256), um encaixe circular escuro de ~110 px com aro claro e anel tracejado
+vermelho (o jogo desenha o olho). Braços-canhão e drones são desenhados pelo jogo.
 ```

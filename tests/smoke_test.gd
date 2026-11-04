@@ -34,6 +34,7 @@ func _run() -> void:
 	_test_sector4()
 	_test_sector5()
 	_test_sector6()
+	_test_sector7()
 	_test_endless_generator()
 	_test_endless_run()
 	_test_boss_safety()
@@ -385,10 +386,61 @@ func _test_sector6() -> void:
 	assert(eggs >= 10 and main.eggs_destroyed > 0, "ovos aparecem e são destruídos (%d/%d)" % [main.eggs_destroyed, eggs])
 	assert(boss_seen and phase2_seen and acid_seen, "Rainha: fase 2 e chuva de ácido")
 	assert(guards_min < HiveQueenGuards(), "tiros derrubam guardas do escudo vivo")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "depois do Setor 6 vem o Setor 7")
 	print("SETOR 6 OK | %.1fs | insetos=%d | ovos=%d (destruidos %d, eclodiram %d) | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, swarm, eggs, main.eggs_destroyed, main.enemies.hatched - hatched_before, boss_time,
 		str(main.star_checks())])
+
+
+## Continua do Setor 6: PRÓXIMO SETOR → Setor 7 inteiro (portões, paredes móveis, blecaute, Sentinela).
+func _test_sector7() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_7")
+	assert(sfx.current_track() == "sector7", "Setor 7 tem trilha própria")
+	_touch(true)
+	var gates_max := 0
+	var gate_on_seen := false
+	var sliders := 0
+	var blackout_seen := false
+	var boss_seen := false
+	var phase2_seen := false
+	var arms_min := 2
+	var drones_seen := false
+	var boss_time := 0.0
+	var frames := 0
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 360:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			arms_min = mini(arms_min, boss.alive_arms())
+			drones_seen = drones_seen or boss.drones_out() > 0
+			# No começo da luta, derruba um braço (para ver o drone de reparo); depois mira no olho/drone.
+			var tx: float = boss._arm_pos(0).x if boss.alive_arms() == 2 and boss_time < 15.0 else boss.aim_x()
+			main.ship.move_by(Vector2(tx - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		gates_max = maxi(gates_max, main.hazards.gates.size())
+		gate_on_seen = gate_on_seen or (not main.hazards.gates.is_empty() and main.hazards.gates_on())
+		for a in main.asteroids.asteroids:
+			sliders += int(a.sliding)
+		blackout_seen = blackout_seen or main.blackout.active()
+		frames += 1
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 7 deveria terminar (Sentinela derrotada)")
+	assert(gates_max >= 2 and gate_on_seen, "portões de laser em sequência, ligando no compasso")
+	assert(sliders > 0, "paredes móveis aparecem")
+	assert(blackout_seen, "blecaute acontece")
+	assert(boss_seen and phase2_seen, "Sentinela: fase 2")
+	assert(arms_min < 2 and drones_seen, "braços destruídos e drones de reparo saindo")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 7 OK | %.1fs | portoes na tela max=%d | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, gates_max, boss_time, str(main.star_checks())])
 
 
 func HiveQueenGuards() -> int:
@@ -477,6 +529,27 @@ func _test_boss_safety() -> void:
 	var queen_out := _bodies_outside_pct(hq.BODIES, hq.SPRITE_SIZE, root.get_node("Game").art.hive_queen_body)
 	assert(queen_out <= 5.0, "corpo da Rainha: %.0f%% da colisão fora do desenho" % queen_out)
 	print("ROTA SEGURA S6 OK | entre colunas de acido=%.0f | corpo fora do desenho=%.0f%%" % [acid_gap, queen_out])
+
+	# Setor 7: o portão desce devagar o bastante para a nave escolher a hora de cruzar (a faixa
+	# de altura da nave dá mais tempo que um compasso inteiro); a brecha da parede móvel nunca
+	# sai da tela; grade e paredes do Sentinela deixam espaço; corpo x desenho.
+	for h: float in [1920.0, 2340.0]:
+		var choice: float = h * (0.92 - Tuning.SHIP_MIN_Y_RATIO) / Tuning.GATE_SPEED
+		assert(choice >= Tuning.GATE_PERIOD, "portão: só %.1fs de escolha (< compasso)" % choice)
+	assert(Tuning.SAFE_GAP_WIDTH * 0.5 + Tuning.SLIDE_AMP + 20.0 <= 540.0, "brecha da parede móvel cabe na tela")
+	var st: GDScript = load("res://scripts/bosses/sentinel.gd")
+	assert(st.grid_min_gap() >= ship_gap * 2.0, "grade: vão de %.0f px" % st.grid_min_gap())
+	for i in 200:
+		var cols: Array[float] = st.pick_lines(4, 50.0, 1030.0)
+		assert(cols.size() == 4, "4 colunas da grade")
+		for k in range(1, 4):
+			assert(cols[k] - cols[k - 1] >= st.GRID_MIN_SPACING - 0.01, "colunas da grade perto demais")
+	assert(st.walls_free_width(1080.0) >= ship_gap * 6.0, "paredes da arena: meio livre")
+	var sent_out := _round_body_outside_pct(st, root.get_node("Game").art.sentinel_body)
+	assert(sent_out <= 5.0, "corpo do Sentinela: %.0f%% da colisão fora do desenho" % sent_out)
+	print("ROTA SEGURA S7 OK | portao: escolha de %.1fs (compasso %.1fs) | grade=%.0f | meio livre=%.0f | corpo fora do desenho=%.0f%%" % [
+		1920.0 * (0.92 - Tuning.SHIP_MIN_Y_RATIO) / Tuning.GATE_SPEED, Tuning.GATE_PERIOD, st.grid_min_gap(),
+		st.walls_free_width(1080.0), sent_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
 
@@ -663,8 +736,8 @@ func _test_checkpoint() -> void:
 ## Infinito procedural: mesma semente = mesma partida; 100 sementes respeitam as regras de ritmo.
 func _test_endless_generator() -> void:
 	var K := WaveEvent.Kind
-	var biomes: Array[int] = [0, 1, 2, 3, 4, 5]
-	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen"]
+	var biomes: Array[int] = [0, 1, 2, 3, 4, 5, 6]
+	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel"]
 	var horizon := 900.0  # 15 min de linha do tempo
 	var a := _endless_timeline(42, biomes, bosses, horizon)
 	var b := _endless_timeline(42, biomes, bosses, horizon)
@@ -681,7 +754,7 @@ func _test_endless_generator() -> void:
 		var boss_times: Array[float] = []
 		var last_boss := ""
 		for e in events:
-			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS, K.HATCH] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
+			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS, K.HATCH, K.GATES, K.SLIDE] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
 			if heavy:
 				assert(e.at - last_heavy >= 18.0, "semente %d: dois blocos pesados seguidos (%.1fs)" % [seed_value, e.at])
 				assert(e.duration <= 8.5, "bloco pesado longo demais")
@@ -733,8 +806,8 @@ func _test_endless_run() -> void:
 	var saved_cp := {"sector": 2, "time": 33.0, "weapon": 3}
 	game.checkpoint = saved_cp.duplicate()
 	main.endless_seed = 7
-	main.endless_biomes.assign([0, 1, 2, 3, 4, 5])
-	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen"])
+	main.endless_biomes.assign([0, 1, 2, 3, 4, 5, 6])
+	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel"])
 	main.start_endless()
 	assert(main.state == main.State.READY and main.mode == main.Mode.ENDLESS)
 	_touch(true)

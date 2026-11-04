@@ -125,6 +125,22 @@ const EGG_HATCH := 4.0              # s na tela até eclodir (o anel em volta mo
 const EGG_LARVAE := 3               # insetos que saem de um ovo não destruído
 const EGG_SCROLL_K := 0.3           # ovo desce mais devagar que o cenário (dá tempo de eclodir)
 
+# --- Setor 7: Estação Abandonada ---
+const GATE_BPM := 104.0             # mesmo andamento da trilha do setor
+const GATE_PERIOD := 4.0 * 60.0 / 104.0  # 1 compasso: 2 tempos ligado, 2 desligado (≈ 2,3 s)
+const GATE_ON_FRACTION := 0.5
+const GATE_WARN := 0.55             # s de pisca + tique antes de ligar
+const GATE_SPEED := 420.0           # o portão desce mais devagar que o cenário (dá para escolher a hora)
+const GATE_HALF := 16.0             # meia-espessura do feixe
+const GATE_SPACING := GATE_SPEED * GATE_PERIOD  # portões em sequência: mesmo compasso na altura da nave
+const SHIELD_DMG_BEAM := 25.0       # feixe de laser (portão, grade do chefe)
+const SLIDE_AMP := 190.0            # parede móvel: quanto a brecha anda para cada lado
+const SLIDE_PERIOD := 3.2
+const SLIDE_INTERVAL := 1.6         # s entre paredes móveis em sequência
+const BLACKOUT_DARKNESS := 0.72     # quanto escurece fora da luz da nave
+const BLACKOUT_LIGHT := 430.0       # raio da luz em volta da nave
+const BLACKOUT_FADE := 0.8
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

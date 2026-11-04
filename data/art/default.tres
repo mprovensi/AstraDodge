@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" path="res://sprites/boss_miner.png" id="8_ik4b2"]
 [ext_resource type="Texture2D" path="res://sprites/boss_rock_mother_half.png" id="8_tff5p"]
 [ext_resource type="Texture2D" path="res://sprites/ice_2.png" id="8_u4o7u"]
+[ext_resource type="Texture2D" path="res://sprites/boss_sentinel.png" id="18_u4o7u"]
 
 [resource]
 script = ExtResource("7_5u5ty")
@@ -34,3 +35,4 @@ medusa_body = ExtResource("5_ik4b2")
 cruiser_body = ExtResource("1_5u5ty")
 ice_colossus_body = ExtResource("6_7yqe6")
 hive_queen_body = ExtResource("6_4jbvx")
+sentinel_body = ExtResource("18_u4o7u")

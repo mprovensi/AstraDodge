@@ -21,8 +21,8 @@ const BOSS_HP_STEP := 0.15        ## +15% a cada repetição do mesmo chefe (at�
 
 ## Um bloco de construção: tipo de evento, custo e de quais biomas (índice do setor) ele é.
 const BLOCKS := [
-	{"kind": WaveEvent.Kind.DUST_RAIN, "cost": 0, "biomes": [0, 1, 2, 3, 4, 5]},
-	{"kind": WaveEvent.Kind.METAL_WALL, "cost": 2, "biomes": [0, 1, 2, 3, 4, 5]},
+	{"kind": WaveEvent.Kind.DUST_RAIN, "cost": 0, "biomes": [0, 1, 2, 3, 4, 5, 6]},
+	{"kind": WaveEvent.Kind.METAL_WALL, "cost": 2, "biomes": [0, 1, 2, 3, 4, 5, 6]},
 	{"kind": WaveEvent.Kind.CORRIDOR, "cost": 3, "biomes": [1]},
 	{"kind": WaveEvent.Kind.STORM, "cost": 3, "biomes": [2]},
 	{"kind": WaveEvent.Kind.DRONES, "cost": 2, "biomes": [3]},
@@ -30,6 +30,9 @@ const BLOCKS := [
 	{"kind": WaveEvent.Kind.COMETS, "cost": 3, "biomes": [4]},
 	{"kind": WaveEvent.Kind.SWARM, "cost": 2, "biomes": [5]},
 	{"kind": WaveEvent.Kind.HATCH, "cost": 3, "biomes": [5]},
+	{"kind": WaveEvent.Kind.GATES, "cost": 3, "biomes": [6]},
+	{"kind": WaveEvent.Kind.SLIDE, "cost": 3, "biomes": [6]},
+	{"kind": WaveEvent.Kind.BLACKOUT, "cost": 2, "biomes": [6]},
 ]
 
 var biomes: Array[int] = []       ## setores liberados (índices em SECTORS)
@@ -144,6 +147,9 @@ func _climate(biome: int, d: float, mix: int) -> Dictionary:
 			5:
 				c["swarm"] = maxf(c.get("swarm", 0.0), (0.15 + 0.12 * d) * k)
 				c["eggs"] = maxf(c.get("eggs", 0.0), (0.2 + 0.12 * d) * k)
+			6:
+				c["moving"] = maxf(c.get("moving", 0.0), (0.2 + 0.15 * d) * k)
+				c["turrets"] = maxf(c.get("turrets", 0.0), (0.15 + 0.1 * d) * k)
 	return c
 
 
@@ -181,6 +187,12 @@ func _block_events(block: Dictionary, at: float, d: float) -> Array[WaveEvent]:
 			ev.append(WaveEvent.make(at, K.SWARM, {"count": 6 if d < 0.5 else 10}))
 		K.HATCH:
 			ev.append(WaveEvent.make(at, K.HATCH, {"count": 4 if d < 0.5 else 6}))
+		K.GATES:
+			ev.append(WaveEvent.make(at, K.GATES, {"count": 2 if d < 0.5 else 3}))
+		K.SLIDE:
+			ev.append(WaveEvent.make(at, K.SLIDE, {"count": 2 if d < 0.5 else 3}))
+		K.BLACKOUT:
+			ev.append(WaveEvent.make(at, K.BLACKOUT, {"duration": 6.0}))
 		K.DRONES:
 			if block.get("ambush", false):
 				ev.append(WaveEvent.make(at, K.DRONES, {"count": 5, "text": "EMBOSCADA!"}))

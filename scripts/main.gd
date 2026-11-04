@@ -13,6 +13,7 @@ const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_4.tres"),
 	preload("res://data/sectors/sector_5.tres"),
 	preload("res://data/sectors/sector_6.tres"),
+	preload("res://data/sectors/sector_7.tres"),
 ]
 
 var state := State.MENU
@@ -26,6 +27,7 @@ var asteroids: AsteroidField
 var enemies: EnemyLayer
 var hazards: HazardLayer
 var telegraph: TelegraphLayer
+var blackout: Blackout
 var bullets: BulletLayer
 var enemy_shots: EnemyBulletLayer
 var pickups: PickupLayer
@@ -68,6 +70,10 @@ var _storm_left := 0.0          # s restantes da TEMPESTADE
 var _storm_timer := 0.0         # s até o próximo raio
 var _comets_left := 0           # cometas que ainda faltam na CHUVA DE COMETAS
 var _comet_timer := 0.0
+var _gates_left := 0            # portões de laser que ainda faltam na sequência
+var _gate_timer := 0.0
+var _slides_left := 0           # paredes móveis que ainda faltam
+var _slide_timer := 0.0
 var ice_shards := 0             # lascas criadas por gelo rachado (testes)
 var eggs_destroyed := 0         # ovos destruídos antes de eclodir (testes)
 var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
@@ -96,6 +102,8 @@ func _ready() -> void:
 	world.add_child(enemies)
 	hazards = HazardLayer.new()
 	world.add_child(hazards)
+	blackout = Blackout.new()  # acima de rochas e inimigos, abaixo dos avisos e da nave
+	world.add_child(blackout)
 	telegraph = TelegraphLayer.new()
 	world.add_child(telegraph)
 	bullets = BulletLayer.new()
@@ -248,8 +256,11 @@ func _new_run() -> void:
 	enemy_shots.clear()
 	telegraph.clear()
 	hazards.clear()
+	blackout.clear()
 	_storm_left = 0.0
 	_comets_left = 0
+	_gates_left = 0
+	_slides_left = 0
 	ice_shards = 0
 	eggs_destroyed = 0
 	bosses_defeated = 0
@@ -456,10 +467,12 @@ func _step(dt: float) -> void:
 		asteroids.armored = director.armored
 		asteroids.ice = director.ice
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
-				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0
+				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0 \
+				and _gates_left <= 0 and hazards.gates.is_empty() and _slides_left <= 0
 		_update_corridor(dt)
 		_update_storm(dt)
 		_update_comets(dt)
+		_update_station(dt)
 	else:
 		difficulty = Tuning.difficulty(elapsed)
 
@@ -483,6 +496,7 @@ func _step(dt: float) -> void:
 	var cloud_drain := Tuning.ION_DRAIN_MULT if hazards.in_cloud(ship.position) else 1.0
 	ship.drain_scale = boss_drain * cloud_drain
 	telegraph.update(dt)
+	blackout.update(dt, ship.position)
 	bullets.update(dt)
 	enemy_shots.update(dt)
 	ship.update(dt)
@@ -537,6 +551,19 @@ func _on_wave_event(e: WaveEvent) -> void:
 				enemies.spawn_egg(Vector2(x, -60.0 - randf_range(0.0, 160.0)))
 			hud.show_hint("ECLOSÃO! Destrua os ovos\nantes do anel fechar", 2.5)
 			Sfx.play("alarm", -10.0, 0.9, 0.0)
+		WaveEvent.Kind.GATES:
+			_gates_left = e.count
+			_gate_timer = 0.0
+			hud.show_hint("PORTÕES DE LASER!\nCruze quando estiverem apagados", 3.0)
+		WaveEvent.Kind.SLIDE:
+			_slides_left = e.count
+			_slide_timer = 0.0
+			hud.show_hint("PAREDES MÓVEIS!\nAcompanhe a brecha", 2.5)
+			Sfx.play("alarm", -8.0, 1.2, 0.0)
+		WaveEvent.Kind.BLACKOUT:
+			blackout.start(e.duration)
+			hud.show_hint("BLECAUTE!", 2.0)
+			Sfx.play("level_down", -6.0, 0.6, 0.0)
 		WaveEvent.Kind.COMETS:
 			_comets_left = e.count
 			_comet_timer = 0.0
@@ -627,6 +654,24 @@ func _update_storm(dt: float) -> void:
 				else randf_range(0.0, view_size.x)
 		hazards.spawn_strike(x, telegraph)
 		Sfx.play("alarm", -14.0, 1.5, 0.0, Vector2(x, 0))
+
+
+## Setor 7: sequências de portões de laser e de paredes móveis.
+## Os portões saem um compasso depois do outro: na altura da nave chegam todos no mesmo
+## ponto do compasso — quem acertou o tempo no 1º passa por todos parado.
+func _update_station(dt: float) -> void:
+	if _gates_left > 0:
+		_gate_timer -= dt
+		if _gate_timer <= 0.0:
+			_gate_timer = Tuning.GATE_PERIOD
+			_gates_left -= 1
+			hazards.spawn_gate()
+	if _slides_left > 0:
+		_slide_timer -= dt
+		if _slide_timer <= 0.0:
+			_slide_timer = Tuning.SLIDE_INTERVAL
+			_slides_left -= 1
+			asteroids.spawn_sliding_wall()
 
 
 func _update_corridor(dt: float) -> void:
@@ -767,6 +812,16 @@ func _check_ship_hits() -> void:
 		if ship.position.distance_to(at) < blast.z + Tuning.SHIP_HITBOX_RADIUS:
 			if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY) and not ship.alive:
 				return
+
+	# Portões de laser: só machucam ligados (feixe forte); apagados dá para cruzar.
+	if hazards.gate_hits(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+		if _damage_ship(Tuning.SHIELD_DMG_BEAM) and not ship.alive:
+			return
+
+	# Feixes do chefe (grade de laser, paredes que fecham a arena).
+	if boss != null and boss.beam_hits(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+		if _damage_ship(Tuning.SHIELD_DMG_BEAM) and not ship.alive:
+			return
 
 	# Cometas: só na faixa que foi avisada.
 	if hazards.comet_hits(ship.position, Tuning.SHIP_HITBOX_RADIUS):
@@ -933,6 +988,8 @@ func _spawn_boss(boss_id: String) -> void:
 			boss = cruiser
 		"medusa":
 			boss = Medusa.new()
+		"sentinel":
+			boss = Sentinel.new()
 		"hive_queen":
 			var queen := HiveQueen.new()
 			queen.enemies = enemies  # os ovos nascem na camada de inimigos
@@ -1006,6 +1063,7 @@ func _on_resized() -> void:
 	enemies.resize(view_size)
 	telegraph.resize(view_size)
 	hazards.resize(view_size)
+	blackout.resize(view_size)
 	bullets.resize(view_size)
 	enemy_shots.resize(view_size)
 	pickups.resize(view_size)

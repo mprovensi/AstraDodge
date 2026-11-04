@@ -1,0 +1,136 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_rknkx"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_cesfm"]
+
+[sub_resource type="Resource" id="Resource_v1c04"]
+script = ExtResource("1_rknkx")
+kind = 1
+density = 0.8
+
+[sub_resource type="Resource" id="Resource_yi7e8"]
+script = ExtResource("1_rknkx")
+at = 0.5
+duration = 2.5
+text = "SETOR 7
+Estação Abandonada"
+
+[sub_resource type="Resource" id="Resource_yu3b4"]
+script = ExtResource("1_rknkx")
+at = 6.0
+kind = 15
+count = 3
+
+[sub_resource type="Resource" id="Resource_fdsfx"]
+script = ExtResource("1_rknkx")
+at = 22.0
+kind = 1
+density = 0.85
+moving = 0.2
+turrets = 0.15
+
+[sub_resource type="Resource" id="Resource_bgr7h"]
+script = ExtResource("1_rknkx")
+at = 32.0
+kind = 16
+count = 3
+
+[sub_resource type="Resource" id="Resource_b7uce"]
+script = ExtResource("1_rknkx")
+at = 48.0
+kind = 1
+density = 0.9
+moving = 0.2
+turrets = 0.2
+swarm = 0.1
+
+[sub_resource type="Resource" id="Resource_fduol"]
+script = ExtResource("1_rknkx")
+at = 58.0
+kind = 17
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_j1rpv"]
+script = ExtResource("1_rknkx")
+at = 58.0
+kind = 1
+density = 0.7
+
+[sub_resource type="Resource" id="Resource_uhs1k"]
+script = ExtResource("1_rknkx")
+at = 70.0
+kind = 1
+moving = 0.25
+turrets = 0.2
+ice = 0.2
+
+[sub_resource type="Resource" id="Resource_wt4wm"]
+script = ExtResource("1_rknkx")
+at = 78.0
+kind = 15
+count = 4
+
+[sub_resource type="Resource" id="Resource_xjl08"]
+script = ExtResource("1_rknkx")
+at = 98.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_k4sau"]
+script = ExtResource("1_rknkx")
+at = 98.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_d7s8k"]
+script = ExtResource("1_rknkx")
+at = 110.0
+kind = 16
+count = 4
+
+[sub_resource type="Resource" id="Resource_lh6qj"]
+script = ExtResource("1_rknkx")
+at = 122.0
+kind = 1
+density = 1.05
+moving = 0.3
+turrets = 0.25
+comets = 0.05
+swarm = 0.15
+
+[sub_resource type="Resource" id="Resource_wkyg8"]
+script = ExtResource("1_rknkx")
+at = 128.0
+kind = 17
+duration = 6.0
+
+[sub_resource type="Resource" id="Resource_lro78"]
+script = ExtResource("1_rknkx")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_mbwmq"]
+script = ExtResource("1_rknkx")
+at = 140.0
+duration = 3.0
+text = "SISTEMA DE DEFESA REATIVADO."
+
+[sub_resource type="Resource" id="Resource_0yecc"]
+script = ExtResource("1_rknkx")
+at = 144.0
+kind = 7
+text = "sentinel"
+
+[resource]
+script = ExtResource("2_cesfm")
+id = "sector_7"
+number = 7
+title = "SETOR 7"
+subtitle = "Estação Abandonada"
+difficulty_start = 0.65
+difficulty_end = 0.95
+events = Array[ExtResource("1_rknkx")]([SubResource("Resource_v1c04"), SubResource("Resource_yi7e8"), SubResource("Resource_yu3b4"), SubResource("Resource_fdsfx"), SubResource("Resource_bgr7h"), SubResource("Resource_b7uce"), SubResource("Resource_fduol"), SubResource("Resource_j1rpv"), SubResource("Resource_uhs1k"), SubResource("Resource_wt4wm"), SubResource("Resource_xjl08"), SubResource("Resource_k4sau"), SubResource("Resource_d7s8k"), SubResource("Resource_lh6qj"), SubResource("Resource_wkyg8"), SubResource("Resource_lro78"), SubResource("Resource_mbwmq"), SubResource("Resource_0yecc")])
+music = "sector7"
+nebula_a = Color(0.08, 0.08, 0.1, 1)
+nebula_b = Color(0.3, 0.04, 0.04, 1)

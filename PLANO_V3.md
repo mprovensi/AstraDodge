@@ -204,3 +204,13 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Trilha própria (Lá menor frígio, 92 BPM) e nebulosa musgo/âmbar
 - [x] Infinito: bioma Colmeia (enxame, ovos, eclosão) e a Rainha no sorteio
 - [x] Testes: Setor 6 inteiro (bot), colunas de ácido sempre com faixa livre, corpo x desenho
+
+**S10 — Setor 7 (Estação Abandonada): concluído (05/11/2026)**
+- [x] Portões de laser (`HazardLayer`): feixe na largura toda que liga e desliga no compasso da trilha (104 BPM), pisca e faz tique antes de ligar; descem devagar para a nave escolher a hora de cruzar; em sequência, chegam no mesmo ponto do compasso
+- [x] Paredes móveis (`AsteroidField.spawn_sliding_wall`): fileira de metálicos cuja brecha desliza de lado enquanto desce
+- [x] Blecaute (`Blackout` + `shaders/blackout.gdshader`): a tela escurece e sobra a luz em volta da nave; avisos vermelhos sempre visíveis
+- [x] Sentinela (`scripts/bosses/sentinel.gd`): olho no centro, 2 braços-canhão que drones de reparo consertam (derrube o drone!), grade de laser avisada; fase 2 com paredes de energia que fecham as laterais
+- [x] Feixes de chefe com dano próprio (`Boss.beam_hits`, menor que encostar no corpo)
+- [x] Trilha própria (Fá# menor, 104 BPM, "metrônomo") e nebulosa grafite/vermelho
+- [x] Infinito: bioma Estação (portões, paredes móveis, blecaute) e o Sentinela no sorteio
+- [x] Testes: Setor 7 inteiro (bot), tempo de escolha do portão > 1 compasso, brecha móvel dentro da tela, grade e paredes com espaço livre, corpo x desenho

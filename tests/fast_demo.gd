@@ -113,8 +113,8 @@ func _tick() -> void:
 func _start_sector(number: int) -> void:
 	Engine.time_scale = speed
 	if endless:
-		main.endless_biomes.assign([0, 1, 2, 3, 4, 5])
-		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen"])
+		main.endless_biomes.assign([0, 1, 2, 3, 4, 5, 6])
+		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel"])
 		main.start_endless()
 		main.ship.weapon_level = weapon
 		_touch()
