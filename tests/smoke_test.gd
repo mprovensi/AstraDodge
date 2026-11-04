@@ -38,6 +38,7 @@ func _run() -> void:
 	_test_sector8()
 	_test_endless_generator()
 	_test_endless_run()
+	_test_daily()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -941,6 +942,56 @@ func _test_dev_selector() -> void:
 			break
 	assert(boss_id == "SENTINELA", "CHEFE do Setor 7 começa direto no Sentinela (veio: %s)" % boss_id)
 	print("SELETOR DE FASES OK | setor 5 do inicio, chefe do setor 7 em segundos")
+
+
+## Desafio do Dia: semente do dia, todos os cenários, 1ª tentativa vale (e já conta ao
+## começar), "Reiniciar" vira treino; multiplicador sobe sem dano e zera com dano.
+func _test_daily() -> void:
+	var game := root.get_node("Game")
+	game.daily_date = ""
+	game.daily_score = 0
+	game.daily_best = 0
+	main.go_to_menu()
+	assert(main.hud._buttons["daily"].visible and main.hud._buttons["daily"].text == "DESAFIO DO DIA")
+	main.start_daily()
+	assert(main.daily and main._daily_official, "1ª tentativa do dia vale")
+	assert(game.daily_date == game.today(), "a tentativa conta assim que começa")
+	assert(main.director.generator.rng.seed == game.daily_seed(), "semente do dia")
+	assert(main.director.generator.biomes.size() == main.SECTORS.size(), "todos os cenários no desafio")
+	_touch(true)
+	var raw_at_end := 0
+	for i in 60 * 25:
+		main.ship.invuln = 1.0
+		main._process(DT)
+	assert(main.multiplier >= 2.0, "25 s sem dano: multiplicador x2 (veio x%.1f)" % main.multiplier)
+	raw_at_end = int(main.distance * Tuning.SCORE_PER_PIXEL) + main.bonus_score
+	assert(main.score > raw_at_end, "pontos multiplicados (%d > %d)" % [main.score, raw_at_end])
+	main.ship.invuln = 0.0
+	main._damage_ship(1.0)
+	assert(main.multiplier == 1.0, "levou dano: multiplicador volta a x1")
+	main.ship.invuln = 0.0
+	main._on_ship_died()
+	for i in 120:
+		main._process(DT)
+	assert(main.state == main.State.GAME_OVER)
+	var official: int = game.daily_score
+	assert(official == main.score and official > 0, "pontos da tentativa valendo salvos")
+	assert(main.hud._info.text.contains("DESAFIO DE HOJE"), "tela final mostra o desafio")
+	main._on_restart()
+	assert(not main._daily_official, "Reiniciar no mesmo dia é treino")
+	_touch(true)
+	for i in 60 * 3:
+		main._process(DT)
+	main._on_ship_died()
+	for i in 120:
+		main._process(DT)
+	assert(game.daily_score == official, "treino não mexe na tentativa valendo")
+	assert(main.hud._info.text.contains("TREINO"))
+	print("DESAFIO DO DIA OK | semente %d | valendo %d pontos (mult max x%.1f) | treino nao conta" % [
+		game.daily_seed(), official, main._best_multiplier])
+	main.daily = false
+	main.go_to_menu()
+	assert(main.hud._buttons["daily"].text == "DESAFIO (TREINO)", "menu mostra que hoje já foi")
 
 
 func _test_music() -> void:

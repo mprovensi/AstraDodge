@@ -24,6 +24,12 @@ var sector_stars := {}      # id do setor -> melhor número de estrelas (0..3)
 const ENDLESS_UNLOCK_SECTOR := "sector_2"  # libera o Infinito ao completar este setor
 var endless_best_time := 0.0
 
+# Desafio do Dia: todo mundo recebe a mesma partida do Infinito no mesmo dia.
+# Só a 1ª tentativa do dia "vale"; as outras são treino.
+var daily_date := ""   # dia (AAAA-MM-DD) da última tentativa valendo
+var daily_score := 0   # pontos da tentativa valendo desse dia
+var daily_best := 0    # melhor tentativa valendo de todos os dias
+
 
 func _ready() -> void:
 	load_data()
@@ -44,6 +50,9 @@ func load_data() -> void:
 	checkpoint = cfg.get_value("campaign", "checkpoint", {})
 	sector_stars = cfg.get_value("campaign", "stars", {})
 	endless_best_time = cfg.get_value("endless", "best_time", 0.0)
+	daily_date = cfg.get_value("daily", "date", "")
+	daily_score = cfg.get_value("daily", "score", 0)
+	daily_best = cfg.get_value("daily", "best", 0)
 
 
 func save_data() -> void:
@@ -60,6 +69,9 @@ func save_data() -> void:
 	cfg.set_value("campaign", "checkpoint", checkpoint)
 	cfg.set_value("campaign", "stars", sector_stars)
 	cfg.set_value("endless", "best_time", endless_best_time)
+	cfg.set_value("daily", "date", daily_date)
+	cfg.set_value("daily", "score", daily_score)
+	cfg.set_value("daily", "best", daily_best)
 	cfg.save(SAVE_PATH)
 
 
@@ -127,3 +139,37 @@ func clear_checkpoint() -> void:
 func vibrate(duration_ms: int) -> void:
 	if vibration_enabled:
 		Input.vibrate_handheld(duration_ms)
+
+
+# ---------------------------------------------------------------- Desafio do Dia
+
+static func today() -> String:
+	return Time.get_date_string_from_system()
+
+
+## Semente do dia: a mesma em qualquer aparelho com o mesmo jogo.
+static func daily_seed(date := "") -> int:
+	return absi(("astra-dodge-" + (date if date != "" else today())).hash())
+
+
+## A tentativa valendo de hoje ainda não foi usada?
+func daily_available() -> bool:
+	return daily_date != today()
+
+
+## Registra a tentativa valendo de hoje. Retorna true se for o melhor desafio de todos.
+func submit_daily(score: int) -> bool:
+	daily_date = today()
+	daily_score = score
+	var record := score > daily_best
+	if record:
+		daily_best = score
+	save_data()
+	return record
+
+
+## A tentativa valendo COMEÇOU: já conta como usada (sair no meio não devolve a tentativa).
+func begin_daily() -> void:
+	daily_date = today()
+	daily_score = 0
+	save_data()

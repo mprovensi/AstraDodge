@@ -90,6 +90,13 @@ var bosses_defeated := 0
 var endless_seed := -1                  # >= 0: semente fixa (testes, Desafio do Dia)
 var endless_biomes: Array[int] = []     # testes: força os biomas liberados
 var endless_bosses: Array[String] = []  # testes: força os chefes liberados
+var daily := false                      # Desafio do Dia (Infinito com a semente do dia)
+var _daily_official := false            # esta partida é a tentativa valendo de hoje
+var multiplier := 1.0                   # Infinito/Desafio: sobe sem levar dano, zera ao levar
+var _no_hit_t := 0.0
+var _last_raw := 0                      # pontos "crus" já somados (o multiplicador vale para os novos)
+var _biomes_seen := {}                  # cenários vistos nesta partida (estatísticas)
+var _best_multiplier := 1.0
 
 
 func _ready() -> void:
@@ -131,6 +138,7 @@ func _ready() -> void:
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
 	hud.endless_pressed.connect(start_endless)
+	hud.daily_pressed.connect(start_daily)
 	hud.dev_sector_pressed.connect(start_sector_dev)
 	var sector_names: Array = []
 	for s in SECTORS:
@@ -215,6 +223,7 @@ func _process(delta: float) -> void:
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
 	hud.set_alert(_alert_timer)
+	hud.set_multiplier(multiplier if mode == Mode.ENDLESS else 1.0)
 	if boss != null:
 		hud.set_boss_hp(boss.hp_ratio())
 
@@ -256,11 +265,33 @@ func start_sector_dev(index: int, at_boss: bool) -> void:
 ## Modo Infinito: nova semente a cada partida (o ponto salvo da campanha não é tocado).
 func start_endless() -> void:
 	_touch_index = -1
+	daily = false
 	start_mode(Mode.ENDLESS)
+
+
+## DESAFIO DO DIA: o Infinito com a semente do dia e TODOS os cenários e chefes — a mesma
+## sequência para todo mundo. Só a 1ª tentativa do dia vale; "Reiniciar" depois é treino.
+func start_daily() -> void:
+	_touch_index = -1
+	daily = true
+	start_mode(Mode.ENDLESS)
+	if _daily_official:
+		Game.begin_daily()
+		hud.show_hint("DESAFIO DE %s\nTentativa VALENDO!" % _today_label(), 4.0)
+	else:
+		hud.show_hint("DESAFIO DE %s — TREINO\nA tentativa de hoje já foi: %d pontos" % [
+				_today_label(), Game.daily_score], 4.0)
+
+
+static func _today_label() -> String:
+	var d := Time.get_date_dict_from_system()
+	return "%02d/%02d" % [d.day, d.month]
 
 
 func start_mode(new_mode: Mode, index := 0) -> void:
 	mode = new_mode
+	if new_mode == Mode.CAMPAIGN:
+		daily = false
 	sector_index = index
 	_new_run()
 	_set_state(State.READY)
@@ -271,6 +302,12 @@ func _new_run() -> void:
 	distance = 0.0
 	bonus_score = 0
 	score = 0
+	multiplier = 1.0
+	_no_hit_t = 0.0
+	_last_raw = 0
+	_biomes_seen = {}
+	_best_multiplier = 1.0
+	_daily_official = daily and Game.daily_available()
 	enemies_destroyed = 0
 	dust_destroyed = 0
 	scroll_speed = Tuning.SCROLL_SPEED_START
@@ -326,11 +363,23 @@ func _make_endless_director() -> SectorDirector:
 		biomes = endless_biomes
 	if not endless_bosses.is_empty():
 		boss_ids = endless_bosses
-	var data := SectorData.new()
-	data.id = "endless"
-	data.title = "MODO INFINITO"
-	data.duration = 1.0e9
 	var seed_value := endless_seed if endless_seed >= 0 else randi()
+	if daily:
+		# Igual para todos: todos os cenários e chefes, semente do dia (também no sorteio
+		# das fileiras, para a partida ficar o mais parecida possível entre aparelhos).
+		biomes.clear()
+		boss_ids.clear()
+		for i in SECTORS.size():
+			biomes.append(i)
+			for e in SECTORS[i].events:
+				if e.kind == WaveEvent.Kind.BOSS:
+					boss_ids.append(e.text)
+		seed_value = Game.daily_seed()
+		seed(seed_value)
+	var data := SectorData.new()
+	data.id = "daily" if daily else "endless"
+	data.title = "DESAFIO DO DIA" if daily else "MODO INFINITO"
+	data.duration = 1.0e9
 	return SectorDirector.new(data, EndlessGenerator.new(seed_value, SECTORS, biomes, boss_ids))
 
 
@@ -397,7 +446,16 @@ func _ready_title() -> String:
 func _best_for_mode() -> int:
 	if mode == Mode.CAMPAIGN and director != null:
 		return Game.get_sector_best(director.sector.id)
+	if daily:
+		return Game.daily_best
 	return Game.high_score
+
+
+## Estatísticas da partida do Infinito/Desafio (tela de fim de jogo).
+func _run_stats() -> String:
+	return "TEMPO %s · CHEFES %d · POEIRA %d\nCENÁRIOS %d · ATÉ: %s\nMULTIPLICADOR MÁXIMO x%.1f" % [
+		_clock(elapsed), bosses_defeated, dust_destroyed, _biomes_seen.size(),
+		SECTORS[_biome].subtitle.to_upper(), _best_multiplier]
 
 
 ## Vai para o próximo setor levando a arma (nível e cristais): recompensa por jogar bem.
@@ -436,7 +494,8 @@ func _set_state(new_state: State) -> void:
 	state = new_state
 	match new_state:
 		State.MENU:
-			hud.show_menu(not Game.checkpoint.is_empty(), Game.endless_unlocked())
+			hud.show_menu(not Game.checkpoint.is_empty(), Game.endless_unlocked(),
+					"DESAFIO DO DIA" if Game.daily_available() else "DESAFIO (TREINO)")
 		State.READY:
 			hud.show_ready(_ready_title())
 		State.PLAYING:
@@ -455,11 +514,20 @@ func _set_state(new_state: State) -> void:
 				Game.clear_checkpoint()  # a partida acabou: não há de onde continuar
 				var is_record := Game.submit_sector(director.sector.id, score, false)
 				hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
+			elif daily:
+				var lines := [_run_stats()]
+				var is_record := false
+				if _daily_official:
+					is_record = Game.submit_daily(score)
+					_daily_official = false  # "Reiniciar" agora é treino
+					lines.append("DESAFIO DE HOJE: %d · MELHOR %d" % [score, Game.daily_best])
+				else:
+					lines.append("TREINO · VALENDO HOJE: %d" % Game.daily_score)
+				hud.show_game_over(score, Game.daily_best, is_record, not _revive_used, "\n".join(lines))
 			else:
 				var records := Game.submit_endless(score, elapsed)
-				var info := "TEMPO %s%s · CHEFES %d\nRECORDE %d · %s" % [
-					_clock(elapsed), "  NOVO!" if records[1] else "", bosses_defeated,
-					Game.high_score, _clock(Game.endless_best_time)]
+				var info := "%s\nRECORDE %d · %s%s" % [_run_stats(), Game.high_score,
+						_clock(Game.endless_best_time), "  NOVO TEMPO!" if records[1] else ""]
 				hud.show_game_over(score, Game.high_score, records[0], not _revive_used, info)
 		State.SECTOR_CLEAR:
 			_touch_index = -1
@@ -543,7 +611,7 @@ func _step(dt: float) -> void:
 
 	_check_bullet_hits()
 	_check_ship_hits()
-	score = int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
+	_update_score(dt)
 
 	# Fim do setor: depois do END (ou do chefe derrotado), quando a tela esvaziar
 	# — inclusive a chuva de orbes/cristais da vitória, para dar tempo de coletar.
@@ -708,6 +776,26 @@ func _update_storm(dt: float) -> void:
 				else randf_range(0.0, view_size.x)
 		hazards.spawn_strike(x, telegraph)
 		Sfx.play("alarm", -14.0, 1.5, 0.0, Vector2(x, 0))
+
+
+## Pontuação. Campanha: distância + bônus. Infinito/Desafio: os pontos NOVOS são
+## multiplicados — o multiplicador sobe +0,5 a cada MULT_STEP_TIME s sem levar dano (até
+## MULT_MAX) e volta a x1 ao levar dano (ver _damage_ship).
+func _update_score(dt: float) -> void:
+	var raw := int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
+	if mode == Mode.CAMPAIGN:
+		score = raw
+		return
+	_biomes_seen[_biome] = true
+	if ship.alive:
+		_no_hit_t += dt
+		var before := multiplier
+		multiplier = minf(Tuning.MULT_MAX, 1.0 + floorf(_no_hit_t / Tuning.MULT_STEP_TIME) * 0.5)
+		if multiplier > before:
+			hud.on_multiplier_up(multiplier)
+		_best_multiplier = maxf(_best_multiplier, multiplier)
+	score += int(round((raw - _last_raw) * multiplier))
+	_last_raw = raw
 
 
 ## Setor 8 — INVERSÃO: aviso (sem rochas novas) → rochas vindo de baixo → respiro → normal.
@@ -939,6 +1027,10 @@ func _damage_ship(amount: float) -> bool:
 	var result := ship.take_hit(amount)
 	if result == Ship.HitResult.IGNORED:
 		return false
+	if multiplier > 1.0:
+		hud.on_multiplier_lost()
+	multiplier = 1.0  # levou dano: o multiplicador volta a x1
+	_no_hit_t = 0.0
 	if result == Ship.HitResult.DEAD:
 		_on_ship_died()
 		return true

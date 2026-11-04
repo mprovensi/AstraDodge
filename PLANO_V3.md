@@ -226,3 +226,12 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Testes: Setor 8 inteiro até a tela final (bot), brecha do anel, leque do eco, raios, corpo x desenho
 
 **A campanha de 8 setores está completa.** Próximos: S12 (Desafio do Dia) e S13 (polimento).
+
+**S12 — Desafio do Dia: concluído (05/11/2026)**
+- [x] Botão DESAFIO DO DIA no menu (junto com o Infinito, após o Setor 2): Infinito com a semente do dia e TODOS os cenários e chefes — mesma sequência de trechos, cenários e chefes para todo mundo no mesmo dia
+- [x] Uma tentativa valendo por dia (conta assim que começa); "Reiniciar" e as próximas são treino; recorde do desafio salvo (`Game.daily_*`); o botão vira "DESAFIO (TREINO)" depois
+- [x] Multiplicador de pontos (Infinito e Desafio): +0,5 a cada 10 s sem dano, até x3; zera ao levar dano; aparece ao lado dos pontos com aviso ao subir/perder
+- [x] Tela de fim com estatísticas: tempo, chefes, poeira destruída, cenários vistos, até onde chegou e multiplicador máximo
+- [x] Testes: semente/cenários do dia, tentativa valendo x treino, multiplicador sobe e zera
+- [ ] Placar online (Google Play Games) — depois do lançamento
+- Observação: a ordem dos trechos, cenários e chefes é idêntica; a posição exata de cada rocha pode variar um pouco entre aparelhos (o sorteio fino depende do ritmo dos quadros)

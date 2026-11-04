@@ -6,6 +6,7 @@ extends CanvasLayer
 signal resume_pressed
 signal campaign_pressed
 signal endless_pressed
+signal daily_pressed
 signal restart_pressed
 signal continue_pressed
 signal menu_pressed
@@ -48,6 +49,7 @@ const NEW_GAME_CONFIRM_TIME := 3.0  # segundos para o 2º toque confirmar o novo
 var _top: VBoxContainer
 var _score_label: Label
 var _best_label: Label
+var _mult_label: Label
 var _shield_label: Label
 var _shield_bg: ColorRect
 var _shield_fill: ColorRect
@@ -129,9 +131,18 @@ func _ready() -> void:
 	score_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	score_box.add_theme_constant_override("separation", -6)
 	header.add_child(score_box)
+	# Pontos + multiplicador (Infinito/Desafio) lado a lado.
+	var score_row := HBoxContainer.new()
+	score_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	score_row.add_theme_constant_override("separation", 14)
+	score_box.add_child(score_row)
 	_score_label = _make_label("0", 54, Palette.NEON)
 	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	score_box.add_child(_score_label)
+	score_row.add_child(_score_label)
+	_mult_label = _make_label("", 34, Palette.MAGENTA)
+	_mult_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_mult_label.visible = false
+	score_row.add_child(_mult_label)
 	_best_label = _make_label("RECORDE 0", 22, Palette.TEXT_DIM)
 	_best_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	score_box.add_child(_best_label)
@@ -262,6 +273,7 @@ func _ready() -> void:
 	_add_center_button("resume", "CONTINUAR", resume_pressed.emit)
 	_add_center_button("campaign", "JOGAR", campaign_pressed.emit)
 	_add_center_button("endless", "INFINITO", endless_pressed.emit)
+	_add_center_button("daily", "DESAFIO DO DIA", daily_pressed.emit)
 	_add_center_button("next", "PRÓXIMO SETOR", next_pressed.emit)
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
@@ -362,10 +374,31 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 
 ## `can_resume`: existe um ponto salvo. Com ponto salvo o 1º botão é CONTINUAR;
 ## sem ele, JOGAR (começa do Setor 1). NOVO JOGO fica em Opções.
-func show_menu(can_resume: bool, endless_unlocked := false) -> void:
+## Multiplicador do Infinito/Desafio ao lado dos pontos (some em x1).
+func set_multiplier(m: float) -> void:
+	_mult_label.visible = m > 1.0
+	_mult_label.text = "x%.1f" % m
+
+
+func on_multiplier_up(m: float) -> void:
+	_levelup_label.text = "MULTIPLICADOR x%.1f!" % m
+	_levelup_label.add_theme_color_override("font_color", Palette.NEON)
+	_levelup_timer = 1.2
+
+
+func on_multiplier_lost() -> void:
+	_levelup_label.text = "MULTIPLICADOR PERDIDO"
+	_levelup_label.add_theme_color_override("font_color", Palette.DANGER)
+	_levelup_timer = 1.0
+
+
+## `daily_label`: texto do botão do Desafio do Dia (valendo ou treino).
+func show_menu(can_resume: bool, endless_unlocked := false, daily_label := "") -> void:
 	var buttons := ["resume" if can_resume else "campaign", "options", "quit"]
 	if endless_unlocked:
 		buttons.append("endless")  # liberado ao completar o Setor 2
+		buttons.append("daily")
+		_buttons["daily"].text = daily_label if daily_label != "" else "DESAFIO DO DIA"
 	if OS.is_debug_build():
 		buttons.append("dev")  # seletor de fases: nunca aparece no APK de release
 	_show("ASTRA DODGE", "", "", buttons)

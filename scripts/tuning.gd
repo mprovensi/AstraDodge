@@ -182,6 +182,8 @@ const PICKUP_COLLECT_RADIUS := 60.0
 const PICKUP_FALL_FACTOR := 0.6
 
 # --- Pontuação ---
+const MULT_STEP_TIME := 10.0      # Infinito: +0,5 no multiplicador a cada 10 s sem dano
+const MULT_MAX := 3.0
 const SCORE_PER_PIXEL := 0.02
 const SCORE_PER_DUST_HP := 10
 const SCORE_LAST_CHANCE_SAVE := 25
