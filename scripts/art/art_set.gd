@@ -44,6 +44,8 @@ extends Resource
 @export_range(0.5, 1.0, 0.01) var boss_fill := 0.95
 ## Minerador (Setor 2), frente para baixo. O olho (ponto fraco) é desenhado pelo código.
 @export var miner_body: Texture2D
+## Medusa (Setor 3): cúpula de plasma. Núcleo e tentáculos são desenhados pelo código.
+@export var medusa_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

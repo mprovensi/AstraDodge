@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://sprites/dust_3.png" id="3_pucd1"]
 [ext_resource type="Texture2D" path="res://sprites/metal_1.png" id="4_tff5p"]
 [ext_resource type="Texture2D" path="res://sprites/metal_2.png" id="5_5hgmi"]
+[ext_resource type="Texture2D" path="res://sprites/boss_medusa.png" id="5_ik4b2"]
 [ext_resource type="Texture2D" path="res://sprites/metal_3.png" id="6_ik4b2"]
 [ext_resource type="Script" path="res://scripts/art/art_set.gd" id="7_5u5ty"]
 [ext_resource type="Texture2D" path="res://sprites/boss_rock_mother.png" id="7_pucd1"]
@@ -23,3 +24,4 @@ dust_shell_texture = ExtResource("1_5hgmi")
 rock_mother_body = ExtResource("7_pucd1")
 rock_mother_half = ExtResource("8_tff5p")
 miner_body = ExtResource("8_ik4b2")
+medusa_body = ExtResource("5_ik4b2")

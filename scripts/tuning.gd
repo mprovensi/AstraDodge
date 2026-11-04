@@ -68,6 +68,23 @@ const MOVING_METAL_SPEED_MIN := 140.0    # metálico com propulsor (Setor 2)
 const MOVING_METAL_SPEED_MAX := 210.0
 const ARMOR_SHELL_HITS := 2              # tiros para arrancar a casca da poeira blindada
 
+# --- Setor 3: Nebulosa Iônica ---
+const ION_DRAIN_MULT := 3.0        # dentro de uma nuvem iônica o escudo drena 3x mais rápido
+const CLOUD_RADIUS_MIN := 150.0
+const CLOUD_RADIUS_MAX := 230.0
+const CLOUD_FALL_FACTOR := 0.85    # nuvens descem um pouco mais devagar que as rochas
+const STORM_WIDTH := 170.0         # largura da coluna do raio
+const STORM_TELEGRAPH := 1.0       # aviso antes do raio cair
+const STORM_INTERVAL := 1.15       # s entre raios durante a tempestade
+const SHIELD_DMG_STORM := 25.0
+const MINE_RADIUS := 34.0
+const MINE_HP := 2
+const MINE_TRIGGER := 190.0        # chegou mais perto que isso: a mina arma
+const MINE_FUSE := 0.7             # s entre armar e explodir
+const MINE_BLAST := 110.0          # raio da explosão (dano em área)
+const MINE_SHOTS := 10             # tiros em anel na explosão
+const MINE_SHOT_SPEED := 380.0
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

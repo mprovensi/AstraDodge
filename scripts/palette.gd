@@ -25,3 +25,7 @@ const BLAST_HDR := Color(2.4, 2.0, 1.4)
 const ENEMY := Color(1.0, 0.35, 0.2)
 const ENEMY_HDR := Color(2.4, 0.7, 0.3)
 const ENEMY_FILL := Color(0.18, 0.04, 0.04)
+
+# Setor 3 (iônico): violeta elétrico.
+const ION := Color(0.72, 0.45, 1.0)
+const ION_HDR := Color(1.4, 0.8, 2.4)

@@ -8,6 +8,8 @@ var density := 1.0
 var metals := true
 var moving := 0.0
 var armored := 0.0
+var clouds := 0.0
+var mines := 0.0
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
@@ -46,6 +48,8 @@ func seek(t: float) -> void:
 				metals = e.metals
 				moving = e.moving
 				armored = e.armored
+				clouds = e.clouds
+				mines = e.mines
 			WaveEvent.Kind.DUST_RAIN:
 				rain_left = maxf(0.0, e.at + e.duration - t)
 			WaveEvent.Kind.CALM:
@@ -73,6 +77,8 @@ func update(dt: float) -> Array[WaveEvent]:
 				metals = e.metals
 				moving = e.moving
 				armored = e.armored
+				clouds = e.clouds
+				mines = e.mines
 			WaveEvent.Kind.DUST_RAIN:
 				rain_left = e.duration
 			WaveEvent.Kind.CALM:

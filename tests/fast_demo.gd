@@ -178,6 +178,16 @@ func _danger(x: float, ship_y: float) -> float:
 			var k: float = clampf((Vector2(x, ship_y) - wn.a).dot(seg) / seg.length_squared(), 0.0, 1.0)
 			if Vector2(x, ship_y).distance_to(wn.a + seg * k) < wn.size * 0.5 + 60.0:
 				d += 900.0
+	# Setor 3: nuvens iônicas (drenam o escudo) e minas (explodem se chegar perto).
+	for c in main.hazards.clouds:
+		var above_c: float = ship_y - c.pos.y
+		if above_c > -c.radius and above_c < LOOK_AHEAD and absf(x - c.pos.x) < c.radius * 0.85 + 40.0:
+			d += 250.0
+	for e in main.enemies.enemies:
+		if e.kind == 1:  # mina
+			var above_m: float = ship_y - e.pos.y
+			if above_m > -80.0 and above_m < LOOK_AHEAD and absf(x - e.pos.x) < Tuning.MINE_TRIGGER + 20.0:
+				d += 500.0 * (1.0 - above_m / LOOK_AHEAD * 0.5)
 	if main.boss != null:
 		for yy in [ship_y, ship_y - 150.0, ship_y - 300.0]:
 			if main.boss.touches(Vector2(x, yy), 70.0):

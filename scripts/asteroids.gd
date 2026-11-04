@@ -3,6 +3,8 @@ extends Node2D
 ## Asteroides e spawner em "linhas". Cada linha mantém um corredor livre de metálicos,
 ## e o corredor se desloca pouco entre linhas, garantindo sempre um caminho possível.
 
+signal row_spawned(gap_x: float)  ## uma linha nova entrou (o Main usa para nuvens/minas)
+
 enum Kind { DUST, METAL }
 
 # Texturas e o quanto a rocha ocupa da imagem vêm do ArtSet ativo (Game.art):
@@ -207,6 +209,7 @@ func _spawn_row(difficulty: float) -> void:
 			if randf() < armored:
 				a.shell = Tuning.ARMOR_SHELL_HITS
 			break
+	row_spawned.emit(_gap_x)
 
 
 func _overlaps(placed: Array[Vector3], p: Vector2, r: float) -> bool:

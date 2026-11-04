@@ -30,6 +30,7 @@ func _run() -> void:
 	_test_endless()
 	_test_campaign()
 	_test_sector2()
+	_test_sector3()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -178,7 +179,7 @@ func _test_sector2() -> void:
 	assert(corridor_walls >= 15, "Setor 2 tem corredores (vi %d paredes)" % corridor_walls)
 	assert(saw_moving and saw_armored, "metálicos com propulsor e poeira blindada")
 	assert(boss_seen and phase2_seen, "Minerador e sua fase 2")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "Setor 2 completo mostra PRÓXIMO SETOR")
 	print("SETOR 2 OK | %.1fs | paredes de corredor=%d | cascas quebradas=%d | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, corridor_walls, shells_broken, boss_time, str(main.star_checks())])
 
@@ -188,6 +189,56 @@ func _count_shells() -> int:
 	for a in main.asteroids.asteroids:
 		n += a.shell
 	return n
+
+
+## Continua do Setor 2 completo: PRÓXIMO SETOR → Setor 3 inteiro (nuvens, minas, tempestade, Medusa).
+func _test_sector3() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_3")
+	assert(sfx.current_track() == "sector3", "Setor 3 tem trilha própria")
+	_touch(true)
+	var clouds_seen := 0
+	var mines_seen := 0
+	var strikes := 0
+	var drain_boost := false
+	var boss_seen := false
+	var phase2_seen := false
+	var nodes_killed := false
+	var boss_time := 0.0
+	var frames := 0
+	var last_mine_ids := {}
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 360:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			if boss.phase == 2 and boss._alive_nodes() == 0:
+				nodes_killed = true
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		clouds_seen = maxi(clouds_seen, main.hazards.clouds.size())
+		strikes += main.hazards.take_strikes().size()
+		drain_boost = drain_boost or main.ship.drain_scale >= Tuning.ION_DRAIN_MULT * 0.7
+		for e in main.enemies.enemies:
+			if e.kind == 1 and not last_mine_ids.has(e.id):
+				last_mine_ids[e.id] = true
+				mines_seen += 1
+		frames += 1
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 3 deveria terminar (Medusa derrotada)")
+	assert(clouds_seen > 0 and drain_boost, "nuvens iônicas aparecem e drenam mais")
+	assert(mines_seen >= 5, "minas iônicas (vi %d)" % mines_seen)
+	assert(strikes >= 15, "tempestade com raios (vi %d)" % strikes)
+	assert(boss_seen and phase2_seen and nodes_killed, "Medusa, fase 2 e os 3 nódulos")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 3 OK | %.1fs | minas=%d | raios=%d | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, mines_seen, strikes, boss_time, str(main.star_checks())])
 
 
 ## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
@@ -215,8 +266,44 @@ func _test_boss_safety() -> void:
 	# colisão pode ficar fora dos pixels do desenho — "dano sem encostar" é bug.
 	var outside_pct := _half_collision_outside_pct(rm)
 	assert(outside_pct <= 5.0, "metade da Rocha-Mãe: %.0f%% da colisão fora do desenho" % outside_pct)
+
+	# Setor 3 / Medusa: brecha da chicotada, espiral, coluna do raio, anel da mina, cúpula.
+	var md: GDScript = load("res://scripts/bosses/medusa.gd")
+	assert(md.sweep_gap() >= ship_gap * 3.0, "brecha da chicotada: %.0f px" % md.sweep_gap())
+	var spiral_gap: float = md.spiral_min_gap(300.0)
+	assert(spiral_gap >= ship_gap, "espiral: vão de %.0f px a 300 px do núcleo" % spiral_gap)
+	assert(1080.0 - Tuning.STORM_WIDTH >= ship_gap * 6.0, "raio da tempestade deixa a tela livre")
+	var mine_gap := 2.0 * Tuning.MINE_TRIGGER * sin(PI / Tuning.MINE_SHOTS) - 28.0
+	assert(mine_gap >= ship_gap, "anel da mina: vão de %.0f px" % mine_gap)
+	var dome_out := _dome_collision_outside_pct(md)
+	assert(dome_out <= 5.0, "cúpula da Medusa: %.0f%% da colisão fora do desenho" % dome_out)
+	print("ROTA SEGURA S3 OK | brecha=%.0f | espiral=%.0f | mina=%.0f | cupula fora do desenho=%.0f%%" % [
+		md.sweep_gap(), spiral_gap, mine_gap, dome_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+func _dome_collision_outside_pct(md: GDScript) -> float:
+	var boss = md.new()
+	boss.view_size = Vector2(1080, 2340)
+	boss.state = 1  # FIGHT (sem chicotada ativa: só a cúpula conta)
+	var c := Vector2(540, 600)
+	boss.center = c
+	var img: Image = root.get_node("Game").art.medusa_body.get_image()
+	var half: float = md.SPRITE_SIZE * 0.5
+	var hits := 0
+	var outside := 0
+	for y in range(-220, 221, 10):
+		for x in range(-220, 221, 10):
+			if not boss.touches(c + Vector2(x, y), 0.0):
+				continue
+			hits += 1
+			var u := int((x + half) / (2.0 * half) * img.get_width())
+			var v := int((y + half) / (2.0 * half) * img.get_height())
+			if u < 0 or v < 0 or u >= img.get_width() or v >= img.get_height() or img.get_pixel(u, v).a <= 0.5:
+				outside += 1
+	boss.free()
+	return 100.0 * outside / maxf(1.0, hits)
 
 
 func _half_collision_outside_pct(rm: GDScript) -> float:

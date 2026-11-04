@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- MEDUSA (chefe do Setor 3): cúpula de plasma translúcida, vista de cima/frente.
+       O núcleo (ponto fraco) e os tentáculos são desenhados pelo código.
+       Núcleo no centro da imagem (128,128); tentáculos saem da borda de baixo (~y 160). -->
+  <defs>
+    <radialGradient id="dome" cx="50%" cy="38%" r="62%">
+      <stop offset="0" stop-color="#e6c8ff" stop-opacity="0.85"/>
+      <stop offset="0.45" stop-color="#9a4fe0" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#2d0d52" stop-opacity="0.9"/>
+    </radialGradient>
+  </defs>
+  <!-- Cúpula com a "saia" ondulada embaixo -->
+  <path d="M28 150 C28 70 72 22 128 22 C184 22 228 70 228 150 Q214 170 200 156 Q186 172 172 156 Q158 172 144 156 Q130 172 116 156 Q102 172 88 156 Q74 172 60 156 Q46 170 28 150 Z"
+        fill="url(#dome)" stroke="#d9b3ff" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Faixas e manchas bioluminescentes -->
+  <path d="M60 120 C80 92 176 92 196 120" fill="none" stroke="#7dffb0" stroke-opacity="0.75" stroke-width="4" stroke-linecap="round"/>
+  <path d="M78 80 C98 60 158 60 178 80" fill="none" stroke="#7dffb0" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <g fill="#b8ffd4" fill-opacity="0.8">
+    <circle cx="70" cy="140" r="5"/><circle cx="186" cy="140" r="5"/>
+    <circle cx="100" cy="52" r="4"/><circle cx="156" cy="52" r="4"/>
+  </g>
+  <!-- Encaixe do núcleo -->
+  <circle cx="128" cy="128" r="34" fill="#1a0830" stroke="#d9b3ff" stroke-width="4"/>
+</svg>

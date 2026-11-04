@@ -1,0 +1,130 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_3lsqe"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_xws8b"]
+
+[sub_resource type="Resource" id="Resource_42xq5"]
+script = ExtResource("1_3lsqe")
+kind = 1
+density = 0.85
+
+[sub_resource type="Resource" id="Resource_di6hu"]
+script = ExtResource("1_3lsqe")
+at = 0.5
+duration = 2.5
+text = "SETOR 3
+Nebulosa Iônica"
+
+[sub_resource type="Resource" id="Resource_8qiqs"]
+script = ExtResource("1_3lsqe")
+at = 5.0
+kind = 1
+density = 0.85
+clouds = 0.45
+
+[sub_resource type="Resource" id="Resource_ct41w"]
+script = ExtResource("1_3lsqe")
+at = 5.0
+duration = 4.0
+text = "Nuvens iônicas drenam o escudo
+3x mais rápido. Evite!"
+
+[sub_resource type="Resource" id="Resource_dvibj"]
+script = ExtResource("1_3lsqe")
+at = 25.0
+kind = 1
+density = 0.9
+clouds = 0.35
+mines = 0.3
+
+[sub_resource type="Resource" id="Resource_pr7pp"]
+script = ExtResource("1_3lsqe")
+at = 25.0
+duration = 4.0
+text = "Minas iônicas explodem se você
+chegar perto. Atire de longe!"
+
+[sub_resource type="Resource" id="Resource_5kbxf"]
+script = ExtResource("1_3lsqe")
+at = 45.0
+kind = 9
+duration = 10.0
+
+[sub_resource type="Resource" id="Resource_sdckb"]
+script = ExtResource("1_3lsqe")
+at = 60.0
+kind = 1
+moving = 0.2
+armored = 0.2
+clouds = 0.4
+mines = 0.3
+
+[sub_resource type="Resource" id="Resource_y6hsl"]
+script = ExtResource("1_3lsqe")
+at = 75.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_ybsg3"]
+script = ExtResource("1_3lsqe")
+at = 88.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_qljlj"]
+script = ExtResource("1_3lsqe")
+at = 88.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_2x513"]
+script = ExtResource("1_3lsqe")
+at = 100.0
+kind = 9
+duration = 12.0
+
+[sub_resource type="Resource" id="Resource_plcdf"]
+script = ExtResource("1_3lsqe")
+at = 118.0
+kind = 1
+density = 1.1
+moving = 0.25
+armored = 0.25
+clouds = 0.45
+mines = 0.35
+
+[sub_resource type="Resource" id="Resource_hqxb0"]
+script = ExtResource("1_3lsqe")
+at = 128.0
+kind = 8
+duration = 7.0
+
+[sub_resource type="Resource" id="Resource_683ea"]
+script = ExtResource("1_3lsqe")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_sekbv"]
+script = ExtResource("1_3lsqe")
+at = 140.0
+duration = 3.0
+text = "Um brilho estranho pulsa na névoa..."
+
+[sub_resource type="Resource" id="Resource_o71x5"]
+script = ExtResource("1_3lsqe")
+at = 144.0
+kind = 7
+text = "medusa"
+
+[resource]
+script = ExtResource("2_xws8b")
+id = "sector_3"
+number = 3
+title = "SETOR 3"
+subtitle = "Nebulosa Iônica"
+difficulty_start = 0.45
+difficulty_end = 0.8
+events = Array[ExtResource("1_3lsqe")]([SubResource("Resource_42xq5"), SubResource("Resource_di6hu"), SubResource("Resource_8qiqs"), SubResource("Resource_ct41w"), SubResource("Resource_dvibj"), SubResource("Resource_pr7pp"), SubResource("Resource_5kbxf"), SubResource("Resource_sdckb"), SubResource("Resource_y6hsl"), SubResource("Resource_ybsg3"), SubResource("Resource_qljlj"), SubResource("Resource_2x513"), SubResource("Resource_plcdf"), SubResource("Resource_hqxb0"), SubResource("Resource_683ea"), SubResource("Resource_sekbv"), SubResource("Resource_o71x5")])
+music = "sector3"
+nebula_a = Color(0.22, 0.06, 0.34, 1)
+nebula_b = Color(0.05, 0.26, 0.12, 1)

@@ -271,4 +271,13 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] Metálicos com propulsor (andam de lado e quicam; únicos metálicos da linha), poeira blindada (casca de aço aguenta 2 tiros), corredores (`WaveEvent.Kind.CORRIDOR`)
 - [x] Minerador (`scripts/bosses/miner.gd`): olho fecha durante o raio; raio-trator com aviso em coluna; cargas com aviso em círculo que explodem em cruz (8 direções na fase 2); arremesso de metal com aviso em linha
 - [x] Testes: Setor 1 → PRÓXIMO SETOR → Setor 2 inteiro (bot), rota segura do Minerador
+
+**Sprint 5 — Setor 3: concluído (04/11/2026)**
+- [x] Nebulosa violeta/verde-ácido e lofi própria (Ré, 84 BPM, etérea)
+- [x] Nuvens iônicas (`scripts/hazards.gd`): drenam o escudo 3x; contorno tracejado = área exata
+- [x] Minas iônicas (`EnemyLayer` MINE): armam se a nave chegar perto (anel = área da explosão), explodem em área + anel de tiros; podem ser destruídas de longe
+- [x] Tempestade (`WaveEvent.Kind.STORM`): raios em colunas, cada um avisado
+- [x] Medusa (`scripts/bosses/medusa.gd`): chicotada com brecha (aviso em colunas), espiral de tiros lentos; fase 2 com escudo no núcleo até destruir os 3 nódulos dos tentáculos
+- [x] Testes: Setor 3 inteiro (bot), rota segura (brecha, espiral, raio, anel da mina), colisão da cúpula x desenho
+- [x] Demo em modo rápido (`tests/fast_demo.gd` + skill ver-jogo-rapido) desvia de nuvens, minas e raios
 - [ ] Volume de música/efeitos em 0–100%

@@ -9,6 +9,7 @@ const DYING_TIME := 1.2
 const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_1.tres"),
 	preload("res://data/sectors/sector_2.tres"),
+	preload("res://data/sectors/sector_3.tres"),
 ]
 
 var state := State.MENU
@@ -20,6 +21,7 @@ var nebula: Nebula
 var starfield: Starfield
 var asteroids: AsteroidField
 var enemies: EnemyLayer
+var hazards: HazardLayer
 var telegraph: TelegraphLayer
 var bullets: BulletLayer
 var enemy_shots: EnemyBulletLayer
@@ -59,6 +61,8 @@ var _boss_last_chance := false  # entrou em "última chance" durante a luta (per
 var _corridor_left := 0.0       # s restantes do CORREDOR em andamento
 var _corridor_timer := 0.0      # s até a próxima parede do corredor
 var _corridor_walls := 0        # paredes já criadas no corredor atual
+var _storm_left := 0.0          # s restantes da TEMPESTADE
+var _storm_timer := 0.0         # s até o próximo raio
 
 
 func _ready() -> void:
@@ -75,6 +79,8 @@ func _ready() -> void:
 	world.add_child(asteroids)
 	enemies = EnemyLayer.new()
 	world.add_child(enemies)
+	hazards = HazardLayer.new()
+	world.add_child(hazards)
 	telegraph = TelegraphLayer.new()
 	world.add_child(telegraph)
 	bullets = BulletLayer.new()
@@ -101,6 +107,7 @@ func _ready() -> void:
 	hud.menu_pressed.connect(go_to_menu)
 	hud.next_pressed.connect(_on_next_sector)
 	hud.quit_pressed.connect(_on_quit)
+	asteroids.row_spawned.connect(_on_row_spawned)
 	get_viewport().size_changed.connect(_on_resized)
 
 	_on_resized()
@@ -218,6 +225,8 @@ func _new_run() -> void:
 	enemies.clear()
 	enemy_shots.clear()
 	telegraph.clear()
+	hazards.clear()
+	_storm_left = 0.0
 	bullets.clear()
 	pickups.clear()
 	fx.clear()
@@ -393,6 +402,7 @@ func _step(dt: float) -> void:
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
 				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0
 		_update_corridor(dt)
+		_update_storm(dt)
 	else:
 		difficulty = Tuning.difficulty(elapsed)
 
@@ -409,7 +419,12 @@ func _step(dt: float) -> void:
 			asteroids.spawn_wall()
 
 	asteroids.update(dt, scroll_speed, difficulty)
-	enemies.update(dt, ship.position)
+	enemies.update(dt, ship.position, scroll_speed)
+	hazards.update(dt, scroll_speed)
+	# Drenagem do escudo: menor durante chefes, 3x dentro de nuvem iônica.
+	var boss_drain := Tuning.BOSS_SHIELD_DRAIN_SCALE if boss != null else 1.0
+	var cloud_drain := Tuning.ION_DRAIN_MULT if hazards.in_cloud(ship.position) else 1.0
+	ship.drain_scale = boss_drain * cloud_drain
 	telegraph.update(dt)
 	bullets.update(dt)
 	enemy_shots.update(dt)
@@ -444,6 +459,10 @@ func _on_wave_event(e: WaveEvent) -> void:
 				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
 			hud.show_hint("PAREDÃO! Procure a brecha", 2.5)
 			Sfx.play("alarm", -8.0, 1.2, 0.0)
+		WaveEvent.Kind.STORM:
+			_storm_left = e.duration
+			_storm_timer = 0.3
+			hud.show_hint("TEMPESTADE! Fuja das colunas", 2.5)
 		WaveEvent.Kind.CORRIDOR:
 			# A 1ª parede é avisada como um paredão; as seguintes vêm em sequência,
 			# com a brecha andando pouco (dá para seguir sem susto).
@@ -454,6 +473,37 @@ func _on_wave_event(e: WaveEvent) -> void:
 				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
 			hud.show_hint("CORREDOR! Siga a brecha", 2.5)
 			Sfx.play("alarm", -8.0, 1.2, 0.0)
+
+
+## Setor 3: cada linha nova pode trazer uma nuvem iônica e/ou uma mina (fora do corredor).
+func _on_row_spawned(gap_x: float) -> void:
+	if director == null:
+		return
+	if randf() < director.clouds:
+		var r := randf_range(Tuning.CLOUD_RADIUS_MIN, Tuning.CLOUD_RADIUS_MAX)
+		hazards.spawn_cloud(Vector2(randf_range(r * 0.5, view_size.x - r * 0.5), -r), r)
+	if randf() < director.mines:
+		var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5 + 60.0
+		for attempt in 6:
+			var x := randf_range(60.0, view_size.x - 60.0)
+			if absf(x - gap_x) > half_gap:
+				enemies.spawn_mine(Vector2(x, -60.0))
+				break
+
+
+## TEMPESTADE: um raio por vez, avisado em coluna. Metade cai perto da nave (pressão),
+## metade em qualquer lugar.
+func _update_storm(dt: float) -> void:
+	if _storm_left <= 0.0:
+		return
+	_storm_left -= dt
+	_storm_timer -= dt
+	if _storm_timer <= 0.0:
+		_storm_timer = Tuning.STORM_INTERVAL
+		var x := ship.position.x + randf_range(-160.0, 160.0) if randf() < 0.5 \
+				else randf_range(0.0, view_size.x)
+		hazards.spawn_strike(x, telegraph)
+		Sfx.play("alarm", -14.0, 1.5, 0.0, Vector2(x, 0))
 
 
 func _update_corridor(dt: float) -> void:
@@ -578,6 +628,24 @@ func _check_ship_hits() -> void:
 				if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY) and not ship.alive:
 					return
 
+	# Minas iônicas: o anel vermelho que aparece ao armar é a área exata da explosão.
+	for blast in enemies.take_blasts():
+		var at := Vector2(blast.x, blast.y)
+		fx.explosion(at, 90.0, Palette.ION_HDR)
+		Sfx.play("explosion", -3.0, 1.3, 0.05, at)
+		_shake = maxf(_shake, 8.0)
+		if ship.position.distance_to(at) < blast.z + Tuning.SHIP_HITBOX_RADIUS:
+			if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY) and not ship.alive:
+				return
+
+	# Raios da tempestade: atinge quem estava na coluna avisada.
+	for x in hazards.take_strikes():
+		_shake = maxf(_shake, 10.0)
+		Sfx.play("death", -8.0, 1.6, 0.05, Vector2(x, ship.position.y))
+		if absf(ship.position.x - x) < Tuning.STORM_WIDTH * 0.5 + Tuning.SHIP_HITBOX_RADIUS * 0.5:
+			if _damage_ship(Tuning.SHIELD_DMG_STORM) and not ship.alive:
+				return
+
 	# Durante a invencibilidade os tiros inimigos atravessam a nave.
 	if ship.invuln <= 0.0 and enemy_shots.hit_ship(ship.position, Tuning.SHIP_HITBOX_RADIUS):
 		_damage_ship(Tuning.SHIELD_DMG_ENEMY_SHOT)
@@ -701,6 +769,8 @@ func _spawn_boss(boss_id: String) -> void:
 	match boss_id:
 		"rock_mother":
 			boss = RockMother.new()
+		"medusa":
+			boss = Medusa.new()
 		"miner":
 			boss = Miner.new()
 		_:
@@ -713,7 +783,6 @@ func _spawn_boss(boss_id: String) -> void:
 	boss.defeated.connect(_on_boss_defeated)
 	_boss_fought = true
 	_boss_last_chance = ship.last_chance
-	ship.drain_scale = Tuning.BOSS_SHIELD_DRAIN_SCALE
 	hud.show_boss_bar(boss.display_name)
 
 
@@ -735,7 +804,6 @@ func _clear_boss() -> void:
 	if boss != null:
 		boss.queue_free()
 		boss = null
-	ship.drain_scale = 1.0
 	_alert_timer = -1.0
 	_pending_boss_id = ""
 	hud.hide_boss_bar()
@@ -758,6 +826,7 @@ func _on_resized() -> void:
 	asteroids.resize(view_size)
 	enemies.resize(view_size)
 	telegraph.resize(view_size)
+	hazards.resize(view_size)
 	bullets.resize(view_size)
 	enemy_shots.resize(view_size)
 	pickups.resize(view_size)

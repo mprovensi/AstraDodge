@@ -23,6 +23,8 @@ func _initialize() -> void:
 	_save("music_boss", _boss_music())
 	seed(2026)
 	_save("music_sector2", _lofi(96.0, SECTOR2_CHORDS, SECTOR2_MELODY, true))
+	seed(3033)
+	_save("music_sector3", _lofi(84.0, SECTOR3_CHORDS, SECTOR3_MELODY, false))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -313,6 +315,21 @@ const SECTOR2_MELODY := [
 	[-1, 67, -1, 71, -1, -1, 72, -1, 71, -1, -1, 67, -1, -1, -1, -1],
 	[69, -1, -1, 72, -1, 76, -1, -1, 74, -1, 72, -1, -1, 69, -1, -1],
 	[-1, 71, -1, 75, -1, -1, 74, -1, -1, 71, -1, -1, 69, -1, -1, -1],
+]
+
+
+## Setor 3 (music_sector3.wav): 84 BPM, etéreo/sonhador em Ré: Dmaj7 · Bm9 · Gmaj7 · A6.
+const SECTOR3_CHORDS := [
+	[50, 54, 57, 61],      # Dmaj7
+	[47, 50, 54, 57, 61],  # Bm9
+	[43, 47, 50, 54],      # Gmaj7
+	[45, 49, 52, 54],      # A6
+]
+const SECTOR3_MELODY := [
+	[-1, 78, -1, -1, 76, -1, -1, 73, -1, -1, -1, -1, 71, -1, -1, -1],
+	[-1, -1, 74, -1, -1, 76, -1, -1, 78, -1, -1, -1, -1, -1, -1, -1],
+	[81, -1, -1, -1, 78, -1, -1, 76, -1, -1, 74, -1, -1, -1, -1, -1],
+	[-1, -1, 73, -1, -1, 71, -1, -1, 69, -1, -1, -1, 73, -1, -1, -1],
 ]
 
 
