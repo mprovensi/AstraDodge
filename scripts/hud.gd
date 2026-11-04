@@ -35,6 +35,7 @@ var _info: Label
 var _restart_button: Button
 var _continue_button: Button
 var _options_button: Button
+var _quit_button: Button
 
 var _options_layer: Control
 var _center_was_visible := false
@@ -102,6 +103,11 @@ func _ready() -> void:
 	_options_button = _make_button("OPÇÕES")
 	_options_button.pressed.connect(open_options)
 	_center.add_child(_options_button)
+	_quit_button = _make_button("SAIR DO JOGO")
+	_quit_button.pressed.connect(func() -> void:
+		Game.save_data()
+		get_tree().quit())
+	_center.add_child(_quit_button)
 
 	_build_options(root)
 	hide_center()
@@ -136,7 +142,7 @@ func set_safe_top(px: float) -> void:
 func blocks_touch(pos: Vector2) -> bool:
 	if _options_layer.visible:
 		return true
-	for b: Button in [_restart_button, _continue_button, _options_button]:
+	for b: Button in [_restart_button, _continue_button, _options_button, _quit_button]:
 		if b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
 			return true
 	return false
@@ -191,6 +197,7 @@ func show_ready(first_time: bool) -> void:
 		"Toque e arraste para pilotar",
 		"Solte o dedo para pausar" if first_time else "",
 		false, false, true)
+	_quit_button.visible = first_time  # só no menu inicial
 
 
 func show_paused() -> void:
@@ -218,6 +225,7 @@ func _show(title: String, subtitle: String, info: String,
 	_restart_button.visible = show_restart
 	_continue_button.visible = show_continue
 	_options_button.visible = show_options
+	_quit_button.visible = false
 	_center.visible = true
 
 

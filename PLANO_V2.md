@@ -183,7 +183,7 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 | **Avisos** | Sistema `Telegraph` (linha, círculo, coluna) com tempo de aviso padronizado. |
 | **Câmera/efeitos** | Câmera 2D dedicada (shake, zoom leve em chefes), pós-processo com shaders opcionais. |
 | **Save** | Progresso por setor (desbloqueado, estrelas, melhor pontuação), skins, estatísticas. Migração do save atual sem perder o recorde. |
-| **Telas** | Menu principal (Campanha / Infinito / Opções), mapa de setores, resultado, pausa com "Sair do setor". |
+| **Telas** | Menu principal (Campanha / Infinito / Opções / **Sair do jogo**), mapa de setores, resultado, pausa com "Sair do setor". |
 | **Testes** | Teste de fumaça por setor; **teste de rota segura** dos padrões dos chefes (simula a nave procurando caminho); captura automática de screenshots (já temos `--write-movie`). |
 | **Áudio** | `Sfx` passa a ter: variações por som, pan estéreo pela posição, limite de vozes por tipo, buses de reverb por setor, compressor, ducking da música e música adaptativa por camadas sincronizada ao compasso. |
 | **Opções novas** | Reduzir tremor de tela, reduzir flashes, modo retrô (CRT), volume de música e de efeitos (0–100%). |
@@ -196,7 +196,7 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 
 | Sprint | Entrega | Critério de pronto |
 |---|---|---|
-| **S1 — Fundação** | `SectorData`, ondas roteirizadas, classe `Enemy`, pool de projéteis inimigos, `Telegraph`, menu principal com Campanha/Infinito | Setor 1 jogável do início ao fim (sem chefe), Infinito igual ao atual |
+| **S1 — Fundação** | `SectorData`, ondas roteirizadas, classe `Enemy`, pool de projéteis inimigos, `Telegraph`, menu principal com Campanha/Infinito/Opções/Sair do jogo | Setor 1 jogável do início ao fim (sem chefe), Infinito igual ao atual |
 | **S2 — Arte e áudio** | Pipeline SVG→PNG para sprites, shaders (flash, dissolve, nebulosa), fonte nova, nave redesenhada, asteroides novos. **Motor de áudio novo** (variações, pan, reverb, compressor, ducking) + **efeitos realistas do Setor 1** (explosões em camadas, tiro, ricochete, escudo, motor, coletas) | Setor 1 com arte e som novos rodando a 60 FPS no S20 FE e num aparelho de entrada |
 | **S3 — Chefe 1 + resultado** | Classe `Boss`, Rocha-Mãe (com assinatura sonora), barra de chefe, tela "ALERTA", tela de resultado com estrelas, save de progresso, **música adaptativa em camadas** com transição para o tema de chefe | Setor 1 completo; teste de rota segura passando |
 | **S4 — Setor 2** | Metálicos móveis, blindado, paredão, Minerador, música do setor | Setores 1–2 completos |
