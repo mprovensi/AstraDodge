@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Metálico do Setor 6 (variação 1) — gerado por tools/gen_rock_svgs.gd -->
+  <defs><radialGradient id="g3403703030" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#26301a"/><stop offset="1" stop-color="#0b0f07"/></radialGradient></defs><path d="M136 7 L195 29 L227 62 L250 137 L228 194 L183 234 L128 249 L68 234 L29 193 L9 128 L23 67 L75 15 Z" fill="url(#g3403703030)" stroke="#8aa05a" stroke-width="6" stroke-linejoin="round"/><path d="M40 70 Q128 40 216 70" fill="none" stroke="#4d6030" stroke-width="8"/><path d="M40 120 Q128 90 216 120" fill="none" stroke="#4d6030" stroke-width="8"/><path d="M40 170 Q128 140 216 170" fill="none" stroke="#4d6030" stroke-width="8"/>
+</svg>

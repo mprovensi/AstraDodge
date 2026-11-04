@@ -95,3 +95,13 @@ Sugestão: O1 e O2 logo depois do lançamento atual (S13); O3/O4 como atualizaç
 ## 6. Decisões em aberto
 1. Fazer O1 (visual por setor) antes ou depois de abrir o teste fechado?
 2. Algum obstáculo da lista C que você quer primeiro (ou cortar)?
+
+---
+
+## Status
+
+**O1 — Visual por setor: concluído (05/11/2026)**
+- [x] 28 rochas novas (2 poeiras + 2 metais por setor, Setores 2–8) geradas por `tools/gen_rock_svgs.gd`: minério com veios âmbar, rocha com cristais, caixa de carga, neve, favo, contêiner, obsidiana; lingote enferrujado, casco iônico, pedaço de nave, gelo eterno, carapaça, bloco com faixas de alerta, rocha "invertida"
+- [x] `AsteroidLook` + `ArtSet.sector_looks`: cada setor (e cada cenário do Infinito) usa o seu visual; a rocha guarda o visual de onde nasceu
+- [x] Tamanhos variados: pedrinhas pequenas e rápidas (16%), pedregulhos grandes, lentos e resistentes (7%)
+- [x] Teste: em todas as rochas o círculo que machuca a nave fica dentro do desenho, poeira é clara e metal é escuro

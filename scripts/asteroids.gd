@@ -32,6 +32,7 @@ class Asteroid:
 	var slide_base := 0.0
 	var slide_phase := 0.0
 	var ported := false        # já passou por um portal (Setor 8): não teleporta de novo
+	var look := 0              # visual do setor em que nasceu (ArtSet.sector_looks)
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -47,6 +48,7 @@ var moving_metals := 0.0   # chance de uma linha trazer um metálico com propuls
 var armored := 0.0         # chance de cada poeira vir blindada (Setor 2+)
 var ice := 0.0             # chance de cada poeira ser de gelo (Setor 5)
 var inverted := false      # INVERSÃO (Setor 8): rochas vêm de baixo e sobem
+var look := 0              # setor cujo visual as rochas novas usam (o Main troca com o cenário)
 
 var _next_id := 0
 var _distance_to_next_row := 0.0
@@ -241,7 +243,15 @@ func _spawn_row(difficulty: float) -> void:
 
 	var dust_count := randi_range(1, 2 + int(difficulty * 2.0)) + (2 if dust_rain else 0)
 	for i in dust_count:
-		var r := randf_range(40.0, 85.0)
+		# Tamanhos variados: pedrinhas pequenas e RÁPIDAS, pedregulhos grandes e LENTOS
+		# (com bastante vida), e as médias de sempre.
+		var roll := randf()
+		var size := 1  # 0 = pedrinha, 1 = média, 2 = pedregulho
+		if roll < Tuning.PEBBLE_CHANCE:
+			size = 0
+		elif roll < Tuning.PEBBLE_CHANCE + Tuning.BOULDER_CHANCE:
+			size = 2
+		var r: float = [randf_range(24.0, 34.0), randf_range(40.0, 85.0), randf_range(95.0, 112.0)][size]
 		for attempt in 10:
 			var p := Vector2(randf_range(r, w - r), -r - randf_range(0.0, 220.0))
 			if _overlaps(placed, p, r):
@@ -249,6 +259,12 @@ func _spawn_row(difficulty: float) -> void:
 			placed.append(Vector3(p.x, p.y, r))
 			var hp := clampi(1 + int(r > 65.0) + randi_range(0, int(difficulty * 2.5)), 1, 5)
 			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(0.0, 80.0))
+			if size == 0:
+				hp = 1
+				vel.y += Tuning.PEBBLE_EXTRA_SPEED
+			elif size == 2:
+				hp = Tuning.BOULDER_HP + int(difficulty * 3.0)
+				vel.y -= Tuning.BOULDER_SLOWDOWN
 			var a := _add(Kind.DUST, p, r, hp, vel)
 			if randf() < ice:
 				a.ice = true  # gelo não leva casca: a novidade dele é rachar
@@ -305,7 +321,8 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 	a.max_hp = hp
 	a.rot = randf() * TAU
 	a.rot_speed = randf_range(-1.2, 1.2) if kind == Kind.DUST else randf_range(-0.3, 0.3)
-	a.sprite = randi() % maxi(1, _textures(kind).size())
+	a.look = look
+	a.sprite = randi() % maxi(1, _textures(kind, look).size())
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
 	if kind == Kind.DUST:
@@ -313,8 +330,6 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 	return a
 
 
-func _textures(kind: Kind) -> Array[Texture2D]:
-	return Game.art.dust_textures if kind == Kind.DUST else Game.art.metal_textures
 
 
 func _draw() -> void:
@@ -325,7 +340,7 @@ func _draw() -> void:
 		var fill := art.metal_fill if a.kind == Kind.METAL else art.dust_fill
 		var half := a.radius / fill
 		var rect := Rect2(-half, -half, half * 2.0, half * 2.0)
-		var textures := _textures(a.kind)
+		var textures := _textures(a.kind, a.look)
 		if a.ice and not art.ice_textures.is_empty():
 			textures = art.ice_textures
 		var tex := textures[a.sprite % textures.size()]
@@ -355,3 +370,7 @@ func _draw() -> void:
 		var flame := PackedVector2Array([base + Vector2(0, -12), base + Vector2(0, 12),
 				base + Vector2(back * 46.0 * flick, 0)])
 		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.9))
+
+
+func _textures(kind: Kind, from_look: int) -> Array[Texture2D]:
+	return Game.art.rock_textures(kind == Kind.METAL, from_look)

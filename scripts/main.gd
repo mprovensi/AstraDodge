@@ -582,6 +582,7 @@ func _step(dt: float) -> void:
 		asteroids.moving_metals = director.moving
 		asteroids.armored = director.armored
 		asteroids.ice = director.ice
+		asteroids.look = _biome  # visual das rochas do setor/cenário atual
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
 				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0 \
 				and _gates_left <= 0 and hazards.gates.is_empty() and _slides_left <= 0 \

@@ -139,6 +139,9 @@ as partes: canhões em (220,300) e (804,300), lançador em (512,184), ponte em (
 | Núcleos/olho/encaixes dos chefes | constantes no topo de cada script em `scripts/bosses/` (`PARTS`, `TENTACLE_BASES`, `DRILL_OFFSETS`…) |
 | Área de colisão dos chefes | também nesses scripts (`DOME_BODIES`, `HULL_BODIES`, `HALF_BODY_*`); o teste diz se ficou fora do desenho |
 
+Rochas de cada setor: `dust_sN_k.png` e `metal_sN_k.png` (N = 2..8), ligadas em `sector_looks` do
+`data/art/default.tres`. Regra: **poeira clara, metal escuro** (o teste confere).
+
 Variações extras (ex.: `dust_4.png`): adicione a textura na lista `dust_textures` do
 `data/art/default.tres` — o jogo sorteia entre todas.
 

@@ -605,6 +605,24 @@ func _test_boss_safety() -> void:
 	assert(st.walls_free_width(1080.0) >= ship_gap * 6.0, "paredes da arena: meio livre")
 	var sent_out := _round_body_outside_pct(st, root.get_node("Game").art.sentinel_body)
 	assert(sent_out <= 5.0, "corpo do Sentinela: %.0f%% da colisão fora do desenho" % sent_out)
+	# Rochas por setor (O1): o círculo que machuca a nave (85% de dust_fill/metal_fill do
+	# raio da imagem) fica dentro dos pixels; poeira clara e metal escuro (leitura do jogo).
+	var art = root.get_node("Game").art
+	var worst_rock := 0.0
+	for look in art.sector_looks.size():
+		for metal in [false, true]:
+			for tex: Texture2D in art.rock_textures(metal, look):
+				# A nave colide com 85% do raio (ver Main._check_ship_hits).
+				var out := _circle_outside_pct(tex, (art.metal_fill if metal else art.dust_fill) * 0.85)
+				worst_rock = maxf(worst_rock, out)
+				assert(out <= 5.0, "rocha %s: %.0f%% da colisão fora do desenho" % [tex.resource_path, out])
+				var lum := _mean_luminance(tex)
+				if metal:
+					assert(lum < 0.36, "metal tem que ser escuro: %s (%.2f)" % [tex.resource_path, lum])
+				else:
+					assert(lum > 0.36, "poeira tem que ser clara: %s (%.2f)" % [tex.resource_path, lum])
+	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])
+
 	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,
 	# raios do eco do Minerador, corpo x desenho.
 	var rc: GDScript = load("res://scripts/bosses/rift_core.gd")
@@ -623,6 +641,41 @@ func _test_boss_safety() -> void:
 		st.walls_free_width(1080.0), sent_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+## % do círculo de colisão (fração `fill` do raio da imagem) que cai em pixel transparente.
+func _circle_outside_pct(tex: Texture2D, fill: float) -> float:
+	var img := tex.get_image()
+	if img.is_compressed():
+		img.decompress()
+	var half := img.get_width() * 0.5
+	var r := half * fill
+	var hits := 0
+	var outside := 0
+	for y in range(-int(r), int(r) + 1, 4):
+		for x in range(-int(r), int(r) + 1, 4):
+			if Vector2(x, y).length() >= r:
+				continue
+			hits += 1
+			if img.get_pixel(int(half + x), int(half + y)).a <= 0.5:
+				outside += 1
+	return 100.0 * outside / maxf(1.0, hits)
+
+
+## Brilho médio (0–1) dos pixels opacos.
+func _mean_luminance(tex: Texture2D) -> float:
+	var img := tex.get_image()
+	if img.is_compressed():
+		img.decompress()
+	var total := 0.0
+	var n := 0
+	for y in range(0, img.get_height(), 4):
+		for x in range(0, img.get_width(), 4):
+			var c := img.get_pixel(x, y)
+			if c.a > 0.5:
+				total += c.get_luminance()
+				n += 1
+	return total / maxf(1.0, n)
 
 
 ## Corpo feito de círculos [[offset, raio], ...] contra os pixels de um sprite quadrado.

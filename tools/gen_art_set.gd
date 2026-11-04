@@ -28,6 +28,15 @@ func _initialize() -> void:
 	art.medusa_body = load("res://sprites/boss_medusa.png")
 	art.cruiser_body = load("res://sprites/boss_cruiser.png")
 	art.ice_textures.assign([load("res://sprites/ice_1.png"), load("res://sprites/ice_2.png")])
+	# Visual por setor: Setor 1 = padrão (lista vazia); 2..8 = dust_sN_k / metal_sN_k.
+	var looks: Array[AsteroidLook] = [AsteroidLook.new()]
+	for sector in range(2, 9):
+		var look := AsteroidLook.new()
+		for k in [1, 2]:
+			look.dust_textures.append(load("res://sprites/dust_s%d_%d.png" % [sector, k]))
+			look.metal_textures.append(load("res://sprites/metal_s%d_%d.png" % [sector, k]))
+		looks.append(look)
+	art.sector_looks.assign(looks)
 	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
 	art.hive_queen_body = load("res://sprites/boss_hive_queen.png")
 	art.sentinel_body = load("res://sprites/boss_sentinel.png")

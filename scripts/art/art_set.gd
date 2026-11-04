@@ -34,6 +34,9 @@ extends Resource
 @export_range(0.5, 1.0, 0.01) var metal_fill := 0.94
 ## Casca da poeira blindada (Setor 2), desenhada por cima da rocha; centro transparente.
 @export var dust_shell_texture: Texture2D
+## Visual das rochas por setor (índice 0 = Setor 1). Setor sem AsteroidLook (ou com lista
+## vazia) usa dust_textures/metal_textures acima. Ver PLANO_OBSTACULOS.md (O1).
+@export var sector_looks: Array[AsteroidLook] = []
 ## Gelo (Setor 5): poeira que racha em lascas. Mesmo encaixe da poeira (dust_fill).
 @export var ice_textures: Array[Texture2D] = []
 
@@ -64,3 +67,12 @@ extends Resource
 func ship_point(px: Vector2) -> Vector2:
 	var tex_size := ship_texture.get_size()
 	return (px - tex_size * 0.5) * (ship_size / tex_size.x)
+
+
+## Texturas da rocha (`metal` ou poeira) para o setor `look` (índice), com o padrão como reserva.
+func rock_textures(metal: bool, look: int) -> Array[Texture2D]:
+	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
+		var list := sector_looks[look].metal_textures if metal else sector_looks[look].dust_textures
+		if not list.is_empty():
+			return list
+	return metal_textures if metal else dust_textures

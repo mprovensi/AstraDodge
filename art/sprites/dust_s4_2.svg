@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Poeira do Setor 4 (variação 2) — gerado por tools/gen_rock_svgs.gd -->
+  <defs><radialGradient id="g534955292" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#a4824e"/><stop offset="1" stop-color="#5a4321"/></radialGradient></defs><path d="M234 196 L155 251 L60 234 L5 155 L22 60 L101 5 L196 22 L251 101 Z" fill="url(#g534955292)" stroke="#e8d2a2" stroke-width="6" stroke-linejoin="round"/><path d="M58 58 L198 198 M198 58 L58 198" stroke="#5a4321" stroke-width="12"/><rect x="98" y="98" width="60" height="60" fill="#c9a467" stroke="#5a4321" stroke-width="5"/>
+</svg>
