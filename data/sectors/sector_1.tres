@@ -1,0 +1,128 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_lcu4m"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_we7wr"]
+
+[sub_resource type="Resource" id="Resource_qv1ho"]
+script = ExtResource("1_lcu4m")
+kind = 1
+density = 0.6
+metals = false
+
+[sub_resource type="Resource" id="Resource_gpcr4"]
+script = ExtResource("1_lcu4m")
+at = 0.5
+duration = 2.5
+text = "SETOR 1
+Cinturão de Poeira"
+
+[sub_resource type="Resource" id="Resource_kialt"]
+script = ExtResource("1_lcu4m")
+at = 4.0
+duration = 3.5
+text = "Arraste o dedo para mover a nave"
+
+[sub_resource type="Resource" id="Resource_vbgmk"]
+script = ExtResource("1_lcu4m")
+at = 10.0
+duration = 4.0
+text = "Atire na poeira cinza:
+ela solta orbes e cristais"
+
+[sub_resource type="Resource" id="Resource_xqd4x"]
+script = ExtResource("1_lcu4m")
+at = 18.0
+kind = 1
+density = 0.8
+
+[sub_resource type="Resource" id="Resource_rb61c"]
+script = ExtResource("1_lcu4m")
+at = 18.0
+duration = 4.0
+text = "Metálicos escuros não quebram.
+Desvie!"
+
+[sub_resource type="Resource" id="Resource_lkh7b"]
+script = ExtResource("1_lcu4m")
+at = 30.0
+duration = 3.5
+text = "Orbes ciano recarregam o escudo"
+
+[sub_resource type="Resource" id="Resource_08i7b"]
+script = ExtResource("1_lcu4m")
+at = 38.0
+duration = 3.5
+text = "Cristais magenta fortalecem a arma"
+
+[sub_resource type="Resource" id="Resource_185v8"]
+script = ExtResource("1_lcu4m")
+at = 45.0
+kind = 2
+duration = 10.0
+
+[sub_resource type="Resource" id="Resource_ntidy"]
+script = ExtResource("1_lcu4m")
+at = 45.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_4sgut"]
+script = ExtResource("1_lcu4m")
+at = 60.0
+kind = 1
+
+[sub_resource type="Resource" id="Resource_23eef"]
+script = ExtResource("1_lcu4m")
+at = 75.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_6ry1x"]
+script = ExtResource("1_lcu4m")
+at = 90.0
+kind = 1
+density = 1.15
+
+[sub_resource type="Resource" id="Resource_gqrjd"]
+script = ExtResource("1_lcu4m")
+at = 105.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_b72a1"]
+script = ExtResource("1_lcu4m")
+at = 115.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_7xnx7"]
+script = ExtResource("1_lcu4m")
+at = 115.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_k83pu"]
+script = ExtResource("1_lcu4m")
+at = 128.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_hg2pd"]
+script = ExtResource("1_lcu4m")
+at = 138.0
+kind = 4
+duration = 12.0
+
+[sub_resource type="Resource" id="Resource_qjuq1"]
+script = ExtResource("1_lcu4m")
+at = 140.0
+duration = 3.0
+text = "Saindo do cinturão..."
+
+[sub_resource type="Resource" id="Resource_sd6l3"]
+script = ExtResource("1_lcu4m")
+at = 150.0
+kind = 5
+
+[resource]
+script = ExtResource("2_we7wr")
+subtitle = "Cinturão de Poeira"
+difficulty_end = 0.45
+events = Array[ExtResource("1_lcu4m")]([SubResource("Resource_qv1ho"), SubResource("Resource_gpcr4"), SubResource("Resource_kialt"), SubResource("Resource_vbgmk"), SubResource("Resource_xqd4x"), SubResource("Resource_rb61c"), SubResource("Resource_lkh7b"), SubResource("Resource_08i7b"), SubResource("Resource_185v8"), SubResource("Resource_ntidy"), SubResource("Resource_4sgut"), SubResource("Resource_23eef"), SubResource("Resource_6ry1x"), SubResource("Resource_gqrjd"), SubResource("Resource_b72a1"), SubResource("Resource_7xnx7"), SubResource("Resource_k83pu"), SubResource("Resource_hg2pd"), SubResource("Resource_qjuq1"), SubResource("Resource_sd6l3")])

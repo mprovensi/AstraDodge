@@ -1,21 +1,31 @@
 extends Node2D
-## Orquestra a partida: estados, input de arraste, dificuldade, colisões e pontuação.
+## Orquestra a partida: menu, modos (campanha/infinito), estados, input de arraste,
+## dificuldade, eventos do setor, colisões e pontuação.
 
-enum State { READY, PLAYING, SLOWMO, PAUSED, DYING, GAME_OVER }
+enum State { MENU, READY, PLAYING, SLOWMO, PAUSED, DYING, GAME_OVER, SECTOR_CLEAR }
+enum Mode { ENDLESS, CAMPAIGN }
 
 const DYING_TIME := 1.2
+const SECTORS: Array[SectorData] = [preload("res://data/sectors/sector_1.tres")]
 
-var state := State.READY
+var state := State.MENU
+var mode := Mode.ENDLESS
 var view_size := Vector2.ZERO
 
 var world: Node2D
 var starfield: Starfield
 var asteroids: AsteroidField
+var enemies: EnemyLayer
+var telegraph: TelegraphLayer
 var bullets: BulletLayer
+var enemy_shots: EnemyBulletLayer
 var pickups: PickupLayer
 var fx: FxLayer
 var ship: Ship
 var hud: Hud
+
+var director: SectorDirector
+var sector_index := 0
 
 var elapsed := 0.0
 var distance := 0.0
@@ -23,11 +33,13 @@ var bonus_score := 0
 var score := 0
 var time_scale := 0.0
 var scroll_speed := Tuning.SCROLL_SPEED_START
+var enemies_destroyed := 0
 
 var _state_timer := 0.0
 var _touch_index := -1
 var _shake := 0.0
 var _revive_used := false
+var _pending_wall := -1.0  # segundos até o paredão avisado aparecer (-1 = nenhum)
 
 
 func _ready() -> void:
@@ -40,8 +52,15 @@ func _ready() -> void:
 	world.add_child(pickups)
 	asteroids = AsteroidField.new()
 	world.add_child(asteroids)
+	enemies = EnemyLayer.new()
+	world.add_child(enemies)
+	telegraph = TelegraphLayer.new()
+	world.add_child(telegraph)
 	bullets = BulletLayer.new()
 	world.add_child(bullets)
+	enemy_shots = EnemyBulletLayer.new()
+	world.add_child(enemy_shots)
+	enemies.shots = enemy_shots
 	ship = Ship.new()
 	ship.bullets = bullets
 	world.add_child(ship)
@@ -53,14 +72,15 @@ func _ready() -> void:
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
 	ship.fired.connect(func() -> void: Sfx.play("laser", -14.0, 1.0, 0.08))
+	hud.campaign_pressed.connect(start_mode.bind(Mode.CAMPAIGN))
+	hud.endless_pressed.connect(start_mode.bind(Mode.ENDLESS))
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
+	hud.menu_pressed.connect(go_to_menu)
 	get_viewport().size_changed.connect(_on_resized)
 
 	_on_resized()
-	_new_run()
-	_set_state(State.READY)
-	hud.show_ready(true)
+	go_to_menu()
 
 
 func _notification(what: int) -> void:
@@ -114,22 +134,152 @@ func _process(delta: float) -> void:
 	# As estrelas nunca param totalmente, para o menu e a pausa não parecerem "travados".
 	starfield.update(delta, scroll_speed * maxf(time_scale, 0.15))
 	_update_shake(delta)
-	Sfx.set_music_intensity(time_scale, state == State.PAUSED or state == State.READY or state == State.GAME_OVER)
-	hud.set_values(score, maxi(score, Game.high_score), ship.shield_ratio(), ship.last_chance,
+	var quiet := state != State.PLAYING and state != State.SLOWMO and state != State.DYING
+	Sfx.set_music_intensity(time_scale, quiet)
+	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
+	if director != null:
+		hud.set_sector_progress(director.progress())
 
+
+# ---------------------------------------------------------------- fluxo
+
+func go_to_menu() -> void:
+	_touch_index = -1
+	mode = Mode.ENDLESS
+	director = null
+	_new_run()
+	ship.visible = false
+	hud.set_sector("", false)
+	hud.clear_hint()
+	_set_state(State.MENU)
+
+
+func start_mode(new_mode: Mode, index := 0) -> void:
+	mode = new_mode
+	sector_index = index
+	_new_run()
+	_set_state(State.READY)
+
+
+func _new_run() -> void:
+	elapsed = 0.0
+	distance = 0.0
+	bonus_score = 0
+	score = 0
+	enemies_destroyed = 0
+	scroll_speed = Tuning.SCROLL_SPEED_START
+	_revive_used = false
+	_pending_wall = -1.0
+	asteroids.reset()
+	enemies.clear()
+	enemy_shots.clear()
+	telegraph.clear()
+	bullets.clear()
+	pickups.clear()
+	fx.clear()
+	hud.clear_hint()
+	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
+	if mode == Mode.CAMPAIGN:
+		director = SectorDirector.new(SECTORS[sector_index])
+		hud.set_sector(director.sector.title, true)
+	else:
+		director = null
+		hud.set_sector("", false)
+
+
+func _ready_title() -> String:
+	return director.sector.title if mode == Mode.CAMPAIGN else "MODO INFINITO"
+
+
+func _best_for_mode() -> int:
+	if mode == Mode.CAMPAIGN and director != null:
+		return Game.get_sector_best(director.sector.id)
+	return Game.high_score
+
+
+func _on_restart() -> void:
+	_new_run()
+	_set_state(State.READY)
+
+
+## Placeholder do "reviver com anúncio" (Fase 3 liga isto ao Rewarded Ad).
+func _on_continue() -> void:
+	_revive_used = true
+	ship.revive()
+	asteroids.clear_around(ship.position, Tuning.REVIVE_CLEAR_RADIUS)
+	enemies.clear_around(ship.position, Tuning.REVIVE_CLEAR_RADIUS)
+	enemy_shots.clear()
+	bullets.clear()
+	_set_state(State.READY)
+
+
+func _set_state(new_state: State) -> void:
+	state = new_state
+	match new_state:
+		State.MENU:
+			hud.show_menu()
+		State.READY:
+			hud.show_ready(_ready_title())
+		State.PLAYING:
+			hud.hide_center()
+			Sfx.start_music()
+		State.SLOWMO:
+			_state_timer = Tuning.RELEASE_SLOWMO_TIME
+		State.PAUSED:
+			hud.show_paused()
+		State.DYING:
+			_touch_index = -1
+			_state_timer = DYING_TIME
+		State.GAME_OVER:
+			var is_record: bool
+			if mode == Mode.CAMPAIGN:
+				is_record = Game.submit_sector(director.sector.id, score, false)
+			else:
+				is_record = Game.submit_score(score)
+			hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
+		State.SECTOR_CLEAR:
+			_touch_index = -1
+			var is_record := Game.submit_sector(director.sector.id, score, true)
+			hud.clear_hint()
+			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record)
+			Sfx.play("level_up", -2.0, 1.0, 0.0)
+
+
+# ---------------------------------------------------------------- simulação
 
 func _step(dt: float) -> void:
 	if ship.alive:
 		elapsed += dt
-	var difficulty := Tuning.difficulty(elapsed)
+
+	var difficulty: float
+	if mode == Mode.CAMPAIGN:
+		if ship.alive:
+			for e in director.update(dt):
+				_on_wave_event(e)
+		difficulty = director.difficulty()
+		asteroids.density = director.density
+		asteroids.metals_enabled = director.metals
+		asteroids.dust_rain = director.rain_left > 0.0
+		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished
+	else:
+		difficulty = Tuning.difficulty(elapsed)
+
 	scroll_speed = lerpf(Tuning.SCROLL_SPEED_START, Tuning.SCROLL_SPEED_MAX, difficulty)
 	if ship.alive:
 		distance += scroll_speed * dt
 		fx.trail(ship.position + Vector2(0, 40), scroll_speed)
 
+	if _pending_wall >= 0.0:
+		_pending_wall -= dt
+		if _pending_wall < 0.0:
+			asteroids.spawn_wall()
+
 	asteroids.update(dt, scroll_speed, difficulty)
+	enemies.update(dt, ship.position)
+	telegraph.update(dt)
 	bullets.update(dt)
+	enemy_shots.update(dt)
 	ship.update(dt)
 	for kind in pickups.update(dt, scroll_speed, ship.position, ship.alive):
 		_on_pickup(kind)
@@ -139,33 +289,66 @@ func _step(dt: float) -> void:
 	_check_ship_hits()
 	score = int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
 
+	# Fim do setor: depois do evento END, quando a tela esvaziar.
+	if mode == Mode.CAMPAIGN and director.finished and ship.alive \
+			and asteroids.asteroids.is_empty() and enemies.enemies.is_empty() \
+			and (state == State.PLAYING or state == State.SLOWMO):
+		_set_state(State.SECTOR_CLEAR)
+
+
+func _on_wave_event(e: WaveEvent) -> void:
+	match e.kind:
+		WaveEvent.Kind.MESSAGE:
+			hud.show_hint(e.text, e.duration if e.duration > 0.0 else 3.5)
+		WaveEvent.Kind.METAL_WALL:
+			_pending_wall = Tuning.WALL_TELEGRAPH_TIME
+			for span in asteroids.wall_spans():
+				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
+			hud.show_hint("PAREDÃO! Procure a brecha", 2.5)
+			Sfx.play("alarm", -8.0, 1.2, 0.0)
+
 
 func _check_bullet_hits() -> void:
 	for b in bullets.pool:
 		if not b.alive:
 			continue
 		var a := asteroids.hit_test(b.pos, b.hit_ids)
-		if a == null:
+		if a != null:
+			_bullet_hits_asteroid(b, a)
 			continue
-		if a.kind == AsteroidField.Kind.METAL:
-			# Metálicos são indestrutíveis: o tiro ricocheteia.
-			b.alive = false
-			fx.spark(b.pos, Palette.METAL_LINE)
-			asteroids.impact(a, b.vel.normalized())
-			Sfx.play("ricochet", -12.0, 1.0, 0.12)
-			if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
-				a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
-			continue
-		if b.pierce:
-			b.hit_ids[a.id] = true
-		else:
-			b.alive = false
-		if asteroids.damage(a, Tuning.BULLET_DAMAGE):
-			_on_dust_destroyed(a)
-		else:
-			asteroids.impact(a, b.vel.normalized())
-			fx.spark(b.pos, Palette.DUST_LINE)
-			Sfx.play("hit", -12.0, 1.0, 0.1)
+		var e := enemies.hit_test(b.pos, b.hit_ids)
+		if e != null:
+			if b.pierce:
+				b.hit_ids[-e.id] = true
+			else:
+				b.alive = false
+			if enemies.damage(e, Tuning.BULLET_DAMAGE):
+				_on_enemy_destroyed(e)
+			else:
+				fx.spark(b.pos, Palette.ENEMY)
+				Sfx.play("hit", -12.0, 1.3, 0.1)
+
+
+func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> void:
+	if a.kind == AsteroidField.Kind.METAL:
+		# Metálicos são indestrutíveis: o tiro ricocheteia.
+		b.alive = false
+		fx.spark(b.pos, Palette.METAL_LINE)
+		asteroids.impact(a, b.vel.normalized())
+		Sfx.play("ricochet", -12.0, 1.0, 0.12)
+		if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
+			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
+		return
+	if b.pierce:
+		b.hit_ids[a.id] = true
+	else:
+		b.alive = false
+	if asteroids.damage(a, Tuning.BULLET_DAMAGE):
+		_on_dust_destroyed(a)
+	else:
+		asteroids.impact(a, b.vel.normalized())
+		fx.spark(b.pos, Palette.DUST_LINE)
+		Sfx.play("hit", -12.0, 1.0, 0.1)
 
 
 func _check_ship_hits() -> void:
@@ -178,19 +361,39 @@ func _check_ship_hits() -> void:
 		if ship.position.distance_squared_to(a.pos) > reach * reach:
 			continue
 		var is_metal := a.kind == AsteroidField.Kind.METAL
-		var result := ship.take_hit(Tuning.SHIELD_DMG_METAL if is_metal else Tuning.SHIELD_DMG_DUST)
-		if result == Ship.HitResult.IGNORED:
-			continue
-		if not is_metal:
-			a.alive = false
-			fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
-		if result == Ship.HitResult.DEAD:
-			_on_ship_died()
-			return
-		_shake = maxf(_shake, 18.0)
-		fx.burst(ship.position, Palette.NEON_HDR, 16, 380.0, 0.35, 4.0)
-		Sfx.play("shield_hit", -2.0)
-		Game.vibrate(60)
+		if _damage_ship(Tuning.SHIELD_DMG_METAL if is_metal else Tuning.SHIELD_DMG_DUST):
+			if not is_metal:
+				a.alive = false
+				fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
+			if not ship.alive:
+				return
+
+	for e in enemies.enemies:
+		if e.alive and ship.position.distance_to(e.pos) < e.radius * 0.85 + Tuning.SHIP_HITBOX_RADIUS:
+			if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY):
+				e.alive = false
+				fx.explosion(e.pos, e.radius, Palette.ENEMY_HDR)
+				if not ship.alive:
+					return
+
+	# Durante a invencibilidade os tiros inimigos atravessam a nave.
+	if ship.invuln <= 0.0 and enemy_shots.hit_ship(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+		_damage_ship(Tuning.SHIELD_DMG_ENEMY_SHOT)
+
+
+## Aplica dano na nave. Retorna false se o golpe foi ignorado (invencibilidade).
+func _damage_ship(amount: float) -> bool:
+	var result := ship.take_hit(amount)
+	if result == Ship.HitResult.IGNORED:
+		return false
+	if result == Ship.HitResult.DEAD:
+		_on_ship_died()
+		return true
+	_shake = maxf(_shake, 18.0)
+	fx.burst(ship.position, Palette.NEON_HDR, 16, 380.0, 0.35, 4.0)
+	Sfx.play("shield_hit", -2.0)
+	Game.vibrate(60)
+	return true
 
 
 func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
@@ -208,6 +411,16 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 		pickups.spawn(a.pos, PickupLayer.Kind.SHIELD)
 	elif roll < shield_chance + Tuning.DROP_CRYSTAL_CHANCE:
 		pickups.spawn(a.pos, PickupLayer.Kind.CRYSTAL)
+
+
+func _on_enemy_destroyed(e: EnemyLayer.Enemy) -> void:
+	enemies_destroyed += 1
+	bonus_score += Tuning.SCORE_PER_ENEMY
+	fx.explosion(e.pos, e.radius, Palette.ENEMY_HDR)
+	_shake = maxf(_shake, 6.0)
+	Sfx.play("explosion", -4.0, 1.1)
+	if randf() < Tuning.ENEMY_CRYSTAL_CHANCE:
+		pickups.spawn(e.pos, PickupLayer.Kind.CRYSTAL)
 
 
 func _on_pickup(kind: int) -> void:
@@ -244,59 +457,16 @@ func _on_ship_died() -> void:
 	_set_state(State.DYING)
 
 
-func _on_restart() -> void:
-	_new_run()
-	_set_state(State.READY)
-	hud.show_ready(false)
-
-
-## Placeholder do "reviver com anúncio" (Fase 3 liga isto ao Rewarded Ad).
-func _on_continue() -> void:
-	_revive_used = true
-	ship.revive()
-	asteroids.clear_around(ship.position, Tuning.REVIVE_CLEAR_RADIUS)
-	bullets.clear()
-	_set_state(State.READY)
-	hud.show_ready(false)
-
-
-func _new_run() -> void:
-	elapsed = 0.0
-	distance = 0.0
-	bonus_score = 0
-	score = 0
-	scroll_speed = Tuning.SCROLL_SPEED_START
-	_revive_used = false
-	asteroids.reset()
-	bullets.clear()
-	pickups.clear()
-	fx.clear()
-	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
-
-
-func _set_state(new_state: State) -> void:
-	state = new_state
-	match new_state:
-		State.PLAYING:
-			hud.hide_center()
-			Sfx.start_music()
-		State.SLOWMO:
-			_state_timer = Tuning.RELEASE_SLOWMO_TIME
-		State.PAUSED:
-			hud.show_paused()
-		State.DYING:
-			_touch_index = -1
-			_state_timer = DYING_TIME
-		State.GAME_OVER:
-			var is_record := Game.submit_score(score)
-			hud.show_game_over(score, Game.high_score, is_record, not _revive_used)
-
+# ---------------------------------------------------------------- tela
 
 func _on_resized() -> void:
 	view_size = get_viewport_rect().size
 	starfield.resize(view_size)
 	asteroids.resize(view_size)
+	enemies.resize(view_size)
+	telegraph.resize(view_size)
 	bullets.resize(view_size)
+	enemy_shots.resize(view_size)
 	pickups.resize(view_size)
 	ship.resize(view_size)
 

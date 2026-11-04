@@ -24,6 +24,12 @@ class Asteroid:
 var asteroids: Array[Asteroid] = []
 var view_size := Vector2.ZERO
 
+# Controlados pelo modo de jogo (campanha: SectorDirector; infinito: padrão).
+var spawn_enabled := true
+var metals_enabled := true
+var density := 1.0
+var dust_rain := false
+
 var _next_id := 0
 var _distance_to_next_row := 0.0
 var _gap_x := 0.0
@@ -37,14 +43,20 @@ func reset() -> void:
 	asteroids.clear()
 	_distance_to_next_row = Tuning.FIRST_ROW_DISTANCE
 	_gap_x = view_size.x * 0.5
+	spawn_enabled = true
+	metals_enabled = true
+	density = 1.0
+	dust_rain = false
 	queue_redraw()
 
 
 func update(dt: float, scroll_speed: float, difficulty: float) -> void:
-	_distance_to_next_row -= scroll_speed * dt
-	if _distance_to_next_row <= 0.0:
-		_spawn_row(difficulty)
-		_distance_to_next_row += lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
+	if spawn_enabled:
+		_distance_to_next_row -= scroll_speed * dt
+		if _distance_to_next_row <= 0.0:
+			_spawn_row(difficulty)
+			var spacing := lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
+			_distance_to_next_row += spacing / (density * (Tuning.DUST_RAIN_DENSITY if dust_rain else 1.0))
 
 	for a in asteroids:
 		a.pos += (Vector2(a.vel.x, a.vel.y + scroll_speed) + a.knock) * dt
@@ -89,6 +101,25 @@ func impact(a: Asteroid, shot_dir: Vector2) -> void:
 	a.flash = 0.08
 
 
+## Faixas horizontais (x0, x1) que o próximo paredão vai bloquear — para o aviso.
+func wall_spans() -> Array[Vector2]:
+	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
+	return [Vector2(0.0, _gap_x - half_gap), Vector2(_gap_x + half_gap, view_size.x)]
+
+
+## Fileira de metálicos cobrindo a largura toda, exceto o corredor atual.
+func spawn_wall() -> void:
+	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
+	var r := Tuning.WALL_METAL_RADIUS
+	var x := r
+	while x <= view_size.x:
+		if absf(x - _gap_x) >= half_gap + r:
+			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2.ZERO)
+		x += r * 2.0 + 6.0
+	# Espaço livre depois do paredão antes da próxima linha.
+	_distance_to_next_row = maxf(_distance_to_next_row, Tuning.ROW_SPACING_START)
+
+
 func clear_around(center: Vector2, radius: float) -> void:
 	for a in asteroids:
 		if a.pos.distance_to(center) < radius + a.radius:
@@ -104,6 +135,8 @@ func _spawn_row(difficulty: float) -> void:
 	var placed: Array[Vector3] = []  # x, y, raio (para evitar sobreposição na linha)
 
 	var metal_count := randi_range(0, 1 + int(round(difficulty * 2.0)))
+	if not metals_enabled or dust_rain:
+		metal_count = 0
 	for i in metal_count:
 		var r := randf_range(70.0, 90.0 + 40.0 * difficulty)
 		for attempt in 10:
@@ -117,7 +150,7 @@ func _spawn_row(difficulty: float) -> void:
 			_add(Kind.METAL, p, r, 1, Vector2.ZERO)
 			break
 
-	var dust_count := randi_range(1, 2 + int(difficulty * 2.0))
+	var dust_count := randi_range(1, 2 + int(difficulty * 2.0)) + (2 if dust_rain else 0)
 	for i in dust_count:
 		var r := randf_range(40.0, 85.0)
 		for attempt in 10:

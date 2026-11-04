@@ -20,3 +20,8 @@ const FLAME_HDR := Color(2.2, 1.1, 0.3)
 const DANGER_HDR := Color(2.2, 0.4, 0.5)
 const WHITE_HDR := Color(2.0, 2.0, 2.0)
 const BLAST_HDR := Color(2.4, 2.0, 1.4)
+
+# Inimigos e perigos: vermelho/laranja, sempre com forma própria (não só cor).
+const ENEMY := Color(1.0, 0.35, 0.2)
+const ENEMY_HDR := Color(2.4, 0.7, 0.3)
+const ENEMY_FILL := Color(0.18, 0.04, 0.04)

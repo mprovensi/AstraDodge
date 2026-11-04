@@ -17,7 +17,9 @@ func _initialize() -> void:
 func _tick() -> void:
 	_frame += 1
 	if _frame < 45:
-		return  # mostra a tela inicial
+		return  # mostra o menu principal
+	if _frame == 45:
+		main.start_mode(main.Mode.ENDLESS)
 	if _frame == 45 or main.state == main.State.READY:
 		_touch(true)
 	if main.state == main.State.GAME_OVER and _frame % 60 == 0:
@@ -34,4 +36,5 @@ func _touch(pressed: bool) -> void:
 	var t := InputEventScreenTouch.new()
 	t.index = 0
 	t.pressed = pressed
+	t.position = Vector2(30, main.view_size.y - 30)  # longe dos botões
 	main._input(t)

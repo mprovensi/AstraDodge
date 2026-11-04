@@ -49,6 +49,15 @@ const ROW_SPACING_START := 560.0
 const ROW_SPACING_END := 360.0
 const SAFE_GAP_WIDTH := 260.0            # corredor sempre livre de metálicos por linha
 const SAFE_GAP_MAX_SHIFT := 150.0        # deslocamento máximo do corredor entre linhas
+const DUST_RAIN_DENSITY := 1.8           # linhas mais próximas durante a chuva de poeira
+const WALL_METAL_RADIUS := 70.0
+const WALL_TELEGRAPH_TIME := 1.4         # aviso antes do paredão aparecer
+
+# --- Inimigos (base para os setores 2–5) ---
+const SHIELD_DMG_ENEMY_SHOT := 12.0
+const SHIELD_DMG_ENEMY_BODY := 30.0
+const SCORE_PER_ENEMY := 50
+const ENEMY_CRYSTAL_CHANCE := 0.6
 
 # --- Drops ---
 const DROP_SHIELD_CHANCE := 0.35

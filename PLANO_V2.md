@@ -226,3 +226,16 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 3. Publicar a v1 no teste fechado agora (recomendado) ou esperar a campanha?
 4. Fonte: Orbitron (mais "sci-fi") ou Exo 2 (mais legível)?
 5. Som: híbrido gravação + síntese (recomendado) ou 100% gravações? Os downloads de bibliotecas (Sonniss/Freesound CC0) precisam da sua autorização caso a caso.
+
+---
+
+## Status
+
+**Sprint 1 — Fundação: concluído (04/11/2026)**
+- [x] `SectorData` / `WaveEvent` / `SectorDirector` + `data/sectors/sector_1.tres` (editável no Inspetor; gerado por `tools/gen_sectors.gd`)
+- [x] Spawner com densidade, chuva de poeira, paredão (com corredor) e pausa de calmaria
+- [x] `TelegraphLayer` (coluna, linha, círculo) — usado no aviso do paredão
+- [x] `EnemyLayer` (drone) + `EnemyBulletLayer` (mirado, leque, anel) — prontos para os setores 2–5
+- [x] Menu principal (Campanha / Infinito / Opções / Sair do jogo), pausa com Opções / Menu / Sair do jogo
+- [x] Setor 1 jogável do início ao fim (sem chefe), dicas na tela, barra de progresso, tela "SETOR COMPLETO", recorde por setor salvo
+- [x] Teste automático: infinito, campanha completa (3 paredões, chuva), inimigos atirando e sendo destruídos
