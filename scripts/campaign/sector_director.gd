@@ -9,6 +9,7 @@ var metals := true
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
+var music_track := "main"  # última trilha pedida pela linha do tempo (para o "Continuar")
 
 var _events: Array[WaveEvent] = []
 var _next := 0
@@ -45,6 +46,8 @@ func seek(t: float) -> void:
 				calm_left = maxf(0.0, e.at + e.duration - t)
 			WaveEvent.Kind.END:
 				finished = true
+			WaveEvent.Kind.MUSIC:
+				music_track = e.text
 
 
 ## Avança o tempo e devolve os eventos que dispararam neste passo.
@@ -66,5 +69,7 @@ func update(dt: float) -> Array[WaveEvent]:
 				calm_left = e.duration
 			WaveEvent.Kind.END:
 				finished = true
+			WaveEvent.Kind.MUSIC:
+				music_track = e.text
 		fired.append(e)
 	return fired

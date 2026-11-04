@@ -30,6 +30,7 @@ func _run() -> void:
 	_test_endless()
 	_test_campaign()
 	_test_checkpoint()
+	_test_music()
 	_test_enemies()
 	main.free()
 	quit()
@@ -151,6 +152,22 @@ func _test_checkpoint() -> void:
 	assert(main.state == main.State.READY and main.director.time == 0.0, "2º toque começa do zero")
 	assert(game.checkpoint.is_empty(), "novo jogo descarta o ponto salvo")
 	print("CONTINUAR OK | voltou em %.1fs do setor, pontos=%d, arma=%d" % [saved_time, saved_score, saved_weapon])
+
+
+func _test_music() -> void:
+	var sfx := root.get_node("Sfx")
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN)
+	_touch(true)
+	main._process(DT)
+	assert(sfx.current_track() == "main", "partida começa com a trilha normal")
+	main._on_wave_event(WaveEvent.make(0.0, WaveEvent.Kind.MUSIC, {"text": "boss"}))
+	assert(sfx.current_track() == "boss", "evento MUSIC troca para a trilha do chefe")
+	for i in 120:  # 2 s de crossfade
+		main._process(DT)
+	main._on_restart()
+	assert(sfx.current_track() == "main", "recomeçar volta para a trilha normal")
+	print("MUSICA OK | normal -> chefe -> normal")
 
 
 func _test_enemies() -> void:

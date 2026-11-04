@@ -5,6 +5,7 @@ extends Node
 ## - Limite de vozes por som, eco leve nos efeitos, compressor + limitador no master.
 ## - Ducking: a música abaixa um pouco em impactos grandes.
 ## - Motor: loop contínuo do propulsor, mais alto quando a nave se mexe.
+## - Trilhas: play_music("boss") troca de faixa com crossfade (ver MUSIC_TRACKS).
 
 const SOUND_NAMES := [
 	"laser", "hit", "ricochet", "explosion", "death", "shield_hit", "pickup_shield",
@@ -18,6 +19,12 @@ const POOL_SIZE := 18
 const MIN_REPEAT_INTERVAL := 0.03  # evita empilhar o mesmo som no mesmo frame
 const MUSIC_VOLUME_DB := -1.0
 const MUSIC_PAUSED_VOLUME_DB := -11.0
+## Trilhas: nome -> [arquivo, ganho em dB para igualar o volume percebido].
+const MUSIC_TRACKS := {
+	"main": ["res://audio/music.wav", 0.0],
+	"boss": ["res://audio/music_boss.wav", -4.0],
+}
+const MUSIC_FADE_DB_PER_SEC := 40.0  # velocidade do crossfade (≈ 1,5 s até silenciar)
 const ENGINE_IDLE_DB := -30.0
 const ENGINE_MAX_DB := -17.0
 const PAN_WIDTH := 0.8             # 0 = mono, 1 = esquerda/direita total
@@ -26,7 +33,9 @@ var _sounds := {}  # nome -> Array[AudioStream]
 var _players: Array[AudioStreamPlayer2D] = []
 var _next := 0
 var _last_played := {}
-var _music: AudioStreamPlayer
+var _music: AudioStreamPlayer      # trilha ativa
+var _music_old: AudioStreamPlayer  # trilha saindo (crossfade)
+var _track := "main"
 var _engine: AudioStreamPlayer
 var _music_target_db := MUSIC_VOLUME_DB
 var _music_target_pitch := 1.0
@@ -49,9 +58,12 @@ func _ready() -> void:
 		_players.append(p)
 	_music = AudioStreamPlayer.new()
 	_music.bus = "Music"
-	_music.stream = load("res://audio/music.wav")
-	_music.volume_db = MUSIC_VOLUME_DB
 	add_child(_music)
+	_music_old = AudioStreamPlayer.new()
+	_music_old.bus = "Music"
+	add_child(_music_old)
+	_set_track_stream(_music, _track)
+	_music.volume_db = _track_db()
 	_engine = AudioStreamPlayer.new()
 	_engine.bus = "SFX"
 	_engine.stream = load("res://audio/engine.wav")
@@ -63,8 +75,13 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	# Transições suaves de volume/pitch da música (pausa, câmera lenta, ducking).
 	_duck_db = move_toward(_duck_db, 0.0, delta * 12.0)
-	_music.volume_db = move_toward(_music.volume_db, _music_target_db + _duck_db, delta * 40.0)
+	_music.volume_db = move_toward(_music.volume_db, _music_target_db + _track_db() + _duck_db,
+			delta * MUSIC_FADE_DB_PER_SEC)
 	_music.pitch_scale = move_toward(_music.pitch_scale, _music_target_pitch, delta * 2.0)
+	if _music_old.playing:
+		_music_old.volume_db = move_toward(_music_old.volume_db, -60.0, delta * MUSIC_FADE_DB_PER_SEC)
+		if _music_old.volume_db <= -59.0:
+			_music_old.stop()
 	_engine.volume_db = move_toward(_engine.volume_db, _engine_target_db, delta * 60.0)
 	if _engine.volume_db <= -79.0 and _engine.playing:
 		_engine.stop()
@@ -100,6 +117,37 @@ func start_music() -> void:
 	_music_target_pitch = 1.0
 	if not _music.playing:
 		_music.play()
+
+
+## Troca a trilha (ex.: "boss" na entrada do chefe, "main" ao recomeçar). Se a música
+## estiver tocando, faz crossfade; se não, só deixa a faixa pronta para start_music().
+func play_music(track: String) -> void:
+	if track == _track or not MUSIC_TRACKS.has(track):
+		return
+	_track = track
+	if not _music.playing:
+		_set_track_stream(_music, track)
+		return
+	# A faixa atual vira a "que sai"; a nova entra do silêncio.
+	var outgoing := _music
+	_music = _music_old
+	_music_old = outgoing
+	_set_track_stream(_music, track)
+	_music.volume_db = -40.0
+	_music.pitch_scale = _music_old.pitch_scale
+	_music.play()
+
+
+func current_track() -> String:
+	return _track
+
+
+func _set_track_stream(player: AudioStreamPlayer, track: String) -> void:
+	player.stream = load(MUSIC_TRACKS[track][0])
+
+
+func _track_db() -> float:
+	return float(MUSIC_TRACKS[_track][1])
 
 
 ## 1 = normal, perto de 0 = câmera lenta/pausa (música "arrasta" e abaixa).

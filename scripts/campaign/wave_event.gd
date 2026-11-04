@@ -9,6 +9,7 @@ enum Kind {
 	METAL_WALL,  ## aviso + fileira de metálicos com uma única brecha
 	CALM,        ## `duration` s sem novos asteroides (respiro / limpar a tela)
 	END,         ## fim do setor (quando a tela esvaziar)
+	MUSIC,       ## troca a trilha com crossfade: `text` = nome da faixa ("boss", "main")
 }
 
 @export var at := 0.0                ## segundos desde o início do setor

@@ -19,6 +19,8 @@ func _initialize() -> void:
 	_save("music_lofi_calma", _lofi(78.0, CALM_CHORDS, CALM_MELODY, false))
 	seed(4242)
 	_save("music", _lofi(90.0, GAME_CHORDS, GAME_MELODY, true))
+	seed(666)
+	_save("music_boss", _boss_music())
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -430,6 +432,187 @@ func _lofi_hat() -> PackedFloat32Array:
 		var noise := randf_range(-1.0, 1.0)
 		low += 0.45 * (noise - low)
 		out[i] = (noise - low) * exp(-float(i) / n * 7.0) * 0.7
+	return out
+
+
+# ---------------------------------------------------------------- música de chefe
+
+const BOSS_BPM := 112.0
+const BOSS_ROOTS := [38, 38, 34, 33]  # Ré, Ré, Si♭, Lá (graves) — i · i · VI · V em Ré menor
+
+
+## Tema de chefe (8 compassos em loop): drone grave, baixo pulsante em semicolcheias com
+## meio-tom "frígio" de tensão, acordes dissonantes (menor + segunda menor), cordas em
+## tremolo que crescem na 2ª metade, bateria pesada e virada de tons a cada 4 compassos.
+func _boss_music() -> PackedFloat32Array:
+	var beat := 60.0 / BOSS_BPM
+	var bar := beat * 4.0
+	var n := int(round(bar * BARS * RATE))
+	var out := _buf(n)
+	for b in BARS:
+		var root: int = BOSS_ROOTS[(b / 2) % BOSS_ROOTS.size()]
+		var bs := b * bar
+
+		if b % 2 == 0:
+			_mix(out, _at(bs), _drone(_midi(root - 12), bar * 2.0), 0.55)
+
+		for s in 16:
+			var note := root
+			if s == 14:
+				note = root + 1  # meio-tom acima: o "arrepio" frígio
+			elif s % 8 == 6:
+				note = root + 12
+			_mix(out, _at(bs + s * beat / 4.0), _pulse_bass(_midi(note), beat / 4.0 * 0.9), 0.3 if s % 4 == 0 else 0.2)
+
+		var stab := [root + 24, root + 27, root + 31, root + 25]  # tônica, 3ª menor, 5ª, 2ª menor
+		for at_beat: float in [0.0, 1.5]:
+			for nn: int in stab:
+				_mix(out, _at(bs + at_beat * beat), _stab(_midi(nn), beat * 0.6), 0.08)
+
+		if b >= 4:
+			for nn: int in [root + 36, root + 39]:
+				_mix(out, _at(bs), _tremolo_strings(_midi(nn), bar), 0.04 + 0.02 * (b - 4))
+
+		for kb: float in [0.0, 1.5, 2.0, 3.5]:
+			_mix(out, _at(bs + kb * beat), _heavy_kick(), 0.8)
+		for sb: float in [1.0, 3.0]:
+			_mix(out, _at(bs + sb * beat), _heavy_snare(), 0.5)
+		for h in 16:
+			_mix(out, _at(bs + h * beat / 4.0), _boss_hat(), 0.1 if h % 2 == 0 else 0.06)
+		if b % 4 == 3:
+			for t in 4:
+				_mix(out, _at(bs + (3.0 + t * 0.25) * beat), _tom(_midi(45 - t * 3)), 0.45)
+
+	# Filtro escuro (~5 kHz), duas voltas para emendar o loop; normaliza.
+	var a := 1.0 - exp(-TAU * 5000.0 / RATE)
+	var y := 0.0
+	for lap in 2:
+		for i in n:
+			y += a * (out[i] - y)
+			if lap == 1:
+				out[i] = y
+	var peak := 0.0
+	for i in n:
+		peak = maxf(peak, absf(out[i]))
+	var gain := 0.9 / maxf(peak, 0.001)
+	for i in n:
+		out[i] = _soft(out[i] * gain)
+	return out
+
+
+## Drone: serrotes desafinados + grave, filtro abrindo e fechando devagar.
+func _drone(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	var p1 := 0.0
+	var p2 := 0.0
+	var low := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var k := float(i) / n
+		p1 += freq * 1.006 / RATE
+		p2 += freq * 0.994 / RATE
+		var cutoff := 0.012 + 0.025 * (0.5 + 0.5 * sin(TAU * 0.25 * t))
+		low += cutoff * ((_saw(p1) + _saw(p2)) * 0.5 - low)
+		var env := smoothstep(0.0, 0.1, k) * (1.0 - smoothstep(0.85, 1.0, k))
+		out[i] = (low * 1.6 + sin(TAU * freq * 0.5 * t) * 0.4) * env
+	return out
+
+
+func _pulse_bass(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	var phase := 0.0
+	var low := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		phase += freq / RATE
+		low += 0.15 * (_saw(phase) - low)
+		out[i] = low * minf(1.0, t * 400.0) * exp(-t * 14.0)
+	return out
+
+
+## Acorde "metálico" curto: serrotes com filtro que fecha (como metais).
+func _stab(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	var phases := [0.0, 0.0, 0.0]
+	var detune := [1.0, 1.007, 0.993]
+	var low := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var k := float(i) / n
+		var s := 0.0
+		for j in 3:
+			phases[j] += freq * detune[j] / RATE
+			s += _saw(phases[j])
+		low += lerpf(0.3, 0.04, k) * (s / 3.0 - low)
+		out[i] = low * minf(1.0, t * 200.0) * exp(-t * 6.0)
+	return out
+
+
+func _tremolo_strings(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	var p1 := 0.0
+	var p2 := 0.0
+	var low := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var k := float(i) / n
+		p1 += freq * 1.004 / RATE
+		p2 += freq * 0.996 / RATE
+		low += 0.12 * ((_saw(p1) + _saw(p2)) * 0.5 - low)
+		var trem := 0.6 + 0.4 * sin(TAU * 9.0 * t)
+		out[i] = low * trem * smoothstep(0.0, 0.3, k) * (1.0 - smoothstep(0.9, 1.0, k))
+	return out
+
+
+func _heavy_kick() -> PackedFloat32Array:
+	var n := _len(0.4)
+	var out := _buf(n)
+	var phase := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		phase += (40.0 + 120.0 * exp(-t * 28.0)) / RATE
+		var click := randf_range(-1.0, 1.0) * exp(-t * 300.0) * 0.3
+		out[i] = _soft((sin(phase * TAU) * exp(-t * 7.0) + click) * 1.4)
+	return out
+
+
+func _heavy_snare() -> PackedFloat32Array:
+	var n := _len(0.35)
+	var out := _buf(n)
+	var low := 0.0
+	var phase := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		var noise := randf_range(-1.0, 1.0)
+		low += 0.35 * (noise - low)
+		phase += 200.0 / RATE
+		out[i] = (noise - low * 0.5) * 0.9 * exp(-t * 11.0) + sin(phase * TAU) * 0.5 * exp(-t * 25.0)
+	return out
+
+
+func _boss_hat() -> PackedFloat32Array:
+	var n := _len(0.035)
+	var out := _buf(n)
+	var low := 0.0
+	for i in n:
+		var noise := randf_range(-1.0, 1.0)
+		low += 0.55 * (noise - low)
+		out[i] = (noise - low) * exp(-float(i) / n * 6.0)
+	return out
+
+
+func _tom(freq: float) -> PackedFloat32Array:
+	var n := _len(0.3)
+	var out := _buf(n)
+	var phase := 0.0
+	for i in n:
+		var t := float(i) / RATE
+		phase += freq * (1.0 + 0.5 * exp(-t * 20.0)) / RATE
+		out[i] = sin(phase * TAU) * exp(-t * 10.0)
 	return out
 
 

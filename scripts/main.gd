@@ -200,6 +200,7 @@ func _new_run() -> void:
 	pickups.clear()
 	fx.clear()
 	hud.clear_hint()
+	Sfx.play_music("main")
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
@@ -226,6 +227,7 @@ func resume_checkpoint() -> void:
 	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.WEAPON_MAX_LEVEL)
 	ship.crystals = int(cp.get("crystals", 0))
 	ship.invuln = Tuning.REVIVE_INVULN_TIME
+	Sfx.play_music(director.music_track)  # volta com a trilha do momento (ex.: chefe)
 
 
 func _run_active() -> bool:
@@ -371,6 +373,8 @@ func _on_wave_event(e: WaveEvent) -> void:
 	match e.kind:
 		WaveEvent.Kind.MESSAGE:
 			hud.show_hint(e.text, e.duration if e.duration > 0.0 else 3.5)
+		WaveEvent.Kind.MUSIC:
+			Sfx.play_music(e.text)
 		WaveEvent.Kind.METAL_WALL:
 			_pending_wall = Tuning.WALL_TELEGRAPH_TIME
 			for span in asteroids.wall_spans():

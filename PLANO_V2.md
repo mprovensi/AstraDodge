@@ -250,4 +250,9 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] Nave redesenhada (com inclinação nas curvas e dois motores), 3 poeiras e 3 metálicos novos
 - [x] Trilha lofi (90 BPM no jogo; 78 BPM guardada), tranco com mola ao quebrar asteroide
 - [ ] Shaders de flash/dissolve, inimigos e pickups em sprite
+
+**Adiantado para o Sprint 3**
+- [x] Trilha de chefe amedrontadora (`audio/music_boss.wav`: Ré menor, 112 BPM, drone, baixo pulsante frígio, acordes dissonantes, cordas em tremolo, bateria pesada)
+- [x] Troca de trilha com crossfade (`Sfx.play_music`) e evento `WaveEvent.Kind.MUSIC` na linha do tempo do setor; volta à trilha normal ao recomeçar; o "Continuar" retoma a trilha do momento
+- [ ] Disparar `MUSIC "boss"` junto com o "ALERTA" de entrada de cada chefe
 - [ ] Volume de música/efeitos em 0–100%
