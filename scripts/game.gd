@@ -187,12 +187,12 @@ func begin_daily() -> void:
 ## Skins (só visuais), liberadas pelo total de estrelas da campanha (8 setores × 3 = 24).
 ## [nome, estrelas necessárias, cor do casco (multiplica o sprite), cor da chama]
 const SKINS := [
-	["PADRÃO", 0, Color(1.6, 1.6, 1.6), Palette.FLAME_HDR],
-	["ÂMBAR", 6, Color(2.0, 1.4, 0.6), Color(3.0, 1.2, 0.2)],
-	["GELO", 10, Color(1.2, 1.7, 2.2), Color(0.8, 1.8, 3.0)],
-	["CARMESIM", 14, Color(2.2, 0.8, 0.9), Color(3.0, 0.6, 0.5)],
-	["OURO", 18, Color(2.2, 1.9, 0.8), Color(3.0, 2.4, 0.8)],
-	["FENDA", 24, Color(1.9, 0.9, 2.1), Color(2.6, 0.8, 2.6)],
+	["PADRÃO", 0, Color(1.1, 1.1, 1.1), Palette.FLAME_HDR],
+	["ÂMBAR", 6, Color(1.35, 1.0, 0.55), Color(3.0, 1.2, 0.2)],
+	["GELO", 10, Color(0.85, 1.1, 1.45), Color(0.8, 1.8, 3.0)],
+	["CARMESIM", 14, Color(1.4, 0.6, 0.62), Color(3.0, 0.6, 0.5)],
+	["OURO", 18, Color(1.4, 1.2, 0.6), Color(3.0, 2.4, 0.8)],
+	["FENDA", 24, Color(1.2, 0.7, 1.4), Color(2.6, 0.8, 2.6)],
 ]
 
 var skin := 0  # índice em SKINS (salvo)

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Nave do jogador v3 (realista), rolagem -0.5 — gerada por tools/gen_ship.gd. Bocais em (104,214)/(152,214) na pose reta. -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#dbe3ec"/><stop offset="0.35" stop-color="#8592a4"/><stop offset="1" stop-color="#2b323d"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a6678"/><stop offset="1" stop-color="#2a313c"/>
+    </linearGradient>
+    <linearGradient id="wingL" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5e6876"/><stop offset="1" stop-color="#1c222b"/>
+    </linearGradient>
+    <linearGradient id="wingR" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#919cab"/><stop offset="1" stop-color="#151a21"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b8e8ff"/><stop offset="0.3" stop-color="#2f6f98"/><stop offset="1" stop-color="#06131f"/>
+    </linearGradient>
+    <linearGradient id="nacelle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b9c4d2"/><stop offset="0.45" stop-color="#5c6878"/><stop offset="1" stop-color="#1b2129"/>
+    </linearGradient>
+    <linearGradient id="pod" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9aa6b6"/><stop offset="1" stop-color="#262d37"/>
+    </linearGradient>
+    <radialGradient id="nozzle" cx="50%" cy="38%" r="62%">
+      <stop offset="0" stop-color="#fff3cf"/><stop offset="0.3" stop-color="#ff9a3c"/><stop offset="0.62" stop-color="#6a2a12"/><stop offset="1" stop-color="#140a07"/>
+    </radialGradient>
+    <linearGradient id="heat" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8f7fb8"/><stop offset="0.5" stop-color="#c79a5a"/><stop offset="1" stop-color="#4a3e66"/>
+    </linearGradient>
+  </defs>
+  <path d="M118.4 96.0 L53.6 170.0 L55.2 186.0 L113.6 168.0 Z" fill="url(#wingL)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M147.5 96.0 L231.9 170.0 L229.9 186.0 L153.7 168.0 Z" fill="url(#wingR)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M63.1 178.0 L110.5 162.0" stroke="#0a0f17" stroke-width="1.5" opacity="0.8"/>
+  <path d="M82.0 146.0 L112.0 140.0" stroke="#0a0f17" stroke-width="1.2" opacity="0.6"/>
+  <path d="M116.0 101.0 L57.5 168.0" stroke="#eef6ff" stroke-width="2" stroke-linecap="round" opacity="0.15"/>
+  <path d="M82.0 130.0 L86.8 130.0 L87.5 172.0 L81.2 172.0 Z" fill="url(#pod)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M84.4 124.0 L84.4 132.0" stroke="#1b2129" stroke-width="3" stroke-linecap="round"/>
+  <path d="M94.7 156.0 L110.5 150.0" stroke="#ff4fd8" stroke-width="3" stroke-linecap="round"/>
+  <path d="M219.6 178.0 L157.8 162.0" stroke="#0a0f17" stroke-width="1.5" opacity="0.8"/>
+  <path d="M194.9 146.0 L155.7 140.0" stroke="#0a0f17" stroke-width="1.2" opacity="0.6"/>
+  <path d="M150.6 101.0 L226.8 168.0" stroke="#eef6ff" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+  <path d="M194.9 130.0 L188.7 130.0 L187.7 172.0 L195.9 172.0 Z" fill="url(#pod)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M191.8 124.0 L191.8 132.0" stroke="#1b2129" stroke-width="3" stroke-linecap="round"/>
+  <path d="M178.4 156.0 L157.8 150.0" stroke="#ff4fd8" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="56.0" cy="178" r="3.5" fill="#ff4a4a"/>
+  <circle cx="228.9" cy="178" r="3.5" fill="#4aff8a"/>
+  <path d="M101.0 146.0 L123.1 146.0 L122.3 210.0 L101.8 210.0 Z" fill="url(#nacelle)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M101.8 168.0 L122.3 168.0" stroke="#1a2029" stroke-width="2" opacity="0.8"/>
+  <path d="M101.8 188.0 L122.3 188.0" stroke="#1a2029" stroke-width="2" opacity="0.8"/>
+  <path d="M104.9 154.0 L119.2 154.0" stroke="#06090e" stroke-width="5"/>
+  <path d="M101.8 202.0 L122.3 202.0 L122.3 210.0 L101.8 210.0 Z" fill="url(#heat)" opacity="0.9"/>
+  <path d="M141.3 146.0 L170.1 146.0 L169.1 210.0 L142.3 210.0 Z" fill="url(#nacelle)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M142.3 168.0 L169.1 168.0" stroke="#1a2029" stroke-width="2" opacity="0.8"/>
+  <path d="M142.3 188.0 L169.1 188.0" stroke="#1a2029" stroke-width="2" opacity="0.8"/>
+  <path d="M146.4 154.0 L165.0 154.0" stroke="#06090e" stroke-width="5"/>
+  <path d="M142.3 202.0 L169.1 202.0 L169.1 210.0 L142.3 210.0 Z" fill="url(#heat)" opacity="0.9"/>
+  <path d="M131.0 8.0 L140.3 26.0 L148.5 54.0 L153.7 88.0 L156.8 120.0 L159.8 186.0 L150.6 200.0 L131.0 207.0 L116.0 200.0 L108.9 186.0 L111.3 120.0 L113.6 88.0 L117.6 54.0 L123.9 26.0 Z" fill="url(#hull)" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M127.8 104.0 L135.1 104.0 L137.2 196.0 L126.3 196.0 Z" fill="url(#spine)" opacity="0.85"/>
+  <path d="M115.2 118.0 L151.6 118.0" stroke="#0a0f17" stroke-width="1.3" opacity="0.7"/>
+  <path d="M113.6 146.0 L153.7 146.0" stroke="#0a0f17" stroke-width="1.3" opacity="0.7"/>
+  <path d="M112.0 172.0 L155.7 172.0" stroke="#0a0f17" stroke-width="1.3" opacity="0.7"/>
+  <path d="M121.5 40.0 L143.4 40.0" stroke="#0a0f17" stroke-width="1.3" opacity="0.7"/>
+  <circle cx="116.8" cy="124" r="1.4" fill="#1a2029"/>
+  <circle cx="116.8" cy="152" r="1.4" fill="#1a2029"/>
+  <circle cx="115.2" cy="178" r="1.4" fill="#1a2029"/>
+  <circle cx="149.5" cy="124" r="1.4" fill="#1a2029"/>
+  <circle cx="149.5" cy="152" r="1.4" fill="#1a2029"/>
+  <circle cx="151.6" cy="178" r="1.4" fill="#1a2029"/>
+  <path d="M118.4 128.0 L123.1 128.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M141.3 128.0 L147.5 128.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M118.4 134.0 L123.1 134.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M141.3 134.0 L147.5 134.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M118.4 140.0 L123.1 140.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M141.3 140.0 L147.5 140.0" stroke="#0a0f17" stroke-width="2"/>
+  <path d="M116.8 92.0 L110.5 92.0 L108.9 186.0 L116.8 190.0 Z" fill="#05080d" opacity="0.28"/>
+  <path d="M123.1 30.0 L112.0 120.0" stroke="#f4f8ff" stroke-width="2" opacity="0.90" stroke-linecap="round"/>
+  <path d="M131.0 150.0 L131.0 194.0" stroke="#3ff0ff" stroke-width="2.5" opacity="0.9"/>
+  <path d="M131.0 32.0 L140.3 48.0 L144.4 70.0 L143.4 92.0 L136.2 102.0 L127.1 102.0 L121.5 92.0 L120.7 70.0 L123.9 48.0 Z" fill="#2a323e" stroke="#0a0f17" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M131.0 38.0 L138.2 52.0 L141.3 70.0 L140.3 89.0 L134.1 97.0 L128.6 97.0 L123.9 89.0 L123.1 70.0 L125.5 52.0 Z" fill="url(#glass)"/>
+  <path d="M123.1 74.0 L141.3 74.0" stroke="#2a323e" stroke-width="2.5"/>
+  <path d="M129.4 50.0 L127.1 70.0" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <path d="M128.6 80.0 L127.8 90.0" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+  <ellipse cx="112.0" cy="214" rx="10.3" ry="8.5" fill="url(#nozzle)" stroke="#2a2f38" stroke-width="3"/>
+  <ellipse cx="112.0" cy="214" rx="4.3" ry="3.5" fill="#fff6d8"/>
+  <ellipse cx="155.7" cy="214" rx="12.5" ry="8.5" fill="url(#nozzle)" stroke="#2a2f38" stroke-width="3"/>
+  <ellipse cx="155.7" cy="214" rx="5.3" ry="3.5" fill="#fff6d8"/>
+</svg>

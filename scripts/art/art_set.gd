@@ -23,7 +23,10 @@ extends Resource
 ## Ponta da nave no PNG (de onde saem os tiros).
 @export var ship_muzzle_px := Vector2(128, 14)
 ## Pontas das asas no PNG (de onde saem os rastros de vapor nas curvas rápidas).
-@export var ship_wingtips_px: Array[Vector2] = [Vector2(36, 152), Vector2(220, 152)]
+@export var ship_wingtips_px: Array[Vector2] = [Vector2(32, 176), Vector2(224, 176)]
+## Poses de rolagem (5): [esquerda forte, esquerda, reta, direita, direita forte]. Vazio = só
+## ship_texture (o jogo então inclina a imagem). Os pontos _px acima são da pose reta.
+@export var ship_roll_textures: Array[Texture2D] = []
 
 @export_group("Asteroides")
 ## Variações da poeira (destrutível). O jogo sorteia uma por asteroide.
@@ -78,3 +81,21 @@ func rock_textures(metal: bool, look: int) -> Array[Texture2D]:
 		if not list.is_empty():
 			return list
 	return metal_textures if metal else dust_textures
+
+
+## Rolagem da nave: onde um x do PNG da pose reta vai parar na pose com rolagem `r` (-1..1).
+## Encurta o lado para onde a nave rola (a asa "afunda") e alonga um pouco o outro.
+## Usada por tools/gen_ship.gd (para desenhar as poses) e pela Ship (motores, asas).
+static func roll_x(x: float, r: float) -> float:
+	var dx := x - 128.0
+	var sink := dx * r > 0.0
+	var k := 1.0 - 0.42 * absf(r) if sink else 1.0 + 0.06 * absf(r)
+	return 128.0 + dx * k - r * 6.0
+
+
+const ROLL_POSES := [-1.0, -0.5, 0.0, 0.5, 1.0]
+
+
+## Índice da pose de rolagem para uma inclinação contínua (-1..1).
+static func roll_pose(bank: float) -> int:
+	return clampi(roundi((bank + 1.0) * 2.0), 0, ROLL_POSES.size() - 1)

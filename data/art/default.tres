@@ -49,41 +49,45 @@
 [ext_resource type="Texture2D" path="res://sprites/dust_s8_2.png" id="45_p7stv"]
 [ext_resource type="Texture2D" path="res://sprites/metal_s8_1.png" id="46_7h6ei"]
 [ext_resource type="Texture2D" path="res://sprites/metal_s8_2.png" id="47_df7rf"]
+[ext_resource type="Texture2D" path="res://sprites/ship_roll_l2.png" id="49_7y1fc"]
+[ext_resource type="Texture2D" path="res://sprites/ship_roll_l1.png" id="50_g38c0"]
+[ext_resource type="Texture2D" path="res://sprites/ship_roll_r1.png" id="52_wegar"]
+[ext_resource type="Texture2D" path="res://sprites/ship_roll_r2.png" id="53_8leb2"]
 
-[sub_resource type="Resource" id="Resource_qf7ya"]
+[sub_resource type="Resource" id="Resource_y73jx"]
 script = ExtResource("19_qf7ya")
 
-[sub_resource type="Resource" id="Resource_y3bld"]
+[sub_resource type="Resource" id="Resource_qp0an"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("20_y3bld"), ExtResource("21_17dcm")])
 metal_textures = Array[Texture2D]([ExtResource("22_ygu4n"), ExtResource("23_7y1fc")])
 
-[sub_resource type="Resource" id="Resource_17dcm"]
+[sub_resource type="Resource" id="Resource_7u776"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("24_g38c0"), ExtResource("25_wegar")])
 metal_textures = Array[Texture2D]([ExtResource("26_8leb2"), ExtResource("27_y73jx")])
 
-[sub_resource type="Resource" id="Resource_ygu4n"]
+[sub_resource type="Resource" id="Resource_h5i11"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("28_qp0an"), ExtResource("29_7u776")])
 metal_textures = Array[Texture2D]([ExtResource("30_h5i11"), ExtResource("31_refdq")])
 
-[sub_resource type="Resource" id="Resource_7y1fc"]
+[sub_resource type="Resource" id="Resource_refdq"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("32_evvwi"), ExtResource("33_3wl70")])
 metal_textures = Array[Texture2D]([ExtResource("34_n27dk"), ExtResource("35_47dpc")])
 
-[sub_resource type="Resource" id="Resource_g38c0"]
+[sub_resource type="Resource" id="Resource_evvwi"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("36_10j05"), ExtResource("37_l5451")])
 metal_textures = Array[Texture2D]([ExtResource("38_irv5l"), ExtResource("39_g1ip7")])
 
-[sub_resource type="Resource" id="Resource_wegar"]
+[sub_resource type="Resource" id="Resource_3wl70"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("40_wr55g"), ExtResource("41_g0qvi")])
 metal_textures = Array[Texture2D]([ExtResource("42_q8iye"), ExtResource("43_2iakl")])
 
-[sub_resource type="Resource" id="Resource_8leb2"]
+[sub_resource type="Resource" id="Resource_n27dk"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("44_f7s35"), ExtResource("45_p7stv")])
 metal_textures = Array[Texture2D]([ExtResource("46_7h6ei"), ExtResource("47_df7rf")])
@@ -91,11 +95,14 @@ metal_textures = Array[Texture2D]([ExtResource("46_7h6ei"), ExtResource("47_df7r
 [resource]
 script = ExtResource("7_5u5ty")
 ship_texture = ExtResource("8_6f0oc")
-ship_engines_px = Array[Vector2]([Vector2(117, 197), Vector2(139, 197)])
+ship_glow = Color(1.1, 1.1, 1.1, 1)
+ship_engines_px = Array[Vector2]([Vector2(104, 214), Vector2(152, 214)])
+ship_muzzle_px = Vector2(128, 12)
+ship_roll_textures = Array[Texture2D]([ExtResource("49_7y1fc"), ExtResource("50_g38c0"), ExtResource("8_6f0oc"), ExtResource("52_wegar"), ExtResource("53_8leb2")])
 dust_textures = Array[Texture2D]([ExtResource("1_0djt3"), ExtResource("2_7ck5r"), ExtResource("3_pucd1")])
 metal_textures = Array[Texture2D]([ExtResource("4_tff5p"), ExtResource("5_5hgmi"), ExtResource("6_ik4b2")])
 dust_shell_texture = ExtResource("1_5hgmi")
-sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_qf7ya"), SubResource("Resource_y3bld"), SubResource("Resource_17dcm"), SubResource("Resource_ygu4n"), SubResource("Resource_7y1fc"), SubResource("Resource_g38c0"), SubResource("Resource_wegar"), SubResource("Resource_8leb2")])
+sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_y73jx"), SubResource("Resource_qp0an"), SubResource("Resource_7u776"), SubResource("Resource_h5i11"), SubResource("Resource_refdq"), SubResource("Resource_evvwi"), SubResource("Resource_3wl70"), SubResource("Resource_n27dk")])
 ice_textures = Array[Texture2D]([ExtResource("7_4jbvx"), ExtResource("8_u4o7u")])
 rock_mother_body = ExtResource("7_pucd1")
 rock_mother_half = ExtResource("8_tff5p")

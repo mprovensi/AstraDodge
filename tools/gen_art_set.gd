@@ -11,10 +11,13 @@ func _initialize() -> void:
 	var art := ArtSet.new()
 	art.ship_texture = load("res://sprites/ship.png")
 	art.ship_size = 128.0
-	art.ship_glow = Color(1.6, 1.6, 1.6)
-	art.ship_engines_px.assign([Vector2(117, 197), Vector2(139, 197)])
-	art.ship_muzzle_px = Vector2(128, 14)
-	art.ship_wingtips_px.assign([Vector2(36, 152), Vector2(220, 152)])
+	art.ship_glow = Color(1.1, 1.1, 1.1)  # arte realista: só um toque acima de 1 (não vira neon)
+	art.ship_engines_px.assign([Vector2(104, 214), Vector2(152, 214)])
+	art.ship_muzzle_px = Vector2(128, 12)
+	art.ship_wingtips_px.assign([Vector2(32, 176), Vector2(224, 176)])
+	# Poses de rolagem (tools/gen_ship.gd): esquerda forte, esquerda, reta, direita, direita forte.
+	art.ship_roll_textures.assign([load("res://sprites/ship_roll_l2.png"), load("res://sprites/ship_roll_l1.png"),
+			load("res://sprites/ship.png"), load("res://sprites/ship_roll_r1.png"), load("res://sprites/ship_roll_r2.png")])
 	art.dust_textures.assign([
 		load("res://sprites/dust_1.png"), load("res://sprites/dust_2.png"), load("res://sprites/dust_3.png")])
 	art.metal_textures.assign([

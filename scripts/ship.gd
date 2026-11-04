@@ -209,22 +209,59 @@ func _update_trails(dt: float) -> void:
 	while not _vapor.is_empty() and _vapor[0][1] > VAPOR_LIFE:
 		_vapor.pop_front()
 	for e in art.ship_engines_px:
-		_trail.append([to_global(_tilted(art.ship_point(e))) + Vector2(0, 14), 0.0])
+		_trail.append([to_global(_tilted(_rolled_point(e))) + Vector2(0, 14), 0.0])
 	# Vapor nas pontas das asas só nas manobras rápidas.
 	if _vel.length() > VAPOR_SPEED:
 		for w in art.ship_wingtips_px:
-			_vapor.append([to_global(_tilted(art.ship_point(w))), 0.0])
+			_vapor.append([to_global(_tilted(_rolled_point(w))), 0.0])
 
 
 ## Ponto do sprite com a inclinação aplicada (o mesmo transform do desenho).
 func _tilted(p: Vector2) -> Vector2:
-	return (p * _roll_scale()).rotated(_bank * 0.15)
+	return (p * _roll_scale()).rotated(_bank * _tilt_k())
 
 
-## "Rolar" em 3D: na curva a nave afina (vira de lado); subindo, estica de leve (velocidade).
+## Com poses de rolagem (ArtSet.ship_roll_textures) o desenho já "vira"; senão a imagem afina.
+func _has_poses() -> bool:
+	return Game.art.ship_roll_textures.size() == ArtSet.ROLL_POSES.size()
+
+
+func _tilt_k() -> float:
+	return 0.06 if _has_poses() else 0.15
+
+
+## Rolagem da pose atual (-1..1).
+func _pose_roll() -> float:
+	return ArtSet.ROLL_POSES[ArtSet.roll_pose(_bank)] if _has_poses() else 0.0
+
+
+## Ponto do PNG (pose reta) → posição local na pose de rolagem atual.
+func _rolled_point(px: Vector2) -> Vector2:
+	return Game.art.ship_point(Vector2(ArtSet.roll_x(px.x, _pose_roll()), px.y))
+
+
+## Subindo, a nave estica de leve (velocidade); sem poses, afina na curva (vira de lado).
 func _roll_scale() -> Vector2:
 	var pitch := clampf(-_vel.y / 2500.0, -0.04, 0.05)
-	return Vector2(1.0 - 0.28 * absf(_bank), 1.0 + pitch)
+	var squash := 0.0 if _has_poses() else 0.28 * absf(_bank)
+	return Vector2(1.0 - squash, 1.0 + pitch)
+
+
+## Jato da turbina: pluma arredondada que afina até a ponta e ondula (não um triângulo).
+func _plume(at: Vector2, length: float, width: float, color: Color, wobble: float) -> void:
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	var steps := 9
+	for s in steps + 1:
+		var t := float(s) / steps
+		var hw := width * pow(1.0 - t, 0.65) * (1.0 + wobble * sin(t * 11.0 + _t * 38.0))
+		if s == 0:
+			hw = width
+		left.append(at + Vector2(-hw, t * length))
+		right.append(at + Vector2(hw, t * length))
+	right.reverse()
+	left.append_array(right)
+	draw_colored_polygon(left, color)
 
 
 func _draw() -> void:
@@ -261,20 +298,26 @@ func _draw() -> void:
 
 	# 4. Chamas: núcleo branco-quente + chama colorida + brilho no bocal. Subindo (acelerando)
 	#    as chamas crescem; descendo (freando) encolhem. Tremulam o tempo todo.
-	draw_set_transform(Vector2.ZERO, _bank * 0.15, _roll_scale())
+	draw_set_transform(Vector2.ZERO, _bank * _tilt_k(), _roll_scale())
 	var thrust := clampf(1.0 - _vel.y / 1400.0, 0.55, 1.9)
 	for i in per:
-		var e := art.ship_point(art.ship_engines_px[i])
-		var flick := 0.8 + 0.2 * sin(_t * 47.0 + i * 2.1) + 0.08 * sin(_t * 113.0 + i)
+		var e := _rolled_point(art.ship_engines_px[i])
+		# O bocal do lado que afunda fica oval (mais estreito): o jato acompanha.
+		var sink := (art.ship_engines_px[i].x - 128.0) * _pose_roll() > 0.0
+		var narrow := 1.0 - 0.35 * absf(_pose_roll()) if sink else 1.0
+		var flick := 0.85 + 0.15 * sin(_t * 47.0 + i * 2.1) + 0.06 * sin(_t * 113.0 + i)
 		var length := FLAME_LENGTH * thrust * flick
-		var w := FLAME_HALF_WIDTH * (1.0 + 0.25 * (thrust - 1.0))
-		draw_colored_polygon(PackedVector2Array([e + Vector2(-w * 1.5, 0), e + Vector2(w * 1.5, 0),
-				e + Vector2(0, length * 1.25)]), Color(flame_col, 0.35))
-		draw_colored_polygon(PackedVector2Array([e + Vector2(-w, 0), e + Vector2(w, 0),
-				e + Vector2(0, length)]), Color(flame_col, 0.9))
-		draw_colored_polygon(PackedVector2Array([e + Vector2(-w * 0.45, 0), e + Vector2(w * 0.45, 0),
-				e + Vector2(0, length * 0.55)]), Color(3.0, 3.0, 2.6))
-		draw_circle(e + Vector2(0, 2), w * 1.3, Color(flame_col, 0.5))
+		var w := FLAME_HALF_WIDTH * narrow * (1.0 + 0.2 * (thrust - 1.0))
+		_plume(e, length * 1.35, w * 1.7, Color(flame_col, 0.28), 0.12)   # aura
+		_plume(e, length, w, Color(flame_col, 0.95), 0.08)               # chama
+		_plume(e, length * 0.5, w * 0.5, Color(3.0, 3.0, 2.7), 0.0)      # núcleo branco-quente
+		# Diamantes de choque quando acelera forte.
+		if thrust > 1.25:
+			for d: float in [0.3, 0.55]:
+				var c := e + Vector2(0, length * d)
+				var s := w * 0.45 * (1.0 - d)
+				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -s * 1.6), c + Vector2(s, 0),
+						c + Vector2(0, s * 1.6), c + Vector2(-s, 0)]), Color(3.0, 2.8, 2.2, 0.8))
 
 	# 5. Propulsores laterais (RCS): um jatinho ciano do lado oposto da curva.
 	if absf(_bank) > 0.3:
@@ -288,10 +331,9 @@ func _draw() -> void:
 	# 6. Casco. O "glow" > 1 faz só as linhas claras (neon) passarem do limiar do glow.
 	#    Skin: a cor do casco multiplica o sprite (o padrão é o próprio brilho do ArtSet).
 	var hull := art.ship_glow if Game.skin == 0 else Game.skin_hull()
-	draw_texture_rect(art.ship_texture, Rect2(-half, -half, art.ship_size, art.ship_size), false, hull)
-	# Luz deslizando pela cabine conforme a nave inclina (reflexo 2.5D).
-	var glint := art.ship_point(Vector2(128 - _bank * 10.0, 72))
-	draw_circle(glint, 4.0 + 1.5 * absf(_bank), Color(2.4, 2.6, 2.8, 0.5 + 0.4 * absf(_bank)))
+	# Pose de rolagem: a nave vira para o lado em que está indo (5 desenhos).
+	var tex := art.ship_roll_textures[ArtSet.roll_pose(_bank)] if _has_poses() else art.ship_texture
+	draw_texture_rect(tex, Rect2(-half, -half, art.ship_size, art.ship_size), false, hull)
 	draw_set_transform(Vector2.ZERO, 0.0)
 
 	# 7. Linhas de velocidade nas manobras muito rápidas.
