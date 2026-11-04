@@ -417,7 +417,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 	else:
 		asteroids.impact(a, b.vel.normalized())
 		fx.spark(b.pos, Palette.DUST_LINE)
-		Sfx.play("hit", -12.0, 1.0, 0.1, b.pos)
+		Sfx.play("hit", -17.0, 1.0, 0.1, b.pos)
 
 
 func _check_ship_hits() -> void:
