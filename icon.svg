@@ -1,26 +1,106 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><!-- Fundo do ícone (512x512): espaço com nebulosa magenta/ciano, estrelas e rochas do jogo
+     (poeira cinza e metálico escuro) cortadas pelas bordas. A nave fica em ship.svgfrag. -->
 <defs>
-  <radialGradient id="bg" cx="50%" cy="45%" r="70%">
-    <stop offset="0" stop-color="#14204d"/>
+  <radialGradient id="ibg" cx="50%" cy="55%" r="75%">
+    <stop offset="0" stop-color="#1a1f55"/>
+    <stop offset="0.6" stop-color="#0a0b26"/>
     <stop offset="1" stop-color="#03030c"/>
   </radialGradient>
+  <radialGradient id="neb1" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#ff4fd8" stop-opacity="0.38"/>
+    <stop offset="1" stop-color="#ff4fd8" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="neb2" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#3ff0ff" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#3ff0ff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="rock" cx="38%" cy="32%" r="75%">
+    <stop offset="0" stop-color="#b3b5bf"/>
+    <stop offset="0.65" stop-color="#6c6e78"/>
+    <stop offset="1" stop-color="#3a3c45"/>
+  </radialGradient>
+  <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#2e3545"/>
+    <stop offset="1" stop-color="#0d1017"/>
+  </linearGradient>
 </defs>
-<rect width="512" height="512" fill="url(#bg)"/>
-<g fill="#cfe2ff">
-  <circle cx="70" cy="90" r="3" opacity="0.7"/><circle cx="430" cy="60" r="2.5" opacity="0.6"/>
-  <circle cx="460" cy="300" r="3" opacity="0.5"/><circle cx="50" cy="380" r="2.5" opacity="0.6"/>
-  <circle cx="150" cy="470" r="2" opacity="0.5"/><circle cx="390" cy="450" r="3" opacity="0.7"/>
-  <circle cx="110" cy="210" r="2" opacity="0.4"/><circle cx="410" cy="170" r="2" opacity="0.4"/>
+<rect width="512" height="512" fill="url(#ibg)"/>
+<ellipse cx="150" cy="330" rx="230" ry="170" fill="url(#neb1)"/>
+<ellipse cx="400" cy="140" rx="200" ry="150" fill="url(#neb2)"/>
+<!-- Estrelas e riscos de velocidade -->
+<g fill="#dbe8ff">
+  <circle cx="64" cy="60" r="3" opacity="0.8"/><circle cx="300" cy="40" r="2.5" opacity="0.6"/>
+  <circle cx="470" cy="250" r="3" opacity="0.6"/><circle cx="40" cy="250" r="2" opacity="0.5"/>
+  <circle cx="120" cy="470" r="2.5" opacity="0.6"/><circle cx="350" cy="480" r="2" opacity="0.5"/>
+  <circle cx="200" cy="120" r="2" opacity="0.5"/><circle cx="440" cy="400" r="2.5" opacity="0.6"/>
 </g>
-<!-- Nave + anel do escudo em coordenadas 512x512 (centro 256,256). Incluído pelos SVGs do ícone. -->
-<g id="glow" fill="none" stroke-linejoin="round" stroke-linecap="round">
-  <circle cx="256" cy="262" r="196" stroke="#3ff0ff" stroke-opacity="0.10" stroke-width="44"/>
-  <circle cx="256" cy="262" r="196" stroke="#3ff0ff" stroke-opacity="0.25" stroke-width="22"/>
-  <circle cx="256" cy="262" r="196" stroke="#9ffbff" stroke-width="9"/>
-  <polygon points="256,86 384,382 256,326 128,382" stroke="#3ff0ff" stroke-opacity="0.12" stroke-width="64"/>
-  <polygon points="256,86 384,382 256,326 128,382" stroke="#3ff0ff" stroke-opacity="0.30" stroke-width="32"/>
+<g stroke="#bcd6ff" stroke-linecap="round" opacity="0.45">
+  <path d="M90 140 L90 186" stroke-width="3"/><path d="M420 300 L420 352" stroke-width="3"/>
+  <path d="M60 330 L60 360" stroke-width="2"/><path d="M470 80 L470 112" stroke-width="2"/>
+  <path d="M300 410 L300 440" stroke-width="2"/>
 </g>
-<polygon points="226,340 286,340 256,452" fill="#ff8a26"/>
-<polygon points="240,340 272,340 256,410" fill="#ffd27a"/>
-<polygon points="256,86 384,382 256,326 128,382" fill="#0a1a33" stroke="#c8feff" stroke-width="14" stroke-linejoin="round"/>
+<!-- Poeira cinza (canto superior esquerdo, cortada pela borda) -->
+<g transform="translate(-18 -26) scale(0.62)">
+  <path d="M128 12 L176 22 L214 54 L240 104 L232 158 L208 204 L160 238 L104 240 L58 214 L22 170 L16 116 L36 64 L80 26 Z"
+        fill="url(#rock)" stroke="#d6d8e0" stroke-width="7" stroke-linejoin="round"/>
+  <circle cx="96" cy="96" r="22" fill="#55575f" stroke="#8d8f98" stroke-width="3"/>
+  <circle cx="164" cy="150" r="30" fill="#4d4f57" stroke="#8a8c95" stroke-width="3"/>
+  <circle cx="176" cy="78" r="10" fill="#5a5c64"/>
+</g>
+<!-- Poeira pequena (direita) -->
+<g transform="translate(398 168) scale(0.3)">
+  <path d="M128 12 L176 22 L214 54 L240 104 L232 158 L208 204 L160 238 L104 240 L58 214 L22 170 L16 116 L36 64 L80 26 Z"
+        fill="url(#rock)" stroke="#d6d8e0" stroke-width="9" stroke-linejoin="round"/>
+  <circle cx="110" cy="110" r="30" fill="#55575f"/>
+</g>
+<!-- Metálico escuro (canto inferior direito, cortado pela borda) -->
+<g transform="translate(352 352) scale(0.72)">
+  <path d="M84 10 L172 10 L236 70 L246 140 L218 214 L150 246 L90 244 L28 206 L10 132 L26 62 Z"
+        fill="url(#steel)" stroke="#8ea0c2" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M40 98 L216 92 M60 170 L200 176" stroke="#465066" stroke-width="6"/>
+  <g fill="#8ea0c2"><circle cx="60" cy="80" r="7"/><circle cx="190" cy="74" r="7"/><circle cx="70" cy="200" r="7"/></g>
+</g>
+<!-- Nave do jogador (a mesma do jogo) com chama dos motores, anel do escudo e tiros. -->
+<defs>
+  <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2a5a8a"/><stop offset="1" stop-color="#0a1626"/>
+  </linearGradient>
+  <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#1d3d63"/><stop offset="1" stop-color="#08111f"/>
+  </linearGradient>
+  <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#e6fdff"/><stop offset="0.6" stop-color="#2aa7c9"/><stop offset="1" stop-color="#0b3248"/>
+  </linearGradient>
+  <linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff2b0"/><stop offset="0.35" stop-color="#ffb347"/><stop offset="1" stop-color="#ff5a1f" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+<!-- Tiros (pares ciano) -->
+<g stroke="#c8feff" stroke-width="9" stroke-linecap="round">
+  <path d="M236 58 L236 92"/><path d="M276 58 L276 92"/>
+</g>
+<g stroke="#3ff0ff" stroke-width="18" stroke-linecap="round" opacity="0.25">
+  <path d="M236 58 L236 92"/><path d="M276 58 L276 92"/>
+</g>
+<!-- Anel do escudo -->
+<circle cx="256" cy="268" r="150" fill="none" stroke="#3ff0ff" stroke-opacity="0.18" stroke-width="22"/>
+<circle cx="256" cy="268" r="150" fill="none" stroke="#9ffbff" stroke-opacity="0.85" stroke-width="6"/>
+<!-- Chamas dos motores -->
+<g transform="translate(256 268) scale(1.15) translate(-128 -128)">
+  <path d="M108 202 L126 202 L117 262 Z" fill="url(#flame)"/>
+  <path d="M130 202 L148 202 L139 262 Z" fill="url(#flame)"/>
+  <!-- Nave -->
+  <path d="M128 78 L216 176 L200 192 L146 170 L110 170 L56 192 L40 176 Z"
+        fill="url(#wing)" stroke="#3ff0ff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M216 176 L222 150 L206 158 Z" fill="#3ff0ff"/>
+  <path d="M40 176 L34 150 L50 158 Z" fill="#3ff0ff"/>
+  <path d="M72 178 L112 154" stroke="#ff4fd8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M184 178 L144 154" stroke="#ff4fd8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M128 14 L150 84 L154 178 L128 200 L102 178 L106 84 Z"
+        fill="url(#hull)" stroke="#c8feff" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M128 112 L128 182" stroke="#3ff0ff" stroke-opacity="0.7" stroke-width="3"/>
+  <path d="M128 44 L141 86 L128 106 L115 86 Z" fill="url(#glass)" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="110" y="190" width="14" height="14" rx="3" fill="#0a1626" stroke="#ffd27a" stroke-width="3"/>
+  <rect x="132" y="190" width="14" height="14" rx="3" fill="#0a1626" stroke="#ffd27a" stroke-width="3"/>
+</g>
 </svg>

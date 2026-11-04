@@ -1,0 +1,7 @@
+<!-- Silhueta branca da nave (ícone temático do Android 13+). -->
+<g transform="translate(256 268) scale(1.15) translate(-128 -128)" fill="#ffffff">
+  <path d="M128 78 L216 176 L200 192 L146 170 L110 170 L56 192 L40 176 Z"/>
+  <path d="M216 176 L222 150 L206 158 Z"/><path d="M40 176 L34 150 L50 158 Z"/>
+  <path d="M128 14 L150 84 L154 178 L128 200 L102 178 L106 84 Z"/>
+  <path d="M110 202 L124 202 L117 240 Z"/><path d="M132 202 L146 202 L139 240 Z"/>
+</g>
