@@ -109,12 +109,10 @@ func _process(delta: float) -> void:
 		_shield_trail_ratio = _shield_ratio
 	_shield_trail.size = Vector2(BAR_WIDTH * _shield_trail_ratio, BAR_HEIGHT)
 
+	# A barra fica sempre ciano; com escudo baixo ela só pisca.
 	_blink_t += delta
-	var color := Palette.DANGER if _shield_danger else Palette.NEON
 	var dim := _shield_danger and int(_blink_t * 6.0) % 2 == 0
-	_shield_fill.color = Color(color, 0.35 if dim else 1.0)
-	_shield_bg.color = Color(color, 0.18)
-	_shield_label.add_theme_color_override("font_color", color)
+	_shield_fill.color = Color(Palette.NEON, 0.35 if dim else 1.0)
 
 
 ## Margem superior para não ficar embaixo do notch/câmera.
