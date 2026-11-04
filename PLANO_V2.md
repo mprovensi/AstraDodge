@@ -2,6 +2,8 @@
 
 > Evolui o endless runner atual (v1) para uma **campanha com 5 setores**, cada um com mecânica própria e **um chefe no final**, mantendo o **Modo Infinito** e o controle de um dedo.
 > Data: 04/11/2026 · Base: commit `25e7b72` + remoção do botão de pausa.
+>
+> **Atualizado pelo [PLANO_V3.md](PLANO_V3.md):** campanha com 8 setores (a Fenda vira o Setor 8) e Modo Infinito procedural. Os Sprints 7–8 abaixo foram substituídos pelo roadmap do v3.
 
 ---
 
