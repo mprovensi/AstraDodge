@@ -63,19 +63,21 @@ func _draw() -> void:
 	var blink := 0.5 + 0.5 * sin(_t * 18.0)
 	for w in _warnings:
 		var k := w.time / w.total  # 0 → 1 até o ataque
-		var fill := Color(Palette.DANGER, 0.08 + 0.12 * blink)
+		# Com HDR 2D a mistura é linear: alfas baixos já aparecem bem mais fortes na tela.
+		var fill := Color(Palette.DANGER, 0.008 + 0.012 * blink)
 		match w.shape:
 			Shape.COLUMN:
 				var rect := Rect2(w.a.x, 0.0, w.a.y - w.a.x, view_size.y)
 				draw_rect(rect, fill)
-				draw_line(Vector2(w.a.x, 0), Vector2(w.a.x, view_size.y), Color(Palette.DANGER_HDR, 0.5 + 0.5 * blink), 3.0)
-				draw_line(Vector2(w.a.y, 0), Vector2(w.a.y, view_size.y), Color(Palette.DANGER_HDR, 0.5 + 0.5 * blink), 3.0)
+				var edge := Color(Palette.DANGER_HDR, 0.3 + 0.3 * blink)
+				draw_line(Vector2(w.a.x, 0), Vector2(w.a.x, view_size.y), edge, 3.0)
+				draw_line(Vector2(w.a.y, 0), Vector2(w.a.y, view_size.y), edge, 3.0)
 				# Setas "V" descendo pela coluna mostram de onde vem o perigo.
 				var cx := (w.a.x + w.a.y) * 0.5
 				for i in 3:
 					var y := fmod(_t * 600.0 + i * 220.0, view_size.y * 0.6) + 60.0
 					var chevron := PackedVector2Array([Vector2(cx - 36, y), Vector2(cx, y + 30), Vector2(cx + 36, y)])
-					draw_polyline(chevron, Color(Palette.DANGER_HDR, 0.8), 6.0, true)
+					draw_polyline(chevron, Color(Palette.DANGER_HDR, 0.55), 6.0, true)
 			Shape.LINE:
 				draw_line(w.a, w.b, fill, w.size)
 				draw_line(w.a, w.b, Color(Palette.DANGER_HDR, 0.6 + 0.4 * blink), 3.0)
