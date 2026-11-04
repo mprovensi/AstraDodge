@@ -9,12 +9,10 @@ signal fired
 enum HitResult { IGNORED, ABSORBED, LAST_CHANCE, DEAD }
 
 const SHIELD_RING_RADIUS := 60.0
-const SPRITE := preload("res://sprites/ship.png")  # de art/sprites/ship.svg
-const SPRITE_SIZE := 128.0
-const SPRITE_GLOW := Color(1.6, 1.6, 1.6)
-const ENGINE_X := 5.5    # motores no sprite (x = 117 e 139 de 256) na escala desenhada
-const ENGINE_Y := 37.0
 const BANK_SPEED := 1200.0  # px/s de movimento lateral para inclinação máxima
+const FLAME_HALF_WIDTH := 5.0
+const FLAME_LENGTH := 30.0
+# Sprite, tamanho, brilho, motores e ponta da nave vêm do ArtSet ativo (Game.art).
 
 var bullets: BulletLayer
 var target := Vector2.ZERO
@@ -158,7 +156,7 @@ func _set_weapon_level(level: int) -> void:
 
 
 func _fire() -> void:
-	var muzzle := position + Vector2(0, -52)
+	var muzzle := position + Game.art.ship_point(Game.art.ship_muzzle_px)
 	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
 	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
 	fired.emit()
@@ -186,16 +184,19 @@ func _draw() -> void:
 	# Inclinação nas curvas: gira um pouco e "afina" (a nave vira de lado).
 	draw_set_transform(Vector2.ZERO, _bank * 0.15, Vector2(1.0 - 0.2 * absf(_bank), 1.0))
 
-	# Chamas dos dois motores
-	for side: float in [-1.0, 1.0]:
-		var flick := 0.75 + 0.25 * sin(_t * 40.0 + side)
-		var x := side * ENGINE_X
-		var flame := PackedVector2Array([Vector2(x - 5, ENGINE_Y), Vector2(x + 5, ENGINE_Y), Vector2(x, ENGINE_Y + 30 * flick)])
+	var art := Game.art
+
+	# Uma chama por motor definido no ArtSet.
+	for i in art.ship_engines_px.size():
+		var e := art.ship_point(art.ship_engines_px[i])
+		var flick := 0.75 + 0.25 * sin(_t * 40.0 + i)
+		var flame := PackedVector2Array([e + Vector2(-FLAME_HALF_WIDTH, 0), e + Vector2(FLAME_HALF_WIDTH, 0),
+				e + Vector2(0, FLAME_LENGTH * flick)])
 		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.85))
 
-	# Sprite: o modulate > 1 faz só as linhas claras (neon) passarem do limiar do glow.
-	var half := SPRITE_SIZE * 0.5
-	draw_texture_rect(SPRITE, Rect2(-half, -half, SPRITE_SIZE, SPRITE_SIZE), false, SPRITE_GLOW)
+	# Sprite: o "glow" > 1 faz só as linhas claras (neon) passarem do limiar do glow.
+	var half := art.ship_size * 0.5
+	draw_texture_rect(art.ship_texture, Rect2(-half, -half, art.ship_size, art.ship_size), false, art.ship_glow)
 	draw_set_transform(Vector2.ZERO, 0.0)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia

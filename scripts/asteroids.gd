@@ -5,13 +5,8 @@ extends Node2D
 
 enum Kind { DUST, METAL }
 
-# Sprites gerados de art/sprites/*.svg (tools/gen_sprites.gd). O desenho ocupa ~118 de 128 px
-# do raio da imagem, então ela é desenhada um pouco maior que o raio de colisão.
-const DUST_SPRITES: Array[Texture2D] = [
-	preload("res://sprites/dust_1.png"), preload("res://sprites/dust_2.png"), preload("res://sprites/dust_3.png")]
-const METAL_SPRITES: Array[Texture2D] = [
-	preload("res://sprites/metal_1.png"), preload("res://sprites/metal_2.png"), preload("res://sprites/metal_3.png")]
-const SPRITE_SCALE := 128.0 / 118.0
+# Texturas e o quanto a rocha ocupa da imagem vêm do ArtSet ativo (Game.art):
+# a imagem é desenhada um pouco maior que o raio de colisão para o desenho casar com ele.
 
 class Asteroid:
 	var id := 0
@@ -192,25 +187,33 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> voi
 	a.max_hp = hp
 	a.rot = randf() * TAU
 	a.rot_speed = randf_range(-1.2, 1.2) if kind == Kind.DUST else randf_range(-0.3, 0.3)
-	a.sprite = randi() % (DUST_SPRITES.size() if kind == Kind.DUST else METAL_SPRITES.size())
+	a.sprite = randi() % maxi(1, _textures(kind).size())
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
 
 
+func _textures(kind: Kind) -> Array[Texture2D]:
+	return Game.art.dust_textures if kind == Kind.DUST else Game.art.metal_textures
+
+
 func _draw() -> void:
+	var art := Game.art
 	for a in asteroids:
 		var s := 1.0 - Tuning.HIT_PUNCH_SCALE * a.punch
 		draw_set_transform(a.pos, a.rot, Vector2(s * a.flip, s))
-		var half := a.radius * SPRITE_SCALE
+		var fill := art.metal_fill if a.kind == Kind.METAL else art.dust_fill
+		var half := a.radius / fill
 		var rect := Rect2(-half, -half, half * 2.0, half * 2.0)
+		var textures := _textures(a.kind)
+		var tex := textures[a.sprite % textures.size()]
 		if a.kind == Kind.METAL:
 			var tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
-			draw_texture_rect(METAL_SPRITES[a.sprite], rect, false, tint)
+			draw_texture_rect(tex, rect, false, tint)
 		else:
 			# Mais escura conforme leva dano; pisca branco (HDR) ao ser atingida.
 			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
 			var tint := Color.WHITE.darkened(dmg * 0.35)
 			if a.flash > 0.0:
 				tint = Color(3.0, 3.0, 3.0)
-			draw_texture_rect(DUST_SPRITES[a.sprite], rect, false, tint)
+			draw_texture_rect(tex, rect, false, tint)
 	draw_set_transform(Vector2.ZERO, 0.0)

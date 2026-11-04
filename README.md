@@ -28,8 +28,10 @@ Plano completo em [PLANO.md](PLANO.md).
 | `scripts/fx.gd` | Partículas (explosões, faíscas, coletas). |
 | `scripts/starfield.gd` | Fundo de estrelas com parallax. |
 | `scripts/hud.gd` | HUD e telas de início, pausa e fim de jogo. |
-
 | `scripts/sfx.gd` | Autoload `Sfx`: pool de efeitos, música, buses Music/SFX e limitador. |
+| `scripts/art/art_set.gd` | `ArtSet`: texturas e ajustes de todos os sprites (ver "Trocar sprites"). |
+| `scripts/campaign/` | `SectorData`, `WaveEvent`, `SectorDirector`: setores e linha do tempo das fases. |
+| `tools/gen_sprites.gd` / `tools/gen_art_set.gd` | SVG → PNG dos sprites / cria o ArtSet padrão. |
 | `tools/gen_audio.gd` | Sintetiza todos os sons e a música em `audio/*.wav` (sem assets de terceiros). |
 
 Visual vetorial desenhado por código com glow HDR: só as cores `*_HDR` da `Palette` brilham
@@ -42,6 +44,38 @@ Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/g
 ```
 
 (`audio/music.wav.import` usa `edit/loop_mode=2` para a música tocar em loop.)
+
+## Trocar sprites
+
+Toda a arte passa por um **ArtSet** ([scripts/art/art_set.gd](scripts/art/art_set.gd)): um recurso com as
+texturas e os ajustes de cada sprite. O código nunca aponta direto para um PNG — ele lê o ArtSet ativo
+(`Game.art`, definido por `Game.ART_SET_PATH` em [scripts/game.gd](scripts/game.gd)).
+
+| Arquivo | O que é |
+|---|---|
+| `art/sprites/*.svg` | Desenhos-fonte (vetor). Edite em Inkscape/Figma ou à mão. |
+| `sprites/*.png` | Imagens usadas no jogo (geradas dos SVGs ou trazidas de fora). |
+| `data/art/default.tres` | ArtSet padrão: quais PNGs usar + tamanho, brilho, motores, ponta da nave, encaixe das rochas. |
+
+**Três jeitos de trocar, do mais simples ao mais flexível:**
+
+1. **Ajustar o desenho atual:** edite o SVG em `art/sprites/` e rode
+   `Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/gen_sprites.gd`.
+2. **Trocar por uma imagem pronta:** substitua o PNG em `sprites/` por outro **com o mesmo nome**
+   (quadrado, fundo transparente, objeto centralizado; a nave com o nariz para cima).
+3. **Conjunto novo (ex.: skin):** no Godot, duplique `data/art/default.tres`, troque as texturas e os
+   ajustes pelo Inspetor e aponte `Game.ART_SET_PATH` para o novo arquivo.
+
+**Ajustes do ArtSet (Inspetor):**
+- `ship_size`: tamanho da nave na tela (não muda a colisão).
+- `ship_glow`: > 1 faz as partes claras brilharem como neon (glow HDR); 1 = sem brilho extra.
+- `ship_engines_px` / `ship_muzzle_px`: posições **no PNG** (pixels da imagem) dos motores (uma chama
+  por item) e da ponta de onde saem os tiros. Se mudar o desenho, confira essas posições.
+- `dust_textures` / `metal_textures`: quantas variações quiser; o jogo sorteia uma por asteroide.
+- `dust_fill` / `metal_fill`: quanto do raio da imagem a rocha ocupa (0,92 = até 92% da borda);
+  serve para o desenho casar com o círculo de colisão.
+
+Ainda desenhados por código (próximos a migrar para o ArtSet): tiros, orbes/cristais, drones, efeitos.
 
 ## Android (APK de debug)
 Ambiente já configurado nesta máquina: JDK 17/21, Android SDK em `%LOCALAPPDATA%\Android\Sdk`

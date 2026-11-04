@@ -2,6 +2,10 @@ extends Node
 ## Autoload "Game": recorde e opções salvos no aparelho.
 
 const SAVE_PATH := "user://save.cfg"
+## Conjunto de arte ativo. Para outra arte/skin: crie outro .tres de ArtSet e aponte aqui.
+const ART_SET_PATH := "res://data/art/default.tres"
+
+var art: ArtSet = load(ART_SET_PATH)
 
 var high_score := 0
 var sensitivity := Tuning.DRAG_SENSITIVITY_DEFAULT
