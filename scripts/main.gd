@@ -78,7 +78,7 @@ func _ready() -> void:
 
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
-	ship.fired.connect(func() -> void: Sfx.play("laser", -9.0, 1.0, 0.08, ship.position))
+	ship.fired.connect(func() -> void: Sfx.play("laser", -12.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
 	hud.new_game_pressed.connect(start_new_game)
