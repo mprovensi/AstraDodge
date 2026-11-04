@@ -611,6 +611,8 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 		Sfx.duck(-3.0)
 
 	var shield_chance := Tuning.DROP_SHIELD_CHANCE
+	if boss != null:
+		shield_chance += Tuning.BOSS_SHIELD_DROP_BONUS  # mais orbes durante a luta
 	if ship.last_chance or ship.shield_ratio() < Tuning.SHIELD_LOW_RATIO:
 		shield_chance += Tuning.DROP_SHIELD_CHANCE_LOW_BONUS
 	var roll := randf()
@@ -711,6 +713,7 @@ func _spawn_boss(boss_id: String) -> void:
 	boss.defeated.connect(_on_boss_defeated)
 	_boss_fought = true
 	_boss_last_chance = ship.last_chance
+	ship.drain_scale = Tuning.BOSS_SHIELD_DRAIN_SCALE
 	hud.show_boss_bar(boss.display_name)
 
 
@@ -732,6 +735,7 @@ func _clear_boss() -> void:
 	if boss != null:
 		boss.queue_free()
 		boss = null
+	ship.drain_scale = 1.0
 	_alert_timer = -1.0
 	_pending_boss_id = ""
 	hud.hide_boss_bar()

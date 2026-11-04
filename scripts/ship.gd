@@ -23,6 +23,7 @@ var weapon_level := Tuning.WEAPON_START_LEVEL
 var crystals := 0
 var invuln := 0.0
 var alive := true
+var drain_scale := 1.0  # o Main reduz durante as lutas contra chefes
 
 var _fire_timer := 0.0
 var _bank := 0.0  # -1 (curva p/ esquerda) a 1 (direita)
@@ -69,7 +70,7 @@ func update(dt: float) -> void:
 	modulate.a = 0.35 if invuln > 0.0 and int(_t * 20.0) % 2 == 0 else 1.0
 
 	if not last_chance:
-		shield -= Tuning.SHIELD_DRAIN_PER_SEC * dt
+		shield -= Tuning.SHIELD_DRAIN_PER_SEC * drain_scale * dt
 		if shield <= 0.0:
 			_enter_last_chance()
 

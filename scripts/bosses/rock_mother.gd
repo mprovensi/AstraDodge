@@ -11,7 +11,7 @@ extends Boss
 ##   aberto por vez, trocando de lado. A metade parada continua soltando pedras.
 
 const NAME := "ROCHA-MÃE"
-const MAX_HP := 260
+const MAX_HP := 200
 
 const RADIUS := 210.0
 const CORE_RADIUS := 40.0
@@ -22,14 +22,14 @@ const ENTER_TIME := 3.0
 const REST_Y_RATIO := 0.27             # altura de descanso (fração da tela): abaixo do HUD
 const SWAY := 0.12                     # balanço lateral (fração da largura)
 
-const FAN_INTERVAL := [0.0, 2.6, 2.1]  # por fase
+const FAN_INTERVAL := [0.0, 3.2, 2.7]  # por fase
 const FAN_TELEGRAPH := 0.7
 const FAN_COUNT := 5
 const FAN_SPREAD_DEG := 60.0
-const FAN_SPEED := [0.0, 360.0, 400.0]
+const FAN_SPEED := [0.0, 320.0, 350.0]
 const FAN_WARN_RADIUS := 60.0
 
-const DUST_INTERVAL := [0.0, 6.0, 7.5]
+const DUST_INTERVAL := [0.0, 4.0, 5.0]
 const DUST_RADIUS := 50.0
 const DUST_HP := 2
 
@@ -38,8 +38,8 @@ const HALF_RADIUS := 155.0
 const HALF_X := [0.27, 0.73]           # posição das metades (fração da largura)
 const HALF_SPREAD_TIME := 0.8
 const CORE_SWAP := 2.4                 # fase 2: troca o núcleo aberto a cada N s
-const LUNGE_INTERVAL := 4.2
-const LUNGE_TELEGRAPH := 1.0
+const LUNGE_INTERVAL := 5.0
+const LUNGE_TELEGRAPH := 1.3
 const LUNGE_DROP := 0.35
 const LUNGE_HOLD := 0.25
 const LUNGE_RETURN := 0.8
