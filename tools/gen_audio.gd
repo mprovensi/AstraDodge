@@ -10,14 +10,15 @@ const OUT_DIR := "res://audio"
 const VARIANTS := 3
 
 # Música
-const BPM := 78.0
 const BARS := 8
 
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	seed(1337)
-	_save("music", _music())
+	_save("music_lofi_calma", _lofi(78.0, CALM_CHORDS, CALM_MELODY, false))
+	seed(4242)
+	_save("music", _lofi(90.0, GAME_CHORDS, GAME_MELODY, true))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -266,28 +267,45 @@ func _with_echo(dry: PackedFloat32Array, delay: float, gain: float) -> PackedFlo
 
 # ---------------------------------------------------------------- música
 
-## Loop lofi de 8 compassos, 78 BPM, com swing: Fmaj7 · Em7 · Dm9 · Cmaj7 (2 compassos cada).
+## "Calma" (guardada, music_lofi_calma.wav): 78 BPM, Fmaj7 · Em7 · Dm9 · Cmaj7.
+const CALM_CHORDS := [
+	[53, 57, 60, 64],      # Fmaj7
+	[52, 55, 59, 62],      # Em7
+	[50, 53, 57, 60, 64],  # Dm9
+	[48, 52, 55, 59],      # Cmaj7
+]
+# Melodias em colcheias (16 = 2 compassos): -1 = pausa.
+const CALM_MELODY := [
+	[-1, 72, -1, -1, 69, -1, 67, -1, -1, -1, 69, -1, -1, -1, -1, -1],
+	[-1, -1, 76, -1, 74, -1, -1, 72, -1, -1, -1, -1, 69, -1, -1, -1],
+	[-1, 69, -1, 72, -1, -1, 74, -1, -1, 72, -1, -1, -1, -1, -1, -1],
+	[-1, -1, 67, -1, 69, -1, -1, -1, 72, -1, 69, -1, -1, -1, -1, -1],
+]
+
+## Trilha do jogo (music.wav): 90 BPM, ii–V–I–vi em Dó: Dm9 · G9 · Cmaj9 · Am7.
+const GAME_CHORDS := [
+	[50, 53, 57, 60, 64],  # Dm9
+	[55, 59, 62, 65, 69],  # G9
+	[48, 52, 55, 59, 62],  # Cmaj9
+	[57, 60, 64, 67],      # Am7
+]
+const GAME_MELODY := [
+	[76, -1, -1, 74, -1, 72, -1, -1, 74, -1, 76, -1, -1, -1, 79, -1],
+	[-1, -1, 77, -1, 76, -1, 74, -1, -1, -1, 72, -1, 74, -1, -1, -1],
+	[72, -1, -1, 76, -1, 79, -1, -1, 81, -1, 79, -1, -1, 76, -1, -1],
+	[-1, 76, -1, 74, -1, -1, 72, -1, -1, 69, -1, -1, 72, -1, -1, -1],
+]
+
+
+## Loop lofi de 8 compassos com swing (2 compassos por acorde).
 ## Piano elétrico suave, baixo redondo, melodia esparsa, bateria abafada, chiado de vinil
 ## e um filtro passa-baixa no fim para soar "quente". As caudas dão a volta no buffer,
-## então o loop emenda sem clique.
-func _music() -> PackedFloat32Array:
-	var beat := 60.0 / BPM
+## então o loop emenda sem clique. `drive`: bumbo extra no "e" do 4 (mais embalo).
+func _lofi(bpm: float, chords: Array, melody: Array, drive: bool) -> PackedFloat32Array:
+	var beat := 60.0 / bpm
 	var bar := beat * 4.0
 	var n := int(round(bar * BARS * RATE))
 	var out := _buf(n)
-	var chords := [
-		[53, 57, 60, 64],      # Fmaj7
-		[52, 55, 59, 62],      # Em7
-		[50, 53, 57, 60, 64],  # Dm9
-		[48, 52, 55, 59],      # Cmaj7
-	]
-	# Melodia (pentatônica de Lá menor), em colcheias: -1 = pausa. Um padrão por par de compassos.
-	var melody := [
-		[-1, 72, -1, -1, 69, -1, 67, -1, -1, -1, 69, -1, -1, -1, -1, -1],
-		[-1, -1, 76, -1, 74, -1, -1, 72, -1, -1, -1, -1, 69, -1, -1, -1],
-		[-1, 69, -1, 72, -1, -1, 74, -1, -1, 72, -1, -1, -1, -1, -1, -1],
-		[-1, -1, 67, -1, 69, -1, -1, -1, 72, -1, 69, -1, -1, -1, -1, -1],
-	]
 
 	for b in BARS:
 		var chord: Array = chords[(b / 2) % chords.size()]
@@ -314,6 +332,8 @@ func _music() -> PackedFloat32Array:
 		# Bateria preguiçosa: bumbo no 1 e no "e" do 2, caixa no 2 e no 4, chimbal em colcheias com swing.
 		_mix(out, _at(bar_start), _lofi_kick(), 0.75)
 		_mix(out, _at(bar_start + 1.5 * beat), _lofi_kick(), 0.5)
+		if drive:
+			_mix(out, _at(bar_start + (3.0 + 0.62) * beat), _lofi_kick(), 0.4)
 		_mix(out, _at(bar_start + 1.0 * beat), _lofi_snare(), 0.45)
 		_mix(out, _at(bar_start + 3.0 * beat), _lofi_snare(), 0.45)
 		for e in 8:

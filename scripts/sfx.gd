@@ -16,8 +16,8 @@ const DEFAULT_VOICE_LIMIT := 2
 
 const POOL_SIZE := 18
 const MIN_REPEAT_INTERVAL := 0.03  # evita empilhar o mesmo som no mesmo frame
-const MUSIC_VOLUME_DB := -4.0
-const MUSIC_PAUSED_VOLUME_DB := -14.0
+const MUSIC_VOLUME_DB := -1.0
+const MUSIC_PAUSED_VOLUME_DB := -11.0
 const ENGINE_IDLE_DB := -30.0
 const ENGINE_MAX_DB := -17.0
 const PAN_WIDTH := 0.8             # 0 = mono, 1 = esquerda/direita total
