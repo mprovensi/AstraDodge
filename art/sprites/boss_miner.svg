@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- MINERADOR (chefe do Setor 2): drone industrial visto de cima, frente para BAIXO.
+       O "olho" (ponto fraco) é desenhado pelo código no centro (128,128).
+       Brocas nas pontas dos braços: (40,196) e (216,196). -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a5160"/>
+      <stop offset="1" stop-color="#20242c"/>
+    </linearGradient>
+  </defs>
+  <!-- Braços -->
+  <rect x="26" y="112" width="204" height="26" rx="6" fill="url(#hull)" stroke="#9aa6bd" stroke-width="4"/>
+  <rect x="44" y="114" width="46" height="22" fill="#f2b632"/>
+  <path d="M48 114 L58 114 L50 136 L40 136 Z M66 114 L76 114 L68 136 L58 136 Z M84 114 L90 114 L90 120 L86 136 L76 136 Z" fill="#1a1a1a"/>
+  <rect x="166" y="114" width="46" height="22" fill="#f2b632"/>
+  <path d="M170 114 L180 114 L172 136 L166 136 L166 124 Z M188 114 L198 114 L190 136 L180 136 Z M206 114 L212 114 L212 122 L208 136 L198 136 Z" fill="#1a1a1a"/>
+  <!-- Brocas -->
+  <g stroke="#9aa6bd" stroke-width="4" stroke-linejoin="round">
+    <path d="M22 140 L58 140 L40 214 Z" fill="#6b7280"/>
+    <path d="M198 140 L234 140 L216 214 Z" fill="#6b7280"/>
+  </g>
+  <g stroke="#2a2f38" stroke-width="3">
+    <path d="M28 160 L52 154 M32 178 L48 174 M36 196 L44 194"/>
+    <path d="M204 160 L228 154 M208 178 L224 174 M212 196 L220 194"/>
+  </g>
+  <!-- Casco central (hexágono) -->
+  <path d="M128 40 L188 72 L188 160 L128 196 L68 160 L68 72 Z" fill="url(#hull)" stroke="#9aa6bd" stroke-width="5" stroke-linejoin="round"/>
+  <rect x="86" y="64" width="84" height="12" fill="#f2b632"/>
+  <path d="M92 64 L100 64 L94 76 L86 76 Z M108 64 L116 64 L110 76 L102 76 Z M124 64 L132 64 L126 76 L118 76 Z M140 64 L148 64 L142 76 L134 76 Z M156 64 L164 64 L158 76 L150 76 Z" fill="#1a1a1a"/>
+  <!-- Encaixe do olho -->
+  <circle cx="128" cy="128" r="40" fill="#14171d" stroke="#f2b632" stroke-width="5"/>
+  <!-- Propulsores traseiros (em cima) -->
+  <rect x="96" y="28" width="18" height="16" rx="3" fill="#20242c" stroke="#ffb347" stroke-width="3"/>
+  <rect x="142" y="28" width="18" height="16" rx="3" fill="#20242c" stroke="#ffb347" stroke-width="3"/>
+  <!-- Luzes de aviso -->
+  <circle cx="80" cy="150" r="6" fill="#ff5a3c"/><circle cx="176" cy="150" r="6" fill="#ff5a3c"/>
+</svg>

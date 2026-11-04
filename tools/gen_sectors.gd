@@ -9,7 +9,44 @@ const OUT := "res://data/sectors"
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	_save(_sector_1())
+	_save(_sector_2())
 	quit()
+
+
+## Setor 2 — Campo Metálico: metálicos com propulsor, poeira blindada, corredores; chefe Minerador.
+func _sector_2() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_2"
+	s.number = 2
+	s.title = "SETOR 2"
+	s.subtitle = "Campo Metálico"
+	s.duration = 150.0
+	s.difficulty_start = 0.3
+	s.difficulty_end = 0.7
+	s.music = "sector2"
+	s.nebula_a = Color(0.08, 0.11, 0.18)  # aço
+	s.nebula_b = Color(0.32, 0.17, 0.04)  # âmbar
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.8, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 2\nCampo Metálico", "duration": 2.5}),
+		WaveEvent.make(5.0, K.DENSITY, {"density": 0.8, "metals": true, "moving": 0.35}),
+		WaveEvent.make(5.0, K.MESSAGE, {"text": "Metálicos com propulsor\nandam de lado!", "duration": 3.5}),
+		WaveEvent.make(25.0, K.DENSITY, {"density": 0.9, "metals": true, "moving": 0.3, "armored": 0.3}),
+		WaveEvent.make(25.0, K.MESSAGE, {"text": "Poeira blindada:\nos primeiros tiros arrancam a casca", "duration": 4.0}),
+		WaveEvent.make(45.0, K.CORRIDOR, {"duration": 8.0}),
+		WaveEvent.make(60.0, K.DENSITY, {"density": 1.0, "metals": true, "moving": 0.4, "armored": 0.35}),
+		WaveEvent.make(75.0, K.METAL_WALL),
+		WaveEvent.make(88.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(88.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(102.0, K.CORRIDOR, {"duration": 10.0}),
+		WaveEvent.make(118.0, K.DENSITY, {"density": 1.15, "metals": true, "moving": 0.5, "armored": 0.4}),
+		WaveEvent.make(128.0, K.METAL_WALL),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "Sinais de mineração à frente...", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "miner"}),
+	])
+	return s
 
 
 func _sector_1() -> SectorData:

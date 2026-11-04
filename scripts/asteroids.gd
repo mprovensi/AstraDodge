@@ -23,6 +23,8 @@ class Asteroid:
 	var flash := 0.0
 	var knock := Vector2.ZERO  # recuo temporário causado pelos tiros
 	var punch := 0.0           # 1 logo após o impacto, decai para 0
+	var shell := 0             # poeira blindada: tiros que a casca ainda aguenta
+	var drift := 0.0           # metálico com propulsor: velocidade lateral (quica nas bordas)
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -34,6 +36,8 @@ var spawn_enabled := true
 var metals_enabled := true
 var density := 1.0
 var dust_rain := false
+var moving_metals := 0.0   # chance de uma linha trazer um metálico com propulsor (Setor 2+)
+var armored := 0.0         # chance de cada poeira vir blindada (Setor 2+)
 
 var _next_id := 0
 var _distance_to_next_row := 0.0
@@ -52,6 +56,8 @@ func reset() -> void:
 	metals_enabled = true
 	density = 1.0
 	dust_rain = false
+	moving_metals = 0.0
+	armored = 0.0
 	dust_spawned = 0
 	queue_redraw()
 
@@ -72,6 +78,10 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 		a.flash = maxf(0.0, a.flash - dt)
 		if a.kind == Kind.METAL:
 			a.vel.x = move_toward(a.vel.x, 0.0, 120.0 * dt)
+		if a.drift != 0.0:
+			a.pos.x += a.drift * dt
+			if (a.pos.x < a.radius and a.drift < 0.0) or (a.pos.x > view_size.x - a.radius and a.drift > 0.0):
+				a.drift = -a.drift  # quica na borda
 		if a.pos.y - a.radius > view_size.y:
 			a.alive = false
 
@@ -87,6 +97,13 @@ func hit_test(p: Vector2, exclude: Dictionary = {}) -> Asteroid:
 		if a.alive and not exclude.has(a.id) and p.distance_squared_to(a.pos) < a.radius * a.radius:
 			return a
 	return null
+
+
+## Tiro na casca da poeira blindada. Retorna true se a casca acabou de quebrar.
+func hit_shell(a: Asteroid) -> bool:
+	a.shell -= 1
+	a.flash = 0.08
+	return a.shell <= 0
 
 
 ## Retorna true se o asteroide foi destruído.
@@ -114,16 +131,26 @@ func wall_spans() -> Array[Vector2]:
 
 
 ## Fileira de metálicos cobrindo a largura toda, exceto o corredor atual.
-func spawn_wall() -> void:
+## `fast`: paredão avisado (cai rápido). Paredes de corredor descem com a rolagem.
+func spawn_wall(fast := true) -> void:
 	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
 	var r := Tuning.WALL_METAL_RADIUS
 	var x := r
+	var extra := Tuning.WALL_EXTRA_SPEED if fast else 0.0
 	while x <= view_size.x:
 		if absf(x - _gap_x) >= half_gap + r:
-			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2(0.0, Tuning.WALL_EXTRA_SPEED))
+			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2(0.0, extra))
 		x += r * 2.0 + 6.0
 	# Espaço livre depois do paredão antes da próxima linha.
 	_distance_to_next_row = maxf(_distance_to_next_row, Tuning.ROW_SPACING_START)
+
+
+## Próxima parede do CORREDOR: a brecha anda pouco em relação à anterior (sempre dá para seguir).
+func spawn_corridor_wall() -> void:
+	var half_gap := Tuning.SAFE_GAP_WIDTH * 0.5
+	_gap_x = clampf(_gap_x + randf_range(-Tuning.CORRIDOR_SHIFT, Tuning.CORRIDOR_SHIFT),
+			half_gap + 20.0, view_size.x - half_gap - 20.0)
+	spawn_wall(false)
 
 
 func clear_around(center: Vector2, radius: float) -> void:
@@ -142,6 +169,16 @@ func _spawn_row(difficulty: float) -> void:
 
 	var metal_count := randi_range(0, 1 + int(round(difficulty * 2.0)))
 	if not metals_enabled or dust_rain:
+		metal_count = 0
+	# Linha com metálico de propulsor: ele é o ÚNICO metálico da linha (atravessa a tela
+	# de lado, então o resto da linha fica livre para desviar dele).
+	if metal_count > 0 and randf() < moving_metals:
+		var r := randf_range(70.0, 85.0)
+		var p := Vector2(randf_range(r, w - r), -r)
+		placed.append(Vector3(p.x, p.y, r))
+		var a := _add(Kind.METAL, p, r, 1, Vector2.ZERO)
+		a.drift = randf_range(Tuning.MOVING_METAL_SPEED_MIN, Tuning.MOVING_METAL_SPEED_MAX) * (-1.0 if randf() < 0.5 else 1.0)
+		a.rot_speed = 0.0
 		metal_count = 0
 	for i in metal_count:
 		var r := randf_range(70.0, 90.0 + 40.0 * difficulty)
@@ -166,7 +203,9 @@ func _spawn_row(difficulty: float) -> void:
 			placed.append(Vector3(p.x, p.y, r))
 			var hp := clampi(1 + int(r > 65.0) + randi_range(0, int(difficulty * 2.5)), 1, 5)
 			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(0.0, 80.0))
-			_add(Kind.DUST, p, r, hp, vel)
+			var a := _add(Kind.DUST, p, r, hp, vel)
+			if randf() < armored:
+				a.shell = Tuning.ARMOR_SHELL_HITS
 			break
 
 
@@ -182,7 +221,7 @@ func spawn_dust(pos: Vector2, radius: float, hp: int, vel: Vector2) -> void:
 	_add(Kind.DUST, pos, radius, hp, vel)
 
 
-func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> void:
+func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Asteroid:
 	var a := Asteroid.new()
 	_next_id += 1
 	a.id = _next_id
@@ -199,6 +238,7 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> voi
 	asteroids.append(a)
 	if kind == Kind.DUST:
 		dust_spawned += 1
+	return a
 
 
 func _textures(kind: Kind) -> Array[Texture2D]:
@@ -222,7 +262,22 @@ func _draw() -> void:
 			# Mais escura conforme leva dano; pisca branco (HDR) ao ser atingida.
 			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
 			var tint := Color.WHITE.darkened(dmg * 0.35)
-			if a.flash > 0.0:
+			if a.flash > 0.0 and a.shell <= 0:
 				tint = Color(3.0, 3.0, 3.0)
 			draw_texture_rect(tex, rect, false, tint)
+			if a.shell > 0 and art.dust_shell_texture != null:
+				var shell_tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
+				shell_tint.a = 0.55 + 0.45 * float(a.shell) / float(Tuning.ARMOR_SHELL_HITS)
+				draw_texture_rect(art.dust_shell_texture, rect, false, shell_tint)
 	draw_set_transform(Vector2.ZERO, 0.0)
+
+	# Propulsores dos metálicos móveis: chama do lado oposto ao movimento (lê-se "vai para lá").
+	for a in asteroids:
+		if a.drift == 0.0:
+			continue
+		var back := -signf(a.drift)
+		var base := a.pos + Vector2(back * a.radius * 0.95, 0.0)
+		var flick := 0.75 + 0.25 * sin(Time.get_ticks_msec() * 0.04 + a.id)
+		var flame := PackedVector2Array([base + Vector2(0, -12), base + Vector2(0, 12),
+				base + Vector2(back * 46.0 * flick, 0)])
+		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.9))

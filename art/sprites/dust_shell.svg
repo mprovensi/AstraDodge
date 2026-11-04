@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Casca da poeira BLINDADA (Setor 2): placas de aço por cima da rocha.
+       Centro transparente: a rocha aparece por baixo. Some quando a casca quebra. -->
+  <circle cx="128" cy="128" r="104" fill="none" stroke="#2a303d" stroke-width="34"
+          stroke-dasharray="118 45" stroke-linecap="butt"/>
+  <circle cx="128" cy="128" r="104" fill="none" stroke="#7b8cab" stroke-width="26"
+          stroke-dasharray="110 53" stroke-dashoffset="-4" stroke-linecap="round"/>
+  <circle cx="128" cy="128" r="104" fill="none" stroke="#a4b4d1" stroke-width="4"
+          stroke-dasharray="110 53" stroke-dashoffset="-4" stroke-linecap="round"/>
+  <g fill="#d6e0f2">
+    <circle cx="128" cy="24" r="5"/><circle cx="232" cy="128" r="5"/>
+    <circle cx="128" cy="232" r="5"/><circle cx="24" cy="128" r="5"/>
+  </g>
+</svg>

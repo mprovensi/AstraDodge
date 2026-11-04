@@ -31,7 +31,7 @@ Plano completo em [PLANO.md](PLANO.md).
 | `scripts/sfx.gd` | Autoload `Sfx`: pool de efeitos, música, buses Music/SFX e limitador. |
 | `scripts/art/art_set.gd` | `ArtSet`: texturas e ajustes de todos os sprites (ver "Trocar sprites"). |
 | `scripts/campaign/` | `SectorData`, `WaveEvent`, `SectorDirector`: setores e linha do tempo das fases. |
-| `scripts/bosses/` | `Boss` (base: vida, fases, núcleos/armadura) e os chefes (`RockMother`). |
+| `scripts/bosses/` | `Boss` (base: vida, fases, núcleos/armadura) e os chefes (`RockMother`, `Miner`). |
 | `tools/gen_sprites.gd` / `tools/gen_art_set.gd` | SVG → PNG dos sprites / cria o ArtSet padrão. |
 | `tools/gen_audio.gd` | Sintetiza todos os sons e a música em `audio/*.wav` (sem assets de terceiros). |
 

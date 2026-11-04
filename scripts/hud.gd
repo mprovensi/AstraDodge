@@ -10,6 +10,7 @@ signal continue_pressed
 signal menu_pressed
 signal quit_pressed
 signal new_game_pressed
+signal next_pressed
 
 const BAR_WIDTH := 320.0
 const BAR_HEIGHT := 12.0
@@ -217,6 +218,7 @@ func _ready() -> void:
 
 	_add_center_button("resume", "CONTINUAR", resume_pressed.emit)
 	_add_center_button("campaign", "JOGAR", campaign_pressed.emit)
+	_add_center_button("next", "PRÓXIMO SETOR", next_pressed.emit)
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
 	_add_center_button("options", "OPÇÕES", open_options, false)
@@ -341,12 +343,13 @@ func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) 
 
 
 ## `checks`: [setor completo, chefe sem "última chance", ≥ 70% da poeira] — uma estrela cada.
-func show_sector_clear(title: String, score: int, best: int, is_record: bool, checks: Array[bool]) -> void:
+func show_sector_clear(title: String, score: int, best: int, is_record: bool, checks: Array[bool],
+		has_next := false) -> void:
 	_show(
 		"%s COMPLETO!" % title,
 		("NOVO RECORDE! %d" if is_record else "PONTOS %d") % score,
 		"RECORDE DO SETOR %d" % best,
-		["restart", "menu"])
+		["next", "restart", "menu"] if has_next else ["restart", "menu"])
 	_stars.earned = checks.count(true)
 	_stars.queue_redraw()
 	_stars.visible = true

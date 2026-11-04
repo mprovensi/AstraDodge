@@ -11,6 +11,7 @@ enum Kind {
 	END,         ## fim do setor (quando a tela esvaziar)
 	MUSIC,       ## troca a trilha com crossfade: `text` = nome da faixa ("boss", "main")
 	BOSS,        ## ALERTA + chefe: `text` = id do chefe ("rock_mother"); o setor acaba quando ele cai
+	CORRIDOR,    ## `duration` s de paredes seguidas com a brecha andando pouco (aviso na 1ª)
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -19,6 +20,8 @@ enum Kind {
 @export_multiline var text := ""
 @export var density := 1.0
 @export var metals := true
+@export_range(0.0, 1.0) var moving := 0.0   ## DENSITY: chance de metálico com propulsor por linha
+@export_range(0.0, 1.0) var armored := 0.0  ## DENSITY: chance de poeira blindada
 
 
 static func make(at_seconds: float, event_kind: Kind, props := {}) -> WaveEvent:

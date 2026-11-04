@@ -79,8 +79,13 @@ func _draw() -> void:
 					var chevron := PackedVector2Array([Vector2(cx - 36, y), Vector2(cx, y + 30), Vector2(cx + 36, y)])
 					draw_polyline(chevron, Color(Palette.DANGER_HDR, 0.55), 6.0, true)
 			Shape.LINE:
+				# Faixa: preenchimento leve + as duas bordas (a largura real do perigo) + eixo.
+				var side := (w.b - w.a).orthogonal().normalized() * w.size * 0.5
+				var edge := Color(Palette.DANGER_HDR, 0.35 + 0.35 * blink)
 				draw_line(w.a, w.b, fill, w.size)
-				draw_line(w.a, w.b, Color(Palette.DANGER_HDR, 0.6 + 0.4 * blink), 3.0)
+				draw_line(w.a + side, w.b + side, edge, 3.0)
+				draw_line(w.a - side, w.b - side, edge, 3.0)
+				draw_line(w.a, w.b, Color(Palette.DANGER_HDR, 0.25 + 0.25 * blink), 2.0)
 			Shape.CIRCLE:
 				draw_circle(w.a, w.size, fill)
 				# Anel que fecha até o tamanho real: mostra quanto falta.

@@ -6,7 +6,10 @@ enum State { MENU, READY, PLAYING, SLOWMO, PAUSED, DYING, GAME_OVER, SECTOR_CLEA
 enum Mode { ENDLESS, CAMPAIGN }
 
 const DYING_TIME := 1.2
-const SECTORS: Array[SectorData] = [preload("res://data/sectors/sector_1.tres")]
+const SECTORS: Array[SectorData] = [
+	preload("res://data/sectors/sector_1.tres"),
+	preload("res://data/sectors/sector_2.tres"),
+]
 
 var state := State.MENU
 var mode := Mode.ENDLESS
@@ -53,6 +56,9 @@ var _alarm_beeps := 0
 var _pending_boss_id := ""
 var _boss_fought := false
 var _boss_last_chance := false  # entrou em "última chance" durante a luta (perde a 2ª estrela)
+var _corridor_left := 0.0       # s restantes do CORREDOR em andamento
+var _corridor_timer := 0.0      # s até a próxima parede do corredor
+var _corridor_walls := 0        # paredes já criadas no corredor atual
 
 
 func _ready() -> void:
@@ -93,6 +99,7 @@ func _ready() -> void:
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
 	hud.menu_pressed.connect(go_to_menu)
+	hud.next_pressed.connect(_on_next_sector)
 	hud.quit_pressed.connect(_on_quit)
 	get_viewport().size_changed.connect(_on_resized)
 
@@ -204,6 +211,8 @@ func _new_run() -> void:
 	scroll_speed = Tuning.SCROLL_SPEED_START
 	_revive_used = false
 	_pending_wall = -1.0
+	_corridor_left = 0.0
+	_corridor_walls = 0
 	_clear_boss()
 	asteroids.reset()
 	enemies.clear()
@@ -213,13 +222,14 @@ func _new_run() -> void:
 	pickups.clear()
 	fx.clear()
 	hud.clear_hint()
-	Sfx.play_music("main")
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
 		nebula.set_colors(director.sector.nebula_a, director.sector.nebula_b)
+		Sfx.play_music(director.sector.music)
 	else:
 		director = null
+		Sfx.play_music("main")
 
 
 ## Volta ao ponto salvo: mesmo setor e momento, mesma pontuação, escudo e arma.
@@ -288,6 +298,22 @@ func _best_for_mode() -> int:
 	return Game.high_score
 
 
+## Vai para o próximo setor levando a arma (nível e cristais): recompensa por jogar bem.
+func _on_next_sector() -> void:
+	if sector_index + 1 >= SECTORS.size():
+		return
+	var weapon := ship.weapon_level
+	var crystals := ship.crystals
+	_touch_index = -1
+	start_mode(Mode.CAMPAIGN, sector_index + 1)
+	ship.weapon_level = weapon
+	ship.crystals = crystals
+
+
+func _has_next_sector() -> bool:
+	return mode == Mode.CAMPAIGN and sector_index + 1 < SECTORS.size()
+
+
 func _on_restart() -> void:
 	_new_run()
 	_set_state(State.READY)
@@ -332,12 +358,18 @@ func _set_state(new_state: State) -> void:
 			hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
 		State.SECTOR_CLEAR:
 			_touch_index = -1
-			Game.clear_checkpoint()
+			# Próximo setor liberado: o "Continuar" do menu já leva para ele, com a arma atual.
+			if _has_next_sector():
+				Game.set_checkpoint({"sector": sector_index + 1, "time": 0.0,
+						"weapon": ship.weapon_level, "crystals": ship.crystals})
+			else:
+				Game.clear_checkpoint()
 			var is_record := Game.submit_sector(director.sector.id, score, true)
 			var checks := star_checks()
 			Game.submit_stars(director.sector.id, checks.count(true))
 			hud.clear_hint()
-			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record, checks)
+			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record, checks,
+					_has_next_sector())
 			Sfx.play("level_up", -2.0, 1.0, 0.0)
 
 
@@ -356,8 +388,11 @@ func _step(dt: float) -> void:
 		asteroids.density = director.density
 		asteroids.metals_enabled = director.metals
 		asteroids.dust_rain = director.rain_left > 0.0
+		asteroids.moving_metals = director.moving
+		asteroids.armored = director.armored
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
-				and boss == null and _alert_timer < 0.0
+				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0
+		_update_corridor(dt)
 	else:
 		difficulty = Tuning.difficulty(elapsed)
 
@@ -409,6 +444,32 @@ func _on_wave_event(e: WaveEvent) -> void:
 				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
 			hud.show_hint("PAREDÃO! Procure a brecha", 2.5)
 			Sfx.play("alarm", -8.0, 1.2, 0.0)
+		WaveEvent.Kind.CORRIDOR:
+			# A 1ª parede é avisada como um paredão; as seguintes vêm em sequência,
+			# com a brecha andando pouco (dá para seguir sem susto).
+			_corridor_left = e.duration
+			_corridor_timer = Tuning.WALL_TELEGRAPH_TIME
+			_corridor_walls = 0
+			for span in asteroids.wall_spans():
+				telegraph.column(span.x, span.y, Tuning.WALL_TELEGRAPH_TIME)
+			hud.show_hint("CORREDOR! Siga a brecha", 2.5)
+			Sfx.play("alarm", -8.0, 1.2, 0.0)
+
+
+func _update_corridor(dt: float) -> void:
+	if _corridor_left <= 0.0:
+		return
+	_corridor_left -= dt
+	_corridor_timer -= dt
+	if _corridor_timer <= 0.0:
+		_corridor_timer = Tuning.CORRIDOR_INTERVAL
+		if _corridor_walls == 0:
+			asteroids.spawn_wall(false)  # a 1ª parede usa a brecha avisada
+		else:
+			asteroids.spawn_corridor_wall()
+		_corridor_walls += 1
+	if _corridor_left <= 0.0:
+		_corridor_walls = 0
 
 
 func _check_bullet_hits() -> void:
@@ -464,6 +525,16 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 		b.hit_ids[a.id] = true
 	else:
 		b.alive = false
+	if a.shell > 0:
+		# Poeira blindada: a casca absorve os primeiros tiros (som de metal) e depois quebra.
+		asteroids.impact(a, b.vel.normalized())
+		if asteroids.hit_shell(a):
+			fx.burst(a.pos, Palette.METAL_LINE, 18, 360.0, 0.45, 5.0)
+			Sfx.play("ricochet", -4.0, 0.7, 0.05, b.pos)
+		else:
+			fx.spark(b.pos, Palette.METAL_LINE)
+			Sfx.play("ricochet", -8.0, 1.1, 0.1, b.pos)
+		return
 	if asteroids.damage(a, Tuning.BULLET_DAMAGE):
 		_on_dust_destroyed(a)
 	else:
@@ -497,9 +568,15 @@ func _check_ship_hits() -> void:
 				if not ship.alive:
 					return
 
-	if boss != null and boss.touches(ship.position, Tuning.SHIP_HITBOX_RADIUS):
-		if _damage_ship(Tuning.SHIELD_DMG_METAL) and not ship.alive:
-			return
+	if boss != null:
+		if boss.touches(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+			if _damage_ship(Tuning.SHIELD_DMG_METAL) and not ship.alive:
+				return
+		# Explosões de área (cargas do Minerador): o círculo de aviso é a área do dano.
+		for blast in boss.take_blasts():
+			if ship.position.distance_to(Vector2(blast.x, blast.y)) < blast.z + Tuning.SHIP_HITBOX_RADIUS:
+				if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY) and not ship.alive:
+					return
 
 	# Durante a invencibilidade os tiros inimigos atravessam a nave.
 	if ship.invuln <= 0.0 and enemy_shots.hit_ship(ship.position, Tuning.SHIP_HITBOX_RADIUS):
@@ -622,6 +699,8 @@ func _spawn_boss(boss_id: String) -> void:
 	match boss_id:
 		"rock_mother":
 			boss = RockMother.new()
+		"miner":
+			boss = Miner.new()
 		_:
 			push_error("chefe desconhecido: " + boss_id)
 			return
@@ -644,7 +723,7 @@ func _on_boss_defeated() -> void:
 				at.y + randf_range(-80.0, 120.0)), kind)
 	hud.show_hint("%s DERROTADA!" % boss.display_name, 3.0)
 	_clear_boss()
-	Sfx.play_music("main")
+	Sfx.play_music(director.sector.music)  # volta a trilha do setor
 	Game.vibrate(200)
 	director.finished = true
 

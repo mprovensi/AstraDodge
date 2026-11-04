@@ -61,6 +61,11 @@ const DUST_RAIN_DENSITY := 1.8           # linhas mais próximas durante a chuva
 const WALL_METAL_RADIUS := 70.0
 const WALL_TELEGRAPH_TIME := 1.4         # aviso antes do paredão aparecer
 const WALL_EXTRA_SPEED := 600.0          # px/s a mais que a rolagem: o paredão avisado cai rápido
+const CORRIDOR_INTERVAL := 0.9           # s entre as paredes de um corredor
+const CORRIDOR_SHIFT := 110.0            # quanto a brecha anda de uma parede para a próxima
+const MOVING_METAL_SPEED_MIN := 140.0    # metálico com propulsor (Setor 2)
+const MOVING_METAL_SPEED_MAX := 210.0
+const ARMOR_SHELL_HITS := 2              # tiros para arrancar a casca da poeira blindada
 
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar

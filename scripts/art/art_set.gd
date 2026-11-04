@@ -32,6 +32,8 @@ extends Resource
 ## Serve para casar o desenho com o raio de colisão.
 @export_range(0.5, 1.0, 0.01) var dust_fill := 0.92
 @export_range(0.5, 1.0, 0.01) var metal_fill := 0.94
+## Casca da poeira blindada (Setor 2), desenhada por cima da rocha; centro transparente.
+@export var dust_shell_texture: Texture2D
 
 @export_group("Chefes")
 ## Rocha-Mãe inteira (fase 1). Os núcleos são desenhados pelo código na borda.
@@ -40,6 +42,8 @@ extends Resource
 @export var rock_mother_half: Texture2D
 ## Fração do raio da imagem ocupada pela rocha do chefe.
 @export_range(0.5, 1.0, 0.01) var boss_fill := 0.95
+## Minerador (Setor 2), frente para baixo. O olho (ponto fraco) é desenhado pelo código.
+@export var miner_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

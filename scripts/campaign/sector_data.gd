@@ -10,6 +10,8 @@ extends Resource
 @export_range(0.0, 1.0) var difficulty_start := 0.0
 @export_range(0.0, 1.0) var difficulty_end := 0.5
 @export var events: Array[WaveEvent] = []
+## Trilha do setor (nome em Sfx.MUSIC_TRACKS).
+@export var music := "main"
 
 @export_group("Visual")
 @export var nebula_a := Color(0.06, 0.10, 0.32)  ## cor principal da nebulosa de fundo

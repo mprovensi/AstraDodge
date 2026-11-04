@@ -106,3 +106,8 @@ func touches(_p: Vector2, _radius: float) -> bool:
 ## X do ponto fraco exposto agora (usado pelo teste automático para "jogar").
 func aim_x() -> float:
 	return view_size.x * 0.5
+
+
+## Explosões de área que aconteceram neste passo: (x, y, raio). O Main checa a nave.
+func take_blasts() -> Array[Vector3]:
+	return []

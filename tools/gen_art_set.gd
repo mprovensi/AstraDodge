@@ -23,6 +23,8 @@ func _initialize() -> void:
 	art.rock_mother_body = load("res://sprites/boss_rock_mother.png")
 	art.rock_mother_half = load("res://sprites/boss_rock_mother_half.png")
 	art.boss_fill = 0.95
+	art.dust_shell_texture = load("res://sprites/dust_shell.png")
+	art.miner_body = load("res://sprites/boss_miner.png")
 	var err := ResourceSaver.save(art, OUT)
 	print("%s -> %s" % [OUT, "OK" if err == OK else "ERRO %d" % err])
 	quit()

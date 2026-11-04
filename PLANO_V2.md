@@ -264,4 +264,11 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] "Continuar" no meio da luta recomeça o chefe
 - [x] Testes: luta completa por um bot, rota segura (vão do leque e largura livre no avanço), retomada no chefe
 - [ ] Música adaptativa em camadas (hoje: crossfade entre trilha normal e de chefe)
+
+**Sprint 4 — Setor 2: concluído (04/11/2026)**
+- [x] Passagem de setor: tela de resultado com PRÓXIMO SETOR; a arma (nível e cristais) continua; o "Continuar" do menu já aponta para o próximo setor
+- [x] Trilha por setor (`SectorData.music`); Setor 2 com lofi própria (Mi menor, 96 BPM) e nebulosa aço/âmbar
+- [x] Metálicos com propulsor (andam de lado e quicam; únicos metálicos da linha), poeira blindada (casca de aço aguenta 2 tiros), corredores (`WaveEvent.Kind.CORRIDOR`)
+- [x] Minerador (`scripts/bosses/miner.gd`): olho fecha durante o raio; raio-trator com aviso em coluna; cargas com aviso em círculo que explodem em cruz (8 direções na fase 2); arremesso de metal com aviso em linha
+- [x] Testes: Setor 1 → PRÓXIMO SETOR → Setor 2 inteiro (bot), rota segura do Minerador
 - [ ] Volume de música/efeitos em 0–100%

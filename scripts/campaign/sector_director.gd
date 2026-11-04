@@ -6,6 +6,8 @@ var sector: SectorData
 var time := 0.0
 var density := 1.0
 var metals := true
+var moving := 0.0
+var armored := 0.0
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
@@ -18,6 +20,7 @@ var _next := 0
 
 func _init(data: SectorData) -> void:
 	sector = data
+	music_track = data.music
 	_events = data.events.duplicate()
 	_events.sort_custom(func(a: WaveEvent, b: WaveEvent) -> bool: return a.at < b.at)
 
@@ -41,6 +44,8 @@ func seek(t: float) -> void:
 			WaveEvent.Kind.DENSITY:
 				density = e.density
 				metals = e.metals
+				moving = e.moving
+				armored = e.armored
 			WaveEvent.Kind.DUST_RAIN:
 				rain_left = maxf(0.0, e.at + e.duration - t)
 			WaveEvent.Kind.CALM:
@@ -66,6 +71,8 @@ func update(dt: float) -> Array[WaveEvent]:
 			WaveEvent.Kind.DENSITY:
 				density = e.density
 				metals = e.metals
+				moving = e.moving
+				armored = e.armored
 			WaveEvent.Kind.DUST_RAIN:
 				rain_left = e.duration
 			WaveEvent.Kind.CALM:

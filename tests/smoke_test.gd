@@ -29,6 +29,7 @@ func _run() -> void:
 
 	_test_endless()
 	_test_campaign()
+	_test_sector2()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -131,6 +132,64 @@ func _test_campaign() -> void:
 		frames * DT, walls, boss_time, str(main.star_checks()), main.score])
 
 
+## Continua de onde _test_campaign parou (Setor 1 completo): PRÓXIMO SETOR → Setor 2 inteiro.
+func _test_sector2() -> void:
+	var game := root.get_node("Game")
+	var sfx := root.get_node("Sfx")
+	assert(main.hud._buttons["next"].visible, "Setor 1 completo mostra PRÓXIMO SETOR")
+	assert(int(game.checkpoint.get("sector", -1)) == 1, "o Continuar já aponta para o Setor 2")
+	var weapon_before: int = main.ship.weapon_level
+	main._on_next_sector()
+	assert(main.state == main.State.READY and main.director.sector.id == "sector_2")
+	assert(main.ship.weapon_level == weapon_before, "a arma continua de um setor para o outro")
+	assert(sfx.current_track() == "sector2", "Setor 2 tem trilha própria")
+	_touch(true)
+	var corridor_walls := 0
+	var saw_moving := false
+	var saw_armored := false
+	var shells_broken := 0
+	var boss_seen := false
+	var boss_time := 0.0
+	var phase2_seen := false
+	var frames := 0
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 340:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		var walls_before: int = main._corridor_walls
+		var shells_before := _count_shells()
+		main._process(DT)
+		if main._corridor_walls > walls_before:
+			corridor_walls += 1
+		shells_broken += maxi(0, shells_before - _count_shells())
+		for a in main.asteroids.asteroids:
+			saw_moving = saw_moving or a.drift != 0.0
+			saw_armored = saw_armored or a.shell > 0
+		frames += 1
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 2 deveria terminar (Minerador derrotado)")
+	assert(corridor_walls >= 15, "Setor 2 tem corredores (vi %d paredes)" % corridor_walls)
+	assert(saw_moving and saw_armored, "metálicos com propulsor e poeira blindada")
+	assert(boss_seen and phase2_seen, "Minerador e sua fase 2")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 2 OK | %.1fs | paredes de corredor=%d | cascas quebradas=%d | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, corridor_walls, shells_broken, boss_time, str(main.star_checks())])
+
+
+func _count_shells() -> int:
+	var n := 0
+	for a in main.asteroids.asteroids:
+		n += a.shell
+	return n
+
+
 ## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
 func _test_boss_safety() -> void:
 	var rm: GDScript = load("res://scripts/bosses/rock_mother.gd")  # carregado só agora (autoloads prontos)
@@ -143,7 +202,16 @@ func _test_boss_safety() -> void:
 		assert(gap >= ship_gap, "leque: vão de %.0f px < %.0f (tela %d)" % [gap, ship_gap, h])
 	var free: float = rm.lunge_free_width(1080.0)
 	assert(free >= ship_gap * 3.0, "avanço das metades: só %.0f px livres" % free)
-	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px" % [ship_gap, free])
+	# Minerador: raio só ocupa a coluna dele; explosão das cargas deixa vão entre os tiros
+	# onde está uma nave que saiu do círculo de aviso (centro a ≥ raio + corpo da nave).
+	var mn: GDScript = load("res://scripts/bosses/miner.gd")
+	var beam_free: float = mn.beam_free_width(1080.0)
+	assert(beam_free >= ship_gap * 6.0, "raio do Minerador: só %.0f px livres" % beam_free)
+	var outside: float = mn.CHARGE_RADIUS + 2.0 * Tuning.SHIP_HITBOX_RADIUS
+	var blast_gap: float = mn.blast_min_gap(outside, 8)
+	assert(blast_gap >= ship_gap, "explosão em 8: vão de %.0f px < %.0f" % [blast_gap, ship_gap])
+	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px" % [
+		ship_gap, free, beam_free, blast_gap])
 
 
 func _test_boss_resume() -> void:

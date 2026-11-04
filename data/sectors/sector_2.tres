@@ -1,0 +1,125 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_ogx7f"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_0blx2"]
+
+[sub_resource type="Resource" id="Resource_iegmr"]
+script = ExtResource("1_ogx7f")
+kind = 1
+density = 0.8
+
+[sub_resource type="Resource" id="Resource_ad3wo"]
+script = ExtResource("1_ogx7f")
+at = 0.5
+duration = 2.5
+text = "SETOR 2
+Campo Metálico"
+
+[sub_resource type="Resource" id="Resource_lixtm"]
+script = ExtResource("1_ogx7f")
+at = 5.0
+kind = 1
+density = 0.8
+moving = 0.35
+
+[sub_resource type="Resource" id="Resource_iykwh"]
+script = ExtResource("1_ogx7f")
+at = 5.0
+duration = 3.5
+text = "Metálicos com propulsor
+andam de lado!"
+
+[sub_resource type="Resource" id="Resource_7n1eu"]
+script = ExtResource("1_ogx7f")
+at = 25.0
+kind = 1
+density = 0.9
+moving = 0.3
+armored = 0.3
+
+[sub_resource type="Resource" id="Resource_quc0j"]
+script = ExtResource("1_ogx7f")
+at = 25.0
+duration = 4.0
+text = "Poeira blindada:
+os primeiros tiros arrancam a casca"
+
+[sub_resource type="Resource" id="Resource_dm15n"]
+script = ExtResource("1_ogx7f")
+at = 45.0
+kind = 8
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_s25x4"]
+script = ExtResource("1_ogx7f")
+at = 60.0
+kind = 1
+moving = 0.4
+armored = 0.35
+
+[sub_resource type="Resource" id="Resource_ok6lw"]
+script = ExtResource("1_ogx7f")
+at = 75.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_g3p0k"]
+script = ExtResource("1_ogx7f")
+at = 88.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_4lwry"]
+script = ExtResource("1_ogx7f")
+at = 88.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_6nosq"]
+script = ExtResource("1_ogx7f")
+at = 102.0
+kind = 8
+duration = 10.0
+
+[sub_resource type="Resource" id="Resource_t52mm"]
+script = ExtResource("1_ogx7f")
+at = 118.0
+kind = 1
+density = 1.15
+moving = 0.5
+armored = 0.4
+
+[sub_resource type="Resource" id="Resource_ppr2o"]
+script = ExtResource("1_ogx7f")
+at = 128.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_otjpj"]
+script = ExtResource("1_ogx7f")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_7ng5a"]
+script = ExtResource("1_ogx7f")
+at = 140.0
+duration = 3.0
+text = "Sinais de mineração à frente..."
+
+[sub_resource type="Resource" id="Resource_ebebv"]
+script = ExtResource("1_ogx7f")
+at = 144.0
+kind = 7
+text = "miner"
+
+[resource]
+script = ExtResource("2_0blx2")
+id = "sector_2"
+number = 2
+title = "SETOR 2"
+subtitle = "Campo Metálico"
+difficulty_start = 0.3
+difficulty_end = 0.7
+events = Array[ExtResource("1_ogx7f")]([SubResource("Resource_iegmr"), SubResource("Resource_ad3wo"), SubResource("Resource_lixtm"), SubResource("Resource_iykwh"), SubResource("Resource_7n1eu"), SubResource("Resource_quc0j"), SubResource("Resource_dm15n"), SubResource("Resource_s25x4"), SubResource("Resource_ok6lw"), SubResource("Resource_g3p0k"), SubResource("Resource_4lwry"), SubResource("Resource_6nosq"), SubResource("Resource_t52mm"), SubResource("Resource_ppr2o"), SubResource("Resource_otjpj"), SubResource("Resource_7ng5a"), SubResource("Resource_ebebv")])
+music = "sector2"
+nebula_a = Color(0.08, 0.11, 0.18, 1)
+nebula_b = Color(0.32, 0.17, 0.04, 1)
