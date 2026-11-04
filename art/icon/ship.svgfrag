@@ -1,0 +1,11 @@
+<!-- Nave + anel do escudo em coordenadas 512x512 (centro 256,256). Incluído pelos SVGs do ícone. -->
+<g id="glow" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <circle cx="256" cy="262" r="196" stroke="#3ff0ff" stroke-opacity="0.10" stroke-width="44"/>
+  <circle cx="256" cy="262" r="196" stroke="#3ff0ff" stroke-opacity="0.25" stroke-width="22"/>
+  <circle cx="256" cy="262" r="196" stroke="#9ffbff" stroke-width="9"/>
+  <polygon points="256,86 384,382 256,326 128,382" stroke="#3ff0ff" stroke-opacity="0.12" stroke-width="64"/>
+  <polygon points="256,86 384,382 256,326 128,382" stroke="#3ff0ff" stroke-opacity="0.30" stroke-width="32"/>
+</g>
+<polygon points="226,340 286,340 256,452" fill="#ff8a26"/>
+<polygon points="240,340 272,340 256,410" fill="#ffd27a"/>
+<polygon points="256,86 384,382 256,326 128,382" fill="#0a1a33" stroke="#c8feff" stroke-width="14" stroke-linejoin="round"/>

@@ -83,7 +83,8 @@ func set_music_intensity(time_scale: float, paused: bool) -> void:
 
 
 func apply_enabled() -> void:
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not Game.sound_enabled)
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), not Game.music_enabled)
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("SFX"), not Game.sfx_enabled)
 
 
 func _ensure_bus(bus_name: String) -> void:
