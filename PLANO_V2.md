@@ -128,8 +128,46 @@ Manter e elevar a estética **neon vetorial**, coerente com o ícone já criado:
 | **VFX** | Explosões em 3 tamanhos, onda de choque (anel), faíscas, fumaça, aviso de ataque (linha/círculo/coluna) |
 | **Fundos** | 5 nebulosas (shader) + 3 camadas de estrelas/objetos distantes por setor (planetas, estações em silhueta) |
 | **UI** | Mapa de setores, cartões de setor, estrelas, barra de chefe, tela "ALERTA", tela de resultado, botões e painéis com cantos chanfrados |
-| **Áudio — música** | 5 temas de setor + 1 tema de chefe (variação por setor) + tema de vitória + tema do menu (todos pelo gerador `tools/gen_audio.gd` ampliado: mais instrumentos, seções A/B) |
-| **Áudio — efeitos** | Sirene de alerta, tiro inimigo, carga de raio, dano no chefe, armadura, explosão de chefe, transição de fase, estrela ganha, desbloqueio |
+| **Áudio — música** | 5 temas de setor + 1 tema de chefe (variação por setor) + tema de vitória + tema do menu — em **camadas (stems)** para música adaptativa (ver 3.3) |
+| **Áudio — efeitos** | Todos os sons atuais refeitos em versão realista (ver 3.3) + sirene de alerta, tiro inimigo, carga de raio, dano no chefe, armadura, explosão de chefe, transição de fase, estrela ganha, desbloqueio |
+
+### 3.3 Áudio mais realista
+
+Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"). A meta é um som **cinematográfico**: peso, textura e espaço — como em filmes de ficção científica (no vácuo não haveria som; o "realismo" aqui é o do cinema).
+
+**Abordagem híbrida (recomendada):**
+- **Gravações reais como base** para impactos, explosões, metal e destroços, vindas de bibliotecas **livres para uso comercial**:
+  - *Sonniss GDC Game Audio Bundles* (royalty-free, uso comercial sem atribuição);
+  - *Freesound* — **somente CC0**;
+  - *Kenney* (CC0).
+  - Cada arquivo registrado em `CREDITS.md` com origem e licença.
+- **Síntese por cima** para o que é "energia" (lasers, escudo, cristais), mas com timbre mais rico: osciladores desafinados, ruído filtrado, *pitch envelopes* e cauda com reverb — mantém a identidade neon sem soar "bip".
+
+**Como cada som fica mais realista — em camadas:**
+| Som | Camadas |
+|---|---|
+| **Explosão de asteroide** | *transiente* (estalo seco gravado) + *corpo* (rocha quebrando) + *sub-grave* (impacto 40–60 Hz) + *destroços* (pedrinhas caindo, cauda de 0,5–1 s) |
+| **Explosão de chefe** | sequência de 4–6 explosões + rugido grave + "chuva" de metal + cauda longa com reverb |
+| **Tiro do jogador** | ataque elétrico curto + "zap" sintetizado + leve eco; volume e brilho sobem com o nível da arma |
+| **Ricochete no metálico** | batida metálica gravada + ressonância ("ping") + faísca |
+| **Impacto no escudo** | batida abafada + zumbido elétrico de energia + distorção curta |
+| **Motor da nave** | *loop* contínuo de propulsor (ruído grave filtrado) que responde à velocidade do arraste |
+| **Coletas** | brilho cristalino (sinos/vidro processados) em vez de bip quadrado |
+| **Chefes** | assinatura sonora própria: rangido de rocha (Rocha-Mãe), servo-motores (Minerador), vozes aquáticas (Medusa), sirenes de bordo (Cruzador), drone grave pulsante (Núcleo) |
+
+**Técnicas de mixagem e motor de áudio (Godot):**
+- **3 a 5 variações** de cada som frequente (tiro, impacto, explosão) + variação de pitch/volume → acaba a repetição "metralhadora".
+- **Estéreo posicional:** sons acompanham a posição na tela (asteroide explodindo à esquerda soa à esquerda) via `AudioStreamPlayer2D`/pan.
+- **Bus de reverb** por setor (campo aberto, nebulosa "molhada", interior de destroços metálicos) e **compressor** no master.
+- **Ducking:** a música abaixa um pouco em explosões grandes e na entrada do chefe (sidechain), deixando o impacto em primeiro plano.
+- **Limite de vozes por tipo** (ex.: no máximo 4 explosões simultâneas) para não embolar.
+- **Música adaptativa por camadas:** bateria/baixo/melodia/tensão entram e saem conforme a intensidade; transição para o tema do chefe **no tempo da música** (no compasso).
+- **Música com produção melhor:** baterias com samples reais (CC0), estéreo, reverb e sidechain — continua synthwave, mas "de estúdio".
+- **Formatos:** música em **OGG Vorbis** (streaming, menor tamanho); efeitos curtos em WAV. Meta: áudio total < 25 MB.
+- **Vibração sincronizada** com explosões e impactos (curta, média, longa).
+- **Opções:** volume separado de música e efeitos (barra 0–100%), além dos interruptores atuais.
+
+**Ferramentas:** Audacity ou REAPER (gratuito para avaliar) para editar/camadas; o gerador `tools/gen_audio.gd` continua para os sons sintetizados e para protótipos rápidos.
 
 ---
 
@@ -147,7 +185,8 @@ Manter e elevar a estética **neon vetorial**, coerente com o ícone já criado:
 | **Save** | Progresso por setor (desbloqueado, estrelas, melhor pontuação), skins, estatísticas. Migração do save atual sem perder o recorde. |
 | **Telas** | Menu principal (Campanha / Infinito / Opções), mapa de setores, resultado, pausa com "Sair do setor". |
 | **Testes** | Teste de fumaça por setor; **teste de rota segura** dos padrões dos chefes (simula a nave procurando caminho); captura automática de screenshots (já temos `--write-movie`). |
-| **Opções novas** | Reduzir tremor de tela, reduzir flashes, modo retrô (CRT). |
+| **Áudio** | `Sfx` passa a ter: variações por som, pan estéreo pela posição, limite de vozes por tipo, buses de reverb por setor, compressor, ducking da música e música adaptativa por camadas sincronizada ao compasso. |
+| **Opções novas** | Reduzir tremor de tela, reduzir flashes, modo retrô (CRT), volume de música e de efeitos (0–100%). |
 
 ---
 
@@ -158,13 +197,15 @@ Manter e elevar a estética **neon vetorial**, coerente com o ícone já criado:
 | Sprint | Entrega | Critério de pronto |
 |---|---|---|
 | **S1 — Fundação** | `SectorData`, ondas roteirizadas, classe `Enemy`, pool de projéteis inimigos, `Telegraph`, menu principal com Campanha/Infinito | Setor 1 jogável do início ao fim (sem chefe), Infinito igual ao atual |
-| **S2 — Pipeline de arte** | Pipeline SVG→PNG para sprites, shaders (flash, dissolve, nebulosa), fonte nova, nave redesenhada, asteroides novos | Setor 1 com arte nova rodando a 60 FPS no S20 FE e num aparelho de entrada |
-| **S3 — Chefe 1 + resultado** | Classe `Boss`, Rocha-Mãe, barra de chefe, tela "ALERTA", tela de resultado com estrelas, save de progresso | Setor 1 completo; teste de rota segura passando |
+| **S2 — Arte e áudio** | Pipeline SVG→PNG para sprites, shaders (flash, dissolve, nebulosa), fonte nova, nave redesenhada, asteroides novos. **Motor de áudio novo** (variações, pan, reverb, compressor, ducking) + **efeitos realistas do Setor 1** (explosões em camadas, tiro, ricochete, escudo, motor, coletas) | Setor 1 com arte e som novos rodando a 60 FPS no S20 FE e num aparelho de entrada |
+| **S3 — Chefe 1 + resultado** | Classe `Boss`, Rocha-Mãe (com assinatura sonora), barra de chefe, tela "ALERTA", tela de resultado com estrelas, save de progresso, **música adaptativa em camadas** com transição para o tema de chefe | Setor 1 completo; teste de rota segura passando |
 | **S4 — Setor 2** | Metálicos móveis, blindado, paredão, Minerador, música do setor | Setores 1–2 completos |
 | **S5 — Setor 3** | Nuvens/minas iônicas, tempestade, Medusa | Setores 1–3 completos |
 | **S6 — Setor 4** | Torretas, drones, mísseis, Cruzador Fantasma (multi-partes) | Setores 1–4 completos |
 | **S7 — Setor 5 + final** | Gravidade, portais, inversão, Núcleo da Fenda, cena de fuga, tema de vitória | Campanha completa |
-| **S8 — Polimento** | Skins, balanceamento com testadores, acessibilidade, otimização, novos screenshots/vídeo da loja | Release v2.0 |
+| **S8 — Polimento** | Skins, balanceamento com testadores, acessibilidade, otimização, **mixagem final** (volumes, ducking, teste em fone e alto-falante do celular), novos screenshots/vídeo da loja | Release v2.0 |
+
+> Cada setor (S4–S7) inclui seus sons próprios: assinatura sonora do chefe, música do setor em camadas e efeitos das novas mecânicas.
 
 **Cortes possíveis se o prazo apertar** (nesta ordem): modo Desafio do Chefe → skins → modo retrô → setor 5 vira atualização posterior (lançar com 4 setores).
 
@@ -174,7 +215,8 @@ Manter e elevar a estética **neon vetorial**, coerente com o ícone já criado:
 - ≥ 60% dos jogadores completam o Setor 1 na primeira sessão.
 - Tempo médio para derrotar cada chefe dentro de 60–90 s.
 - Nenhum padrão de chefe com taxa de "morte inevitável" (feedback "não tinha como desviar").
-- 60 FPS estáveis em aparelho de entrada; APK/AAB < 80 MB.
+- 60 FPS estáveis em aparelho de entrada; APK/AAB < 80 MB (áudio < 25 MB).
+- Testadores avaliam o som como "encorpado/satisfatório" e ninguém relata som repetitivo ou cansativo após 10 min.
 
 ---
 
@@ -183,3 +225,4 @@ Manter e elevar a estética **neon vetorial**, coerente com o ícone já criado:
 2. Arma: manter entre setores (recomendado) ou zerar a cada setor?
 3. Publicar a v1 no teste fechado agora (recomendado) ou esperar a campanha?
 4. Fonte: Orbitron (mais "sci-fi") ou Exo 2 (mais legível)?
+5. Som: híbrido gravação + síntese (recomendado) ou 100% gravações? Os downloads de bibliotecas (Sonniss/Freesound CC0) precisam da sua autorização caso a caso.
