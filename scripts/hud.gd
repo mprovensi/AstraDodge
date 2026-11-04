@@ -63,7 +63,7 @@ var _levelup_timer := 0.0
 var _hint_panel: PanelContainer
 var _hint_label: Label
 var _hint_timer := 0.0
-var _boss_box: HBoxContainer
+var _boss_box: VBoxContainer
 var _boss_label: Label
 var _boss_fill: ColorRect
 var _dim: ColorRect
@@ -152,22 +152,23 @@ func _ready() -> void:
 	var weapon_bg := _make_bar_row(bars, _weapon_label, Palette.MAGENTA)
 	_weapon_fill = _add_fill(weapon_bg, Palette.MAGENTA)
 
-	# Barra de vida do chefe (só durante a luta), numa linha só: nome + barra, com marca
+	# Barra de vida do chefe (só durante a luta), centralizada com o nome embaixo, e marca
 	# na troca de fase (50%).
-	_boss_box = HBoxContainer.new()
+	_boss_box = VBoxContainer.new()
 	_boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	_boss_box.add_theme_constant_override("separation", 16)
+	_boss_box.add_theme_constant_override("separation", 2)
 	_boss_box.visible = false
 	_top.add_child(_boss_box)
-	_boss_label = _make_label("", 24, Palette.DANGER)
-	_boss_box.add_child(_boss_label)
 	var boss_bg := ColorRect.new()
 	boss_bg.color = Color(Palette.DANGER, 0.18)
 	boss_bg.custom_minimum_size = Vector2(BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT)
-	boss_bg.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	boss_bg.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	boss_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_boss_box.add_child(boss_bg)
+	# Nome embaixo da barra, centralizado.
+	_boss_label = _make_label("", 24, Palette.DANGER)
+	_boss_box.add_child(_boss_label)
 	_boss_fill = _add_fill(boss_bg, Palette.DANGER)
 	_boss_fill.size = Vector2(BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT)
 	var mark := ColorRect.new()
