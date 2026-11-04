@@ -148,3 +148,19 @@ A1 e A2 eu faço sozinho (procedural). A3–A6 dependem da fonte de arte (seçã
    Se for IA: qual ferramenta você usa?
 2. Manter o **neon** como identidade (tiros, escudo, pickups brilhando) junto com o 2.5D? (recomendado: sim)
 3. Fazer isso **antes** ou **depois** do O2 (formações) e da publicação?
+
+---
+
+## Status
+
+**Nave do jogador (antecipado do A6): concluído (05/11/2026)**
+- [x] Nave v3 realista (metal com volume, painéis, rebites, cabine com moldura, canhões) em 5 poses de rolagem — `tools/gen_ship.gd`
+- [x] Efeitos de voo: uma chama lisa por bocal (cresce acelerando, verga nas curvas), propulsor lateral, vapor nas pontas das asas, linhas de velocidade
+
+**A1 — Asteroides 2.5D: concluído (05/11/2026)**
+- [x] `shaders/asteroid_field.gdshader`: esfera irregular iluminada que gira em 3D (crateras, relevo, poros, brilho especular, translucidez, veios emissivos)
+- [x] 7 materiais (`scripts/art/rock_materials.gd`) e quais aparecem em cada setor; o gelo do Setor 5 usa o material GELO
+- [x] Pedaços da explosão na cor do material; dano escurece e o tiro faz piscar como antes
+- [x] Teste: a menor silhueta do shader cobre o círculo que machuca a nave
+- [ ] Comportamentos por material (cristalino solta orbe, vulcânico espirra brasas) — próxima etapa
+- [ ] Medir FPS em aparelho de entrada (A7: opção "Gráficos: simples")

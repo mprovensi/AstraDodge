@@ -621,6 +621,14 @@ func _test_boss_safety() -> void:
 					assert(lum < 0.36, "metal tem que ser escuro: %s (%.2f)" % [tex.resource_path, lum])
 				else:
 					assert(lum > 0.36, "poeira tem que ser clara: %s (%.2f)" % [tex.resource_path, lum])
+	# Poeira 2.5D (A1): a menor silhueta possível do shader ainda cobre o círculo que machuca a
+	# nave (85% do raio); e o shader usa a mesma irregularidade que o cálculo.
+	var af: GDScript = load("res://scripts/asteroids.gd")
+	var min_edge: float = af.DRAW_SCALE * af.DUST_EDGE_MIN
+	assert(min_edge >= 0.85, "poeira 2.5D: silhueta mínima %.2f do raio < 0.85" % min_edge)
+	assert(FileAccess.get_file_as_string("res://shaders/asteroid_field.gdshader").contains("const float LUMP = 0.12;"),
+			"irregularidade do shader mudou: atualize AsteroidField.DUST_EDGE_MIN")
+	print("POEIRA 2.5D OK | silhueta minima = %.2f do raio (colisao da nave = 0.85)" % min_edge)
 	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])
 
 	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,

@@ -33,6 +33,8 @@ class Asteroid:
 	var slide_phase := 0.0
 	var ported := false        # já passou por um portal (Setor 8): não teleporta de novo
 	var look := 0              # visual do setor em que nasceu (ArtSet.sector_looks)
+	var mat := 0               # material 2.5D da poeira (RockMaterials) — sorteado pelo setor
+	var shape_seed := 0.0      # forma e superfície únicas de cada rocha
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -322,6 +324,9 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 	a.rot = randf() * TAU
 	a.rot_speed = randf_range(-1.2, 1.2) if kind == Kind.DUST else randf_range(-0.3, 0.3)
 	a.look = look
+	if kind == Kind.DUST:
+		a.mat = RockMaterials.pick(look)
+		a.shape_seed = randf()
 	a.sprite = randi() % maxi(1, _textures(kind, look).size())
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
@@ -332,6 +337,61 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 
 
 
+## Poeira 2.5D (PLANO_ARTE_25D.md, A1): esferas irregulares iluminadas que giram, desenhadas
+## por este nó filho com shaders/asteroid_field.gdshader. Fica ATRÁS do campo (show_behind_parent),
+## então metálicos e cascas blindadas aparecem por cima.
+class DustRenderer extends Node2D:
+	var field: AsteroidField
+	var white: Texture2D
+
+	func _ready() -> void:
+		show_behind_parent = true
+		var mat := ShaderMaterial.new()
+		mat.shader = preload("res://shaders/asteroid_field.gdshader")
+		var arrays := RockMaterials.shader_arrays()
+		for key: String in arrays:
+			mat.set_shader_parameter(key, arrays[key])
+		material = mat
+		var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		img.fill(Color.WHITE)
+		white = ImageTexture.create_from_image(img)
+
+	func _process(_dt: float) -> void:
+		queue_redraw()  # o giro 3D é animado pelo shader (TIME)
+
+	func _draw() -> void:
+		for a in field.asteroids:
+			if a.kind != AsteroidField.Kind.DUST:
+				continue
+			var s := 1.0 - Tuning.HIT_PUNCH_SCALE * a.punch
+			draw_set_transform(a.pos, a.rot, Vector2(s * a.flip, s))
+			var half := a.radius * AsteroidField.DRAW_SCALE
+			# Brilho: mais escura com dano; pisca ao levar tiro (a casca blindada pisca sozinha).
+			var bright := 1.0 - 0.35 * (1.0 - float(a.hp) / float(a.max_hp))
+			if a.flash > 0.0 and a.shell <= 0:
+				bright = 2.6
+			var m := RockMaterials.GELO if a.ice else a.mat
+			# Dados da rocha na cor do vértice: material, semente, brilho (lidos pelo shader).
+			draw_texture_rect(white, Rect2(-half, -half, half * 2.0, half * 2.0), false,
+					Color(float(m) / 8.0, a.shape_seed, bright / 4.0, 1.0))
+		draw_set_transform(Vector2.ZERO, 0.0)
+
+
+## Lado do quadrado da poeira 2.5D em relação ao raio de colisão. A silhueta do shader nunca é
+## menor que DUST_EDGE_MIN do quadrado, então o círculo que machuca a nave (85% do raio) fica
+## sempre dentro do desenho (o teste confere).
+const DRAW_SCALE := 1.1
+const DUST_EDGE_MIN := (1.0 - 0.12 * 1.45) * (1.0 - 0.48 * 0.12)  # = LUMP do shader
+
+var _dust_renderer: DustRenderer
+
+
+func _ready() -> void:
+	_dust_renderer = DustRenderer.new()
+	_dust_renderer.field = self
+	add_child(_dust_renderer)
+
+
 func _draw() -> void:
 	var art := Game.art
 	for a in asteroids:
@@ -340,20 +400,12 @@ func _draw() -> void:
 		var fill := art.metal_fill if a.kind == Kind.METAL else art.dust_fill
 		var half := a.radius / fill
 		var rect := Rect2(-half, -half, half * 2.0, half * 2.0)
-		var textures := _textures(a.kind, a.look)
-		if a.ice and not art.ice_textures.is_empty():
-			textures = art.ice_textures
-		var tex := textures[a.sprite % textures.size()]
 		if a.kind == Kind.METAL:
+			var tex := _textures(a.kind, a.look)[a.sprite % _textures(a.kind, a.look).size()]
 			var tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
 			draw_texture_rect(tex, rect, false, tint)
 		else:
-			# Mais escura conforme leva dano; pisca branco (HDR) ao ser atingida.
-			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
-			var tint := Color.WHITE.darkened(dmg * 0.35)
-			if a.flash > 0.0 and a.shell <= 0:
-				tint = Color(3.0, 3.0, 3.0)
-			draw_texture_rect(tex, rect, false, tint)
+			# A rocha em si é desenhada pelo DustRenderer (2.5D); aqui só a casca blindada.
 			if a.shell > 0 and art.dust_shell_texture != null:
 				var shell_tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
 				shell_tint.a = 0.55 + 0.45 * float(a.shell) / float(Tuning.ARMOR_SHELL_HITS)

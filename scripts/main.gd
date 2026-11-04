@@ -977,7 +977,7 @@ func _check_ship_hits() -> void:
 		if _damage_ship(Tuning.SHIELD_DMG_METAL if is_metal else Tuning.SHIELD_DMG_DUST):
 			if not is_metal:
 				a.alive = false
-				fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
+				fx.explosion(a.pos, a.radius, _debris_color(a))
 			if not ship.alive:
 				return
 
@@ -1063,7 +1063,7 @@ func _damage_ship(amount: float) -> bool:
 func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 	dust_destroyed += 1
 	bonus_score += Tuning.SCORE_PER_DUST_HP * a.max_hp
-	fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
+	fx.explosion(a.pos, a.radius, _debris_color(a))  # pedaços na cor do material da rocha
 	_break_kick(Tuning.KICK_BASE + a.radius * Tuning.KICK_PER_RADIUS)
 	Game.vibrate(Tuning.KICK_VIBRATE_MS)
 	# Asteroides maiores soam mais graves.
@@ -1374,3 +1374,8 @@ func _update_shake(delta: float) -> void:
 ## Tranco ao quebrar: empurra a tela para baixo e ela volta com uma pequena mola.
 func _break_kick(strength: float) -> void:
 	_kick_vel += Vector2(randf_range(-0.25, 0.25), 1.0) * strength
+
+
+## Cor dos pedaços ao quebrar uma poeira (a do material 2.5D dela).
+static func _debris_color(a: AsteroidField.Asteroid) -> Color:
+	return RockMaterials.debris_color(RockMaterials.GELO if a.ice else a.mat)
