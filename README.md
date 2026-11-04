@@ -49,6 +49,9 @@ Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tools/g
 
 ## Trocar sprites
 
+> Vai gerar a arte com outra IA ou um artista? Veja **[SPRITES.md](SPRITES.md)**: tamanhos,
+> encaixes e um prompt pronto para cada sprite.
+
 Toda a arte passa por um **ArtSet** ([scripts/art/art_set.gd](scripts/art/art_set.gd)): um recurso com as
 texturas e os ajustes de cada sprite. O código nunca aponta direto para um PNG — ele lê o ArtSet ativo
 (`Game.art`, definido por `Game.ART_SET_PATH` em [scripts/game.gd](scripts/game.gd)).
