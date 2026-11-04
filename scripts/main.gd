@@ -600,8 +600,7 @@ func _step(dt: float) -> void:
 	scroll_speed = lerpf(Tuning.SCROLL_SPEED_START, Tuning.SCROLL_SPEED_MAX, difficulty)
 	_update_escape(dt)
 	if ship.alive:
-		distance += scroll_speed * dt
-		fx.trail(ship.position + Vector2(0, 40), scroll_speed)
+		distance += scroll_speed * dt  # (o rastro do motor é a própria chama da nave)
 
 	if _pending_wall >= 0.0:
 		_pending_wall -= dt

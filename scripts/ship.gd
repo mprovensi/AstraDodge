@@ -11,7 +11,7 @@ enum HitResult { IGNORED, ABSORBED, LAST_CHANCE, DEAD }
 const SHIELD_RING_RADIUS := 60.0
 const BANK_SPEED := 1200.0  # px/s de movimento lateral para inclinação máxima
 const FLAME_HALF_WIDTH := 6.5
-const FLAME_LENGTH := 42.0
+const FLAME_LENGTH := 48.0
 # Sprite, tamanho, brilho, motores e ponta da nave vêm do ArtSet ativo (Game.art).
 
 var bullets: BulletLayer
@@ -31,10 +31,8 @@ var _fire_timer := 0.0
 var _bank := 0.0  # -1 (curva p/ esquerda) a 1 (direita)
 var _t := 0.0
 var _vel := Vector2.ZERO     # velocidade suavizada (px/s) — move chamas, rastros e inclinação
-var _trail: Array = []       # rastro dos motores: [[pos no mundo, idade], ...] por motor
 var _vapor: Array = []       # rastro de vapor das pontas das asas (curvas rápidas)
 
-const TRAIL_LIFE := 0.32
 const VAPOR_LIFE := 0.28
 const VAPOR_SPEED := 650.0   # a partir desta velocidade as asas soltam vapor
 
@@ -52,7 +50,6 @@ func reset(start_pos: Vector2) -> void:
 	modulate.a = 1.0
 	_fire_timer = 0.0
 	_vel = Vector2.ZERO
-	_trail.clear()
 	_vapor.clear()
 
 
@@ -200,16 +197,11 @@ func _clamp(p: Vector2) -> Vector2:
 func _update_trails(dt: float) -> void:
 	var art := Game.art
 	var flow := Vector2(0, scroll_speed * 0.9 * dt)
-	for list in [_trail, _vapor]:
-		for p in list:
-			p[0] += flow
-			p[1] += dt
-	while not _trail.is_empty() and _trail[0][1] > TRAIL_LIFE:
-		_trail.pop_front()
+	for p in _vapor:
+		p[0] += flow
+		p[1] += dt
 	while not _vapor.is_empty() and _vapor[0][1] > VAPOR_LIFE:
 		_vapor.pop_front()
-	for e in art.ship_engines_px:
-		_trail.append([to_global(_tilted(_rolled_point(e))) + Vector2(0, 14), 0.0])
 	# Vapor nas pontas das asas só nas manobras rápidas.
 	if _vel.length() > VAPOR_SPEED:
 		for w in art.ship_wingtips_px:
@@ -247,21 +239,33 @@ func _roll_scale() -> Vector2:
 	return Vector2(1.0 - squash, 1.0 + pitch)
 
 
-## Jato da turbina: pluma arredondada que afina até a ponta e ondula (não um triângulo).
-func _plume(at: Vector2, length: float, width: float, color: Color, wobble: float) -> void:
+## Jato: faixa lisa ao longo da linha central, afinando até a ponta e sumindo (cor por vértice).
+func _jet(spine: PackedVector2Array, length: float, width: float, color: Color) -> void:
 	var left := PackedVector2Array()
 	var right := PackedVector2Array()
-	var steps := 9
-	for s in steps + 1:
-		var t := float(s) / steps
-		var hw := width * pow(1.0 - t, 0.65) * (1.0 + wobble * sin(t * 11.0 + _t * 38.0))
-		if s == 0:
-			hw = width
-		left.append(at + Vector2(-hw, t * length))
-		right.append(at + Vector2(hw, t * length))
+	var lc := PackedColorArray()
+	var rc := PackedColorArray()
+	var acc := 0.0
+	for s in spine.size():
+		if s > 0:
+			acc += spine[s].distance_to(spine[s - 1])
+		var t := clampf(acc / length, 0.0, 1.0)
+		var dir := (spine[mini(s + 1, spine.size() - 1)] - spine[maxi(s - 1, 0)]).normalized()
+		var side := Vector2(-dir.y, dir.x)
+		var hw := width * pow(1.0 - t, 0.55)
+		left.append(spine[s] + side * hw)
+		right.append(spine[s] - side * hw)
+		var c := Color(color, color.a * (1.0 - t * t))
+		lc.append(c)
+		rc.append(c)
+		if t >= 1.0:
+			break
 	right.reverse()
+	rc.reverse()
 	left.append_array(right)
-	draw_colored_polygon(left, color)
+	lc.append_array(rc)
+	if left.size() >= 3:
+		draw_polygon(left, lc)
 
 
 func _draw() -> void:
@@ -269,19 +273,8 @@ func _draw() -> void:
 	var flame_col := Game.skin_flame()
 	var speed := _vel.length()
 
-	# 1. Rastro dos motores: fita que afina e esmaece, na cor da chama.
 	var per := art.ship_engines_px.size()
-	for k in per:
-		var pts := PackedVector2Array()
-		var cols := PackedColorArray()
-		for i in range(k, _trail.size(), per):
-			var age: float = _trail[i][1] / TRAIL_LIFE
-			pts.append(to_local(_trail[i][0]))
-			cols.append(Color(flame_col, 0.55 * (1.0 - age)))
-		if pts.size() >= 2:
-			pts.reverse()
-			cols.reverse()
-			draw_polyline_colors(pts, cols, 5.0, true)
+	# 1. (O rastro dos motores agora É o próprio jato: ver item 4 — uma chama só por bocal.)
 	# 2. Vapor das asas: linhas brancas finas que somem rápido.
 	for k in art.ship_wingtips_px.size():
 		var pts := PackedVector2Array()
@@ -298,26 +291,27 @@ func _draw() -> void:
 
 	# 4. Chamas: núcleo branco-quente + chama colorida + brilho no bocal. Subindo (acelerando)
 	#    as chamas crescem; descendo (freando) encolhem. Tremulam o tempo todo.
-	draw_set_transform(Vector2.ZERO, _bank * _tilt_k(), _roll_scale())
-	var thrust := clampf(1.0 - _vel.y / 1400.0, 0.55, 1.9)
+	#    UMA chama por bocal: aura suave + chama + núcleo branco-quente, todas ao longo da mesma
+	#    linha central (que verga com o rastro quando a nave vai para os lados).
+	var thrust := clampf(1.0 - _vel.y / 1400.0, 0.8, 1.8)
 	for i in per:
-		var e := _rolled_point(art.ship_engines_px[i])
+		var e := _tilted(_rolled_point(art.ship_engines_px[i]))
 		# O bocal do lado que afunda fica oval (mais estreito): o jato acompanha.
 		var sink := (art.ship_engines_px[i].x - 128.0) * _pose_roll() > 0.0
 		var narrow := 1.0 - 0.35 * absf(_pose_roll()) if sink else 1.0
-		var flick := 0.85 + 0.15 * sin(_t * 47.0 + i * 2.1) + 0.06 * sin(_t * 113.0 + i)
+		var flick := 0.9 + 0.1 * sin(_t * 47.0 + i * 2.1)
 		var length := FLAME_LENGTH * thrust * flick
 		var w := FLAME_HALF_WIDTH * narrow * (1.0 + 0.2 * (thrust - 1.0))
-		_plume(e, length * 1.35, w * 1.7, Color(flame_col, 0.28), 0.12)   # aura
-		_plume(e, length, w, Color(flame_col, 0.95), 0.08)               # chama
-		_plume(e, length * 0.5, w * 0.5, Color(3.0, 3.0, 2.7), 0.0)      # núcleo branco-quente
-		# Diamantes de choque quando acelera forte.
-		if thrust > 1.25:
-			for d: float in [0.3, 0.55]:
-				var c := e + Vector2(0, length * d)
-				var s := w * 0.45 * (1.0 - d)
-				draw_colored_polygon(PackedVector2Array([c + Vector2(0, -s * 1.6), c + Vector2(s, 0),
-						c + Vector2(0, s * 1.6), c + Vector2(-s, 0)]), Color(3.0, 2.8, 2.2, 0.8))
+		# Linha central: sai reto do bocal e verga para trás do movimento lateral (inércia do jato).
+		var sway := clampf(-_vel.x / 1400.0, -1.0, 1.0) * length * 0.55
+		var spine := PackedVector2Array()
+		for s in 7:
+			var t := float(s) / 6.0
+			spine.append(e + Vector2(sway * t * t, length * 1.4 * t))
+		_jet(spine, length * 1.4, w * 1.6, Color(flame_col, 0.3))   # aura
+		_jet(spine, length, w, Color(flame_col, 0.95))              # chama
+		_jet(spine, length * 0.35, w * 0.42, Color(3.0, 2.9, 2.4, 0.9))   # núcleo
+	draw_set_transform(Vector2.ZERO, _bank * _tilt_k(), _roll_scale())
 
 	# 5. Propulsores laterais (RCS): um jatinho ciano do lado oposto da curva.
 	if absf(_bank) > 0.3:
