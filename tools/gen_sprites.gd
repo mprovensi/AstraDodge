@@ -8,7 +8,7 @@ const SRC := "res://art/sprites"
 const OUT := "res://sprites"
 const SIZE := 256
 ## Sprites desenhados grandes na tela são renderizados em resolução maior (nome -> px).
-const SIZES := {"boss_rock_mother": 512, "boss_rock_mother_half": 384, "boss_miner": 512, "boss_medusa": 512, "boss_cruiser": 512, "boss_ice_colossus": 512}
+const SIZES := {"boss_rock_mother": 512, "boss_rock_mother_half": 384, "boss_miner": 512, "boss_medusa": 512, "boss_cruiser": 512, "boss_ice_colossus": 512, "boss_hive_queen": 512}
 
 
 func _initialize() -> void:

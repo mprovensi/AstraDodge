@@ -196,3 +196,11 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Trilha própria (Mi, 88 BPM, lofi com sinos cristalinos) e nebulosa cobalto/gelo
 - [x] Infinito: bioma Glacial (gelo, cometas, chuva de cometas) e o Colosso no sorteio de chefes
 - [x] Testes: Setor 5 inteiro (bot), rota segura das estacas (zona da nave), faixa do cometa = área do dano, corpo x desenho; demo desvia de cometas
+
+**S9 — Setor 6 (Colmeia): concluído (04/11/2026)**
+- [x] Enxame (`EnemyLayer` SWARM): insetos fracos (1 tiro, pouco dano) que vêm em grupo e seguem a nave de leve; evento `SWARM` e grupos avulsos (`swarm` no DENSITY)
+- [x] Ovos (`EnemyLayer` EGG): descem devagar e eclodem em 3 insetos quando o anel fecha (4 s); evento `HATCH` (eclosão) e ovos avulsos (`eggs`)
+- [x] Rainha da Colmeia (`scripts/bosses/hive_queen.gd`): chuva de ácido em colunas avisadas (nunca vizinhas), põe ovos (ovo destruído vira orbe de escudo); fase 2 com escudo vivo de 8 guardas girando que voltam aos poucos
+- [x] Trilha própria (Lá menor frígio, 92 BPM) e nebulosa musgo/âmbar
+- [x] Infinito: bioma Colmeia (enxame, ovos, eclosão) e a Rainha no sorteio
+- [x] Testes: Setor 6 inteiro (bot), colunas de ácido sempre com faixa livre, corpo x desenho

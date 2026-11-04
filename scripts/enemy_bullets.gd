@@ -3,11 +3,12 @@ extends Node2D
 ## Pool de projéteis inimigos com padrões reutilizáveis (mirado, leque, anel).
 ## Cada tipo tem forma própria — nunca diferenciar só pela cor.
 
-enum Kind { ORB, DIAMOND, ROCK, CHUNK, ICE }
+enum Kind { ORB, DIAMOND, ROCK, CHUNK, ICE, ACID }
 
 const ROCK_RADIUS := 18.0
 const CHUNK_RADIUS := 55.0  # pedaço de metal arremessado pelo Minerador
 const ICE_RADIUS := 13.0    # estaca de gelo do Colosso (pode rachar em duas no meio do caminho)
+const ACID_RADIUS := 14.0   # gota de ácido da Rainha da Colmeia (cai em colunas avisadas)
 ## Contorno da pedra (unitário; escalado pelo raio e girando).
 const ROCK_SHAPE := [Vector2(1.0, 0.0), Vector2(0.55, 0.8), Vector2(-0.2, 0.95), Vector2(-0.85, 0.45),
 		Vector2(-0.9, -0.35), Vector2(-0.3, -0.9), Vector2(0.5, -0.8)]
@@ -44,6 +45,8 @@ func fire(pos: Vector2, vel: Vector2, kind := Kind.ORB) -> void:
 			s.radius = ROCK_RADIUS
 		Kind.CHUNK:
 			s.radius = CHUNK_RADIUS
+		Kind.ACID:
+			s.radius = ACID_RADIUS
 		Kind.ICE:
 			s.radius = ICE_RADIUS
 	s.t = 0.0
@@ -153,6 +156,12 @@ func _draw() -> void:
 				draw_texture_rect(tex, Rect2(-s.radius, -s.radius, s.radius * 2.0, s.radius * 2.0), false)
 				draw_set_transform(Vector2.ZERO, 0.0)
 			draw_arc(s.pos, s.radius * 1.1, 0.0, TAU, 32, Palette.ENEMY_HDR, 4.0, true)
+		elif s.kind == Kind.ACID:
+			# Gota de ácido: verde-ácido com rastro, contorno de perigo.
+			var dir := s.vel.normalized()
+			draw_line(s.pos, s.pos - dir * s.radius * 3.0, Color(0.5, 1.0, 0.2, 0.3), s.radius * 1.2, true)
+			draw_circle(s.pos, s.radius, Color(0.9, 2.2, 0.5))
+			draw_arc(s.pos, s.radius, 0.0, TAU, 20, Palette.ENEMY_HDR, 3.0, true)
 		elif s.kind == Kind.ICE:
 			# Estaca de gelo: cristal comprido, branco-gelo, contorno de perigo.
 			var dir := s.vel.normalized()

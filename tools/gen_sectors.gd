@@ -13,7 +13,48 @@ func _initialize() -> void:
 	_save(_sector_3())
 	_save(_sector_4())
 	_save(_sector_5())
+	_save(_sector_6())
 	quit()
+
+
+## Setor 6 — Colmeia: enxame, ovos que eclodem, eclosão em massa; chefe Rainha da Colmeia.
+func _sector_6() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_6"
+	s.number = 6
+	s.title = "SETOR 6"
+	s.subtitle = "Colmeia"
+	s.duration = 150.0
+	s.difficulty_start = 0.6
+	s.difficulty_end = 0.92
+	s.music = "sector6"
+	s.nebula_a = Color(0.10, 0.18, 0.05)  # verde-musgo
+	s.nebula_b = Color(0.30, 0.20, 0.04)  # âmbar orgânico
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.8, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 6\nColmeia", "duration": 2.5}),
+		WaveEvent.make(5.0, K.SWARM, {"count": 6, "text": "ENXAME! Um tiro derruba cada inseto"}),
+		WaveEvent.make(14.0, K.SWARM, {"count": 8}),
+		WaveEvent.make(20.0, K.DENSITY, {"density": 0.8, "metals": true, "swarm": 0.15, "eggs": 0.2}),
+		WaveEvent.make(20.0, K.MESSAGE, {"text": "Ovos eclodem quando o anel fecha.\nDestrua antes!", "duration": 4.0}),
+		WaveEvent.make(40.0, K.HATCH, {"count": 5}),
+		WaveEvent.make(55.0, K.METAL_WALL),
+		WaveEvent.make(62.0, K.DENSITY, {"density": 0.95, "metals": true, "swarm": 0.2, "eggs": 0.2,
+				"moving": 0.2, "ice": 0.2}),
+		WaveEvent.make(75.0, K.SWARM, {"count": 10}),
+		WaveEvent.make(88.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(88.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(100.0, K.HATCH, {"count": 6}),
+		WaveEvent.make(108.0, K.DENSITY, {"density": 1.05, "metals": true, "swarm": 0.22, "eggs": 0.25,
+				"moving": 0.25, "turrets": 0.15, "comets": 0.06}),
+		WaveEvent.make(118.0, K.SWARM, {"count": 12}),
+		WaveEvent.make(128.0, K.METAL_WALL),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "Um zumbido enorme vem do fundo da colmeia...", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "hive_queen"}),
+	])
+	return s
 
 
 ## Setor 5 — Anel Glacial: gelo que racha em lascas, cometas; chefe Colosso de Gelo.

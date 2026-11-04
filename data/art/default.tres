@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://sprites/metal_1.png" id="4_tff5p"]
 [ext_resource type="Texture2D" path="res://sprites/metal_2.png" id="5_5hgmi"]
 [ext_resource type="Texture2D" path="res://sprites/boss_medusa.png" id="5_ik4b2"]
+[ext_resource type="Texture2D" path="res://sprites/boss_hive_queen.png" id="6_4jbvx"]
 [ext_resource type="Texture2D" path="res://sprites/boss_ice_colossus.png" id="6_7yqe6"]
 [ext_resource type="Texture2D" path="res://sprites/metal_3.png" id="6_ik4b2"]
 [ext_resource type="Texture2D" path="res://sprites/ice_1.png" id="7_4jbvx"]
@@ -32,3 +33,4 @@ miner_body = ExtResource("8_ik4b2")
 medusa_body = ExtResource("5_ik4b2")
 cruiser_body = ExtResource("1_5u5ty")
 ice_colossus_body = ExtResource("6_7yqe6")
+hive_queen_body = ExtResource("6_4jbvx")

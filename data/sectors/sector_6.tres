@@ -1,0 +1,142 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_74apq"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_78muk"]
+
+[sub_resource type="Resource" id="Resource_uxrbk"]
+script = ExtResource("1_74apq")
+kind = 1
+density = 0.8
+
+[sub_resource type="Resource" id="Resource_iqgmt"]
+script = ExtResource("1_74apq")
+at = 0.5
+duration = 2.5
+text = "SETOR 6
+Colmeia"
+
+[sub_resource type="Resource" id="Resource_ju4bg"]
+script = ExtResource("1_74apq")
+at = 5.0
+kind = 13
+text = "ENXAME! Um tiro derruba cada inseto"
+count = 6
+
+[sub_resource type="Resource" id="Resource_fe87g"]
+script = ExtResource("1_74apq")
+at = 14.0
+kind = 13
+count = 8
+
+[sub_resource type="Resource" id="Resource_r1uxf"]
+script = ExtResource("1_74apq")
+at = 20.0
+kind = 1
+density = 0.8
+swarm = 0.15
+eggs = 0.2
+
+[sub_resource type="Resource" id="Resource_n8q1f"]
+script = ExtResource("1_74apq")
+at = 20.0
+duration = 4.0
+text = "Ovos eclodem quando o anel fecha.
+Destrua antes!"
+
+[sub_resource type="Resource" id="Resource_m2olq"]
+script = ExtResource("1_74apq")
+at = 40.0
+kind = 14
+count = 5
+
+[sub_resource type="Resource" id="Resource_5udwj"]
+script = ExtResource("1_74apq")
+at = 55.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_qm0ij"]
+script = ExtResource("1_74apq")
+at = 62.0
+kind = 1
+density = 0.95
+moving = 0.2
+ice = 0.2
+swarm = 0.2
+eggs = 0.2
+
+[sub_resource type="Resource" id="Resource_l0smn"]
+script = ExtResource("1_74apq")
+at = 75.0
+kind = 13
+count = 10
+
+[sub_resource type="Resource" id="Resource_t1pen"]
+script = ExtResource("1_74apq")
+at = 88.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_2ql40"]
+script = ExtResource("1_74apq")
+at = 88.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_ikkrn"]
+script = ExtResource("1_74apq")
+at = 100.0
+kind = 14
+count = 6
+
+[sub_resource type="Resource" id="Resource_6xivy"]
+script = ExtResource("1_74apq")
+at = 108.0
+kind = 1
+density = 1.05
+moving = 0.25
+turrets = 0.15
+comets = 0.06
+swarm = 0.22
+eggs = 0.25
+
+[sub_resource type="Resource" id="Resource_6xp0d"]
+script = ExtResource("1_74apq")
+at = 118.0
+kind = 13
+count = 12
+
+[sub_resource type="Resource" id="Resource_byxsi"]
+script = ExtResource("1_74apq")
+at = 128.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_1xkp1"]
+script = ExtResource("1_74apq")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_rkn3u"]
+script = ExtResource("1_74apq")
+at = 140.0
+duration = 3.0
+text = "Um zumbido enorme vem do fundo da colmeia..."
+
+[sub_resource type="Resource" id="Resource_5lod8"]
+script = ExtResource("1_74apq")
+at = 144.0
+kind = 7
+text = "hive_queen"
+
+[resource]
+script = ExtResource("2_78muk")
+id = "sector_6"
+number = 6
+title = "SETOR 6"
+subtitle = "Colmeia"
+difficulty_start = 0.6
+difficulty_end = 0.92
+events = Array[ExtResource("1_74apq")]([SubResource("Resource_uxrbk"), SubResource("Resource_iqgmt"), SubResource("Resource_ju4bg"), SubResource("Resource_fe87g"), SubResource("Resource_r1uxf"), SubResource("Resource_n8q1f"), SubResource("Resource_m2olq"), SubResource("Resource_5udwj"), SubResource("Resource_qm0ij"), SubResource("Resource_l0smn"), SubResource("Resource_t1pen"), SubResource("Resource_2ql40"), SubResource("Resource_ikkrn"), SubResource("Resource_6xivy"), SubResource("Resource_6xp0d"), SubResource("Resource_byxsi"), SubResource("Resource_1xkp1"), SubResource("Resource_rkn3u"), SubResource("Resource_5lod8")])
+music = "sector6"
+nebula_a = Color(0.1, 0.18, 0.05, 1)
+nebula_b = Color(0.3, 0.2, 0.04, 1)

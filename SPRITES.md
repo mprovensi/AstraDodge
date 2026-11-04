@@ -45,6 +45,7 @@ e colocá-los no jogo sem quebrar nada.
 | `boss_cruiser.png` | **1024×512** | nave de guerra **larga**, vista de cima | canhões (220,300) e (804,300); lançador (512,184); ponte (512,280) |
 | `ice_1.png`, `ice_2.png` | 256×256 | bloco de **gelo** facetado azul-claro, **redondo**, ~92% do raio (racha ao quebrar) | — |
 | `boss_ice_colossus.png` | 512×512 | bloco de gelo gigante **redondo** (~94% do raio) | núcleo no **centro** (256,256), encaixe ~160 px; as placas em volta o jogo desenha |
+| `boss_hive_queen.png` | 512×512 | inseto rainha visto de cima, **cabeça para BAIXO**: abdômen em cima, tórax no centro, cabeça embaixo | coração no **centro** (256,256), encaixe ~120 px; corpo: abdômen centro (256,130) raio ~110, tórax raio ~120, cabeça centro (256,398) raio ~65 |
 
 O jogo **desenha por cima** (não precisam estar na imagem): núcleos/olhos dos chefes,
 tentáculos da Medusa, canhões/lançador/ponte do Cruzador, chamas dos motores, escudo da nave.
@@ -167,4 +168,16 @@ Bloco de gelo GIGANTE, REDONDO e facetado (~94% do raio), branco-gelo com azul-c
 bordas, facetas que convergem para o centro e rachaduras escuras. No CENTRO (256,256), um
 encaixe circular escuro de ~160 px de diâmetro com aro gelo (o jogo desenha o núcleo).
 SEM as placas em volta (o jogo desenha o anel de placas que gira).
+```
+
+## Prompts prontos — Setor 6
+
+### Chefe 6 — Rainha da Colmeia — `boss_hive_queen.png`
+```
+Sprite 2D de chefe para jogo mobile, vista de cima. PNG 512x512, fundo TRANSPARENTE.
+Rainha inseto (vespa/abelha alienígena) com a CABEÇA PARA BAIXO: abdômen listrado verde-musgo
+em cima (centro ~256,130), tórax âmbar arredondado no centro, cabeça embaixo (centro ~256,398)
+com mandíbulas e olhos laranja, 6 patas escuras e asas translúcidas (bem transparentes) nos lados.
+No CENTRO (256,256), um encaixe circular escuro de ~120 px com aro dourado (o jogo desenha o coração).
+Os insetos e ovos são desenhados pelo jogo (não precisam de imagem).
 ```

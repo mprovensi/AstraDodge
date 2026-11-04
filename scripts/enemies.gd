@@ -8,8 +8,11 @@ extends Node2D
 ##   nave e BRILHA antes de atirar (tiro mirado lento).
 ## - MISSILE (Setor 4): míssil teleguiado lento — curva devagar (dá para fugir de lado) e
 ##   cai com 1 tiro.
+## - SWARM (Setor 6): inseto do enxame — fraco (1 tiro), vem em grupo e segue a nave de leve.
+## - EGG (Setor 6): ovo que desce com o cenário; se não for destruído a tempo, eclode em
+##   EGG_LARVAE insetos. O anel em volta mostra quanto falta para eclodir.
 
-enum Kind { DRONE, MINE, TURRET, MISSILE }
+enum Kind { DRONE, MINE, TURRET, MISSILE, SWARM, EGG }
 
 class Enemy:
 	var id := 0
@@ -36,6 +39,7 @@ var view_size := Vector2.ZERO
 var _next_id := 0
 var _blasts: Array[Vector3] = []  # explosões deste passo (x, y, raio) — o Main confere a nave
 var _target := Vector2.ZERO       # posição da nave (o cano das torretas aponta para ela)
+var hatched := 0                  # ovos que eclodiram (testes)
 
 
 func resize(size: Vector2) -> void:
@@ -66,6 +70,24 @@ func spawn_missile(pos: Vector2, dir: Vector2) -> Enemy:
 	return e
 
 
+## Grupo do enxame entrando pelo topo, espalhado em volta de `center_x`.
+func spawn_swarm(count: int, center_x: float, top := -40.0) -> void:
+	for i in count:
+		var p := Vector2(center_x + randf_range(-Tuning.SWARM_SPREAD, Tuning.SWARM_SPREAD),
+				top - randf_range(0.0, Tuning.SWARM_SPREAD))
+		p.x = clampf(p.x, Tuning.SWARM_RADIUS, view_size.x - Tuning.SWARM_RADIUS)
+		var e := _new_enemy(Kind.SWARM, p, Tuning.SWARM_HP, Tuning.SWARM_RADIUS)
+		e.vel = Vector2(0, Tuning.SWARM_SPEED * randf_range(0.85, 1.15))
+
+
+## Ovo: desce devagar (parte da rolagem + `fall` px/s) e eclode se ficar EGG_HATCH s na tela.
+func spawn_egg(pos: Vector2, fall := 0.0) -> Enemy:
+	var e := _new_enemy(Kind.EGG, pos, Tuning.EGG_HP, Tuning.EGG_RADIUS)
+	e.vel = Vector2(0, fall)
+	e.armed = -1.0  # vira o relógio de eclosão quando entra na tela
+	return e
+
+
 ## Formação em V de drones, centrada em `center_x`, entrando pelo topo.
 func spawn_drone_v(count: int, center_x: float) -> void:
 	for i in count:
@@ -91,6 +113,7 @@ func _new_enemy(kind: Kind, pos: Vector2, hp: int, radius: float) -> Enemy:
 func update(dt: float, target: Vector2, scroll_speed := 0.0) -> void:
 	_blasts.clear()
 	_target = target
+	var hatch_at: Array[Vector2] = []
 	for e in enemies:
 		e.t += dt
 		e.flash = maxf(0.0, e.flash - dt)
@@ -129,11 +152,33 @@ func update(dt: float, target: Vector2, scroll_speed := 0.0) -> void:
 				e.pos += e.vel * dt
 				if e.t > Tuning.MISSILE_LIFE or e.pos.x < -80.0 or e.pos.x > view_size.x + 80.0:
 					e.alive = false
+			Kind.SWARM:
+				# Segue a nave de lado enquanto está acima dela; depois só passa reto.
+				e.pos.y += e.vel.y * dt
+				if e.pos.y < target.y - 120.0:
+					e.pos.x += clampf(target.x - e.pos.x, -1.0, 1.0) * Tuning.SWARM_STEER * dt
+				e.pos.x += sin(e.t * 6.0 + e.id) * 60.0 * dt  # zumbido
+			Kind.EGG:
+				e.pos.y += (scroll_speed * Tuning.EGG_SCROLL_K + e.vel.y) * dt
+				if e.armed < 0.0 and e.pos.y > 0.0:
+					e.armed = 0.0
+				if e.armed >= 0.0:
+					e.armed += dt
+					if e.armed >= Tuning.EGG_HATCH:
+						e.alive = false
+						hatched += 1
+						hatch_at.append(e.pos)  # as larvas nascem depois do laço
+						Sfx.play("hit", -6.0, 0.6, 0.0, e.pos)
 		if e.pos.y - e.radius > view_size.y:
 			e.alive = false
 	for i in range(enemies.size() - 1, -1, -1):
 		if not enemies[i].alive:
 			enemies.remove_at(i)
+	for p in hatch_at:
+		for i in Tuning.EGG_LARVAE:
+			var dir := Vector2.from_angle(PI * 0.5 + (i - 1) * 0.6)
+			var larva := _new_enemy(Kind.SWARM, p + dir * 20.0, Tuning.SWARM_HP, Tuning.SWARM_RADIUS)
+			larva.vel = Vector2(0, Tuning.SWARM_SPEED)
 	queue_redraw()
 
 
@@ -186,6 +231,12 @@ func _draw() -> void:
 			continue
 		if e.kind == Kind.MISSILE:
 			_draw_missile(e)
+			continue
+		if e.kind == Kind.SWARM:
+			_draw_swarm(e)
+			continue
+		if e.kind == Kind.EGG:
+			_draw_egg(e)
 			continue
 		var body := PackedVector2Array()
 		for i in 6:
@@ -252,3 +303,34 @@ func _draw_missile(e: Enemy) -> void:
 			back - side * r * 0.55, e.pos - side * r * 0.55])
 	draw_colored_polygon(body, Palette.WHITE_HDR if e.flash > 0.0 else Color(0.55, 0.57, 0.63))
 	draw_polyline(body + PackedVector2Array([body[0]]), Palette.ENEMY_HDR, 3.0, true)
+
+
+## Inseto do enxame: corpo âmbar em gota, asas que batem rápido e contorno de perigo.
+func _draw_swarm(e: Enemy) -> void:
+	var r := e.radius
+	var flap := absf(sin(e.t * 30.0))
+	for side: float in [-1.0, 1.0]:
+		var wing := PackedVector2Array([e.pos + Vector2(side * r * 0.3, -r * 0.2),
+				e.pos + Vector2(side * r * (1.2 + 0.4 * flap), -r * (0.9 - 0.5 * flap)),
+				e.pos + Vector2(side * r * 1.3, r * 0.1)])
+		draw_colored_polygon(wing, Color(0.8, 0.95, 0.7, 0.35))
+	var body := PackedVector2Array([e.pos + Vector2(0, r * 1.1), e.pos + Vector2(r * 0.6, 0),
+			e.pos + Vector2(r * 0.45, -r * 0.8), e.pos + Vector2(-r * 0.45, -r * 0.8), e.pos + Vector2(-r * 0.6, 0)])
+	draw_colored_polygon(body, Palette.WHITE_HDR if e.flash > 0.0 else Color(0.62, 0.42, 0.08))
+	draw_polyline(body + PackedVector2Array([body[0]]), Palette.ENEMY_HDR, 3.0, true)
+	draw_circle(e.pos + Vector2(0, r * 0.55), r * 0.22, Palette.ENEMY_HDR)
+
+
+## Ovo: oval verde-âmbar pulsando; o anel em volta enche até eclodir (vermelho no fim).
+func _draw_egg(e: Enemy) -> void:
+	var r := e.radius
+	var k := clampf(e.armed / Tuning.EGG_HATCH, 0.0, 1.0) if e.armed >= 0.0 else 0.0
+	var pulse := 1.0 + 0.06 * sin(e.t * (4.0 + 14.0 * k))
+	draw_set_transform(e.pos, 0.0, Vector2(0.85, 1.1) * pulse)
+	draw_circle(Vector2.ZERO, r, Palette.WHITE_HDR if e.flash > 0.0 else Color(0.35, 0.45, 0.12))
+	draw_circle(Vector2(-r * 0.3, -r * 0.35), r * 0.3, Color(0.7, 0.85, 0.35, 0.7))
+	draw_arc(Vector2.ZERO, r, 0.0, TAU, 28, Color(0.8, 0.9, 0.4), 3.0, true)
+	draw_set_transform(Vector2.ZERO, 0.0)
+	if e.armed >= 0.0:
+		var c := Color(0.9, 0.85, 0.3).lerp(Palette.DANGER_HDR, k)
+		draw_arc(e.pos, r * 1.45, -PI * 0.5, -PI * 0.5 + TAU * k, 32, c, 5.0, true)

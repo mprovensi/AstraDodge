@@ -13,6 +13,8 @@ var mines := 0.0
 var turrets := 0.0
 var ice := 0.0
 var comets := 0.0
+var swarm := 0.0
+var eggs := 0.0
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
@@ -99,6 +101,8 @@ func _apply(e: WaveEvent, elapsed: float) -> void:
 			turrets = e.turrets
 			ice = e.ice
 			comets = e.comets
+			swarm = e.swarm
+			eggs = e.eggs
 		WaveEvent.Kind.DUST_RAIN:
 			rain_left = maxf(0.0, e.duration - elapsed)
 		WaveEvent.Kind.CALM:

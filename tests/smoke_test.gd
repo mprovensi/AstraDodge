@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_sector3()
 	_test_sector4()
 	_test_sector5()
+	_test_sector6()
 	_test_endless_generator()
 	_test_endless_run()
 	_test_boss_safety()
@@ -334,9 +335,64 @@ func _test_sector5() -> void:
 	assert(comets_seen >= 13, "chuvas de cometas + avulsos (vi %d)" % comets_seen)
 	assert(boss_seen and phase2_seen, "Colosso: fase 2")
 	assert(plate_hits > 0, "as placas ficam embaixo do núcleo parte do tempo (fendas)")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "depois do Setor 5 vem o Setor 6")
 	print("SETOR 5 OK | %.1fs | lascas=%d | cometas=%d | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, main.ice_shards, comets_seen, boss_time, str(main.star_checks())])
+
+
+## Continua do Setor 5: PRÓXIMO SETOR → Setor 6 inteiro (enxame, ovos, Rainha da Colmeia).
+func _test_sector6() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_6")
+	assert(sfx.current_track() == "sector6", "Setor 6 tem trilha própria")
+	_touch(true)
+	var seen := {}
+	var boss_seen := false
+	var phase2_seen := false
+	var guards_min := 99
+	var acid_seen := false
+	var boss_time := 0.0
+	var frames := 0
+	var hatched_before: int = main.enemies.hatched
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 360:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			if boss.phase == 2:
+				phase2_seen = true
+				guards_min = mini(guards_min, boss.alive_guards())
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		for e in main.enemies.enemies:
+			seen[e.id] = e.kind
+		for s in main.enemy_shots.pool:
+			acid_seen = acid_seen or (s.alive and s.kind == 5)
+		frames += 1
+	var swarm := 0
+	var eggs := 0
+	for id in seen:
+		swarm += int(seen[id] == 4)
+		eggs += int(seen[id] == 5)
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 6 deveria terminar (Rainha derrotada)")
+	assert(swarm >= 40, "enxame aparece em quantidade (vi %d)" % swarm)
+	assert(eggs >= 10 and main.eggs_destroyed > 0, "ovos aparecem e são destruídos (%d/%d)" % [main.eggs_destroyed, eggs])
+	assert(boss_seen and phase2_seen and acid_seen, "Rainha: fase 2 e chuva de ácido")
+	assert(guards_min < HiveQueenGuards(), "tiros derrubam guardas do escudo vivo")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 6 OK | %.1fs | insetos=%d | ovos=%d (destruidos %d, eclodiram %d) | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, swarm, eggs, main.eggs_destroyed, main.enemies.hatched - hatched_before, boss_time,
+		str(main.star_checks())])
+
+
+func HiveQueenGuards() -> int:
+	return load("res://scripts/bosses/hive_queen.gd").GUARDS
 
 
 ## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
@@ -404,8 +460,47 @@ func _test_boss_safety() -> void:
 	assert(ice_out <= 5.0, "corpo do Colosso: %.0f%% da colisão fora do desenho" % ice_out)
 	print("ROTA SEGURA S5 OK | estacas=%.0f | faixa do cometa=%.0f | corpo fora do desenho=%.0f%%" % [
 		shard_gap, Tuning.COMET_WARN_WIDTH, ice_out])
+
+	# Setor 6 / Rainha: colunas de ácido nunca vizinhas (sobra pelo menos uma faixa livre
+	# entre elas), as gotas ficam dentro da coluna avisada, corpo x desenho.
+	var hq: GDScript = load("res://scripts/bosses/hive_queen.gd")
+	var acid_gap: float = hq.acid_min_gap(1080.0)
+	assert(acid_gap >= ship_gap * 2.0, "ácido: só %.0f px entre colunas" % acid_gap)
+	for i in 200:
+		var cols: Array[int] = hq.pick_acid_slots(3, randi() % hq.ACID_SLOTS)
+		assert(cols.size() == 3, "3 colunas de ácido cabem sem vizinhas")
+		for c in cols:
+			assert(not (c + 1) in cols, "colunas de ácido vizinhas: %s" % str(cols))
+	var slot_w: float = 1080.0 / hq.ACID_SLOTS
+	var acid_r: float = load("res://scripts/enemy_bullets.gd").ACID_RADIUS
+	assert(slot_w * 0.2 - acid_r >= 0.0, "gota da borda fica dentro do aviso")
+	var queen_out := _bodies_outside_pct(hq.BODIES, hq.SPRITE_SIZE, root.get_node("Game").art.hive_queen_body)
+	assert(queen_out <= 5.0, "corpo da Rainha: %.0f%% da colisão fora do desenho" % queen_out)
+	print("ROTA SEGURA S6 OK | entre colunas de acido=%.0f | corpo fora do desenho=%.0f%%" % [acid_gap, queen_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+## Corpo feito de círculos [[offset, raio], ...] contra os pixels de um sprite quadrado.
+func _bodies_outside_pct(bodies: Array, sprite_size: float, tex: Texture2D) -> float:
+	var img: Image = tex.get_image()
+	var half := sprite_size * 0.5
+	var hits := 0
+	var outside := 0
+	for y in range(-int(half), int(half) + 1, 6):
+		for x in range(-int(half), int(half) + 1, 6):
+			var p := Vector2(x, y)
+			var inside := false
+			for body in bodies:
+				inside = inside or p.distance_to(body[0]) < float(body[1])
+			if not inside:
+				continue
+			hits += 1
+			var u := clampi(int((x + half) / (2.0 * half) * img.get_width()), 0, img.get_width() - 1)
+			var v := clampi(int((y + half) / (2.0 * half) * img.get_height()), 0, img.get_height() - 1)
+			if img.get_pixel(u, v).a <= 0.5:
+				outside += 1
+	return 100.0 * outside / maxf(1.0, hits)
 
 
 ## Corpo redondo (BODY_RADIUS) contra os pixels do sprite (SPRITE_SIZE), sem as placas.
@@ -568,8 +663,8 @@ func _test_checkpoint() -> void:
 ## Infinito procedural: mesma semente = mesma partida; 100 sementes respeitam as regras de ritmo.
 func _test_endless_generator() -> void:
 	var K := WaveEvent.Kind
-	var biomes: Array[int] = [0, 1, 2, 3, 4]
-	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus"]
+	var biomes: Array[int] = [0, 1, 2, 3, 4, 5]
+	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen"]
 	var horizon := 900.0  # 15 min de linha do tempo
 	var a := _endless_timeline(42, biomes, bosses, horizon)
 	var b := _endless_timeline(42, biomes, bosses, horizon)
@@ -586,7 +681,7 @@ func _test_endless_generator() -> void:
 		var boss_times: Array[float] = []
 		var last_boss := ""
 		for e in events:
-			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
+			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS, K.HATCH] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
 			if heavy:
 				assert(e.at - last_heavy >= 18.0, "semente %d: dois blocos pesados seguidos (%.1fs)" % [seed_value, e.at])
 				assert(e.duration <= 8.5, "bloco pesado longo demais")
@@ -638,8 +733,8 @@ func _test_endless_run() -> void:
 	var saved_cp := {"sector": 2, "time": 33.0, "weapon": 3}
 	game.checkpoint = saved_cp.duplicate()
 	main.endless_seed = 7
-	main.endless_biomes.assign([0, 1, 2, 3, 4])
-	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus"])
+	main.endless_biomes.assign([0, 1, 2, 3, 4, 5])
+	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen"])
 	main.start_endless()
 	assert(main.state == main.State.READY and main.mode == main.Mode.ENDLESS)
 	_touch(true)

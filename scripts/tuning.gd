@@ -110,6 +110,21 @@ const COMET_WARN_WIDTH := 120.0     # largura da faixa de aviso (≥ diâmetro +
 const COMET_SHOWER_INTERVAL := 0.9  # s entre cometas de uma chuva
 const SHIELD_DMG_COMET := 25.0
 
+# --- Setor 6: Colmeia ---
+const SWARM_RADIUS := 22.0
+const SWARM_HP := 1
+const SWARM_SPEED := 240.0          # desce mais rápido que a rolagem
+const SWARM_STEER := 150.0          # px/s de lado, seguindo a nave (de leve)
+const SWARM_SPREAD := 170.0         # espalhamento do grupo ao nascer
+const SHIELD_DMG_SWARM := 10.0      # cada inseto machuca pouco; o perigo é o número
+const SWARM_CRYSTAL_CHANCE := 0.12
+const SCORE_PER_SWARM := 15
+const EGG_RADIUS := 30.0
+const EGG_HP := 2
+const EGG_HATCH := 4.0              # s na tela até eclodir (o anel em volta mostra quanto falta)
+const EGG_LARVAE := 3               # insetos que saem de um ovo não destruído
+const EGG_SCROLL_K := 0.3           # ovo desce mais devagar que o cenário (dá tempo de eclodir)
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

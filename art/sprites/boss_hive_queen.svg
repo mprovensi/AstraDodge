@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- RAINHA DA COLMEIA (chefe do Setor 6): inseto visto de cima, CABEÇA PARA BAIXO.
+       Abdômen em cima, tórax no centro (o coração/ponto fraco em 128,128 é desenhado pelo
+       código), cabeça embaixo. Asas translúcidas (não contam como corpo). -->
+  <defs>
+    <radialGradient id="shell" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#d9a640"/>
+      <stop offset="0.55" stop-color="#7a5212"/>
+      <stop offset="1" stop-color="#2e1d05"/>
+    </radialGradient>
+    <radialGradient id="abd" cx="45%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#9fb34a"/>
+      <stop offset="0.6" stop-color="#4c5a16"/>
+      <stop offset="1" stop-color="#1d2406"/>
+    </radialGradient>
+  </defs>
+  <!-- Asas -->
+  <g fill="#cfeec0" fill-opacity="0.28" stroke="#e8ffd8" stroke-opacity="0.45" stroke-width="2">
+    <path d="M100 110 C40 70 6 90 10 130 C14 160 60 150 100 132 Z"/>
+    <path d="M156 110 C216 70 250 90 246 130 C242 160 196 150 156 132 Z"/>
+  </g>
+  <!-- Patas -->
+  <g stroke="#3a2808" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M70 120 L36 104 L22 74"/><path d="M186 120 L220 104 L234 74"/>
+    <path d="M66 140 L30 150 L18 182"/><path d="M190 140 L226 150 L238 182"/>
+    <path d="M80 164 L52 196 L48 226"/><path d="M176 164 L204 196 L208 226"/>
+  </g>
+  <!-- Abdômen com listras -->
+  <ellipse cx="128" cy="66" rx="60" ry="60" fill="url(#abd)" stroke="#d7ef8a" stroke-width="5"/>
+  <g fill="none" stroke="#1d2406" stroke-width="7" stroke-opacity="0.8">
+    <path d="M78 46 Q128 30 178 46"/><path d="M72 72 Q128 56 184 72"/><path d="M80 98 Q128 84 176 98"/>
+  </g>
+  <!-- Tórax -->
+  <ellipse cx="128" cy="128" rx="68" ry="64" fill="url(#shell)" stroke="#f5d27a" stroke-width="5"/>
+  <!-- Cabeça e mandíbulas -->
+  <path d="M110 226 L100 250 L116 236 Z M146 226 L156 250 L140 236 Z" fill="#f5d27a"/>
+  <circle cx="128" cy="199" r="37" fill="url(#shell)" stroke="#f5d27a" stroke-width="5"/>
+  <circle cx="110" cy="204" r="9" fill="#ff7a2a"/><circle cx="146" cy="204" r="9" fill="#ff7a2a"/>
+  <!-- Encaixe do coração -->
+  <circle cx="128" cy="128" r="30" fill="#2a0f04" stroke="#f5d27a" stroke-width="4"/>
+</svg>

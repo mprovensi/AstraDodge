@@ -29,6 +29,8 @@ func _initialize() -> void:
 	_save("music_sector4", _lofi(100.0, SECTOR4_CHORDS, SECTOR4_MELODY, true))
 	seed(5055)
 	_save("music_sector5", _lofi(88.0, SECTOR5_CHORDS, SECTOR5_MELODY, false, true))
+	seed(6066)
+	_save("music_sector6", _lofi(92.0, SECTOR6_CHORDS, SECTOR6_MELODY, true))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -364,6 +366,21 @@ const SECTOR5_MELODY := [
 	[76, -1, -1, 78, -1, -1, 80, -1, -1, -1, 76, -1, -1, -1, -1, -1],
 	[-1, -1, 81, -1, 80, -1, -1, 76, -1, -1, 73, -1, -1, 76, -1, -1],
 	[78, -1, -1, -1, 75, -1, -1, 78, -1, 80, -1, -1, -1, -1, -1, -1],
+]
+
+
+## Setor 6 (music_sector6.wav): 92 BPM, grave e pulsante em Lá menor frígio: Am9 · B♭maj7 · Dm9 · E7♭9.
+const SECTOR6_CHORDS := [
+	[45, 48, 52, 55, 59],  # Am9
+	[46, 50, 53, 57],      # Bbmaj7
+	[38, 41, 45, 48, 52],  # Dm9
+	[40, 44, 47, 50, 53],  # E7b9
+]
+const SECTOR6_MELODY := [
+	[69, -1, -1, 70, -1, -1, 69, -1, 67, -1, -1, -1, 64, -1, -1, -1],
+	[-1, 65, -1, -1, 69, -1, 70, -1, -1, 69, -1, -1, 65, -1, -1, -1],
+	[62, -1, 65, -1, -1, 69, -1, -1, 72, -1, -1, 69, -1, -1, -1, -1],
+	[-1, 68, -1, -1, 71, -1, -1, 70, -1, 68, -1, -1, 64, -1, -1, -1],
 ]
 
 

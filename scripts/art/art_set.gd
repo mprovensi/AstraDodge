@@ -52,6 +52,8 @@ extends Resource
 @export var cruiser_body: Texture2D
 ## Colosso de Gelo (Setor 5): bloco de gelo redondo. Núcleo e placas são desenhados pelo código.
 @export var ice_colossus_body: Texture2D
+## Rainha da Colmeia (Setor 6): inseto visto de cima, cabeça para BAIXO. Coração e guardas pelo código.
+@export var hive_queen_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

@@ -12,6 +12,7 @@ const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_3.tres"),
 	preload("res://data/sectors/sector_4.tres"),
 	preload("res://data/sectors/sector_5.tres"),
+	preload("res://data/sectors/sector_6.tres"),
 ]
 
 var state := State.MENU
@@ -68,6 +69,7 @@ var _storm_timer := 0.0         # s até o próximo raio
 var _comets_left := 0           # cometas que ainda faltam na CHUVA DE COMETAS
 var _comet_timer := 0.0
 var ice_shards := 0             # lascas criadas por gelo rachado (testes)
+var eggs_destroyed := 0         # ovos destruídos antes de eclodir (testes)
 var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
 var boss_orbs_dropped := 0      # orbes soltos por acertos no chefe (testes)
 var _biome := 0                # setor cujo cenário está na tela (no Infinito, troca sozinho)
@@ -249,6 +251,7 @@ func _new_run() -> void:
 	_storm_left = 0.0
 	_comets_left = 0
 	ice_shards = 0
+	eggs_destroyed = 0
 	bosses_defeated = 0
 	boss_orbs_dropped = 0
 	bullets.clear()
@@ -523,6 +526,17 @@ func _on_wave_event(e: WaveEvent) -> void:
 			enemies.spawn_drone_v(e.count, randf_range(margin, view_size.x - margin))
 			if e.text != "":
 				hud.show_hint(e.text, 2.5)
+		WaveEvent.Kind.SWARM:
+			enemies.spawn_swarm(e.count, randf_range(view_size.x * 0.25, view_size.x * 0.75))
+			if e.text != "":
+				hud.show_hint(e.text, 2.5)
+		WaveEvent.Kind.HATCH:
+			# Ovos espalhados pela largura, todos de uma vez: dá para destruir quase todos.
+			for i in e.count:
+				var x := view_size.x * (i + 0.5) / e.count + randf_range(-40.0, 40.0)
+				enemies.spawn_egg(Vector2(x, -60.0 - randf_range(0.0, 160.0)))
+			hud.show_hint("ECLOSÃO! Destrua os ovos\nantes do anel fechar", 2.5)
+			Sfx.play("alarm", -10.0, 0.9, 0.0)
 		WaveEvent.Kind.COMETS:
 			_comets_left = e.count
 			_comet_timer = 0.0
@@ -556,6 +570,15 @@ func _on_row_spawned(gap_x: float) -> void:
 			var x := randf_range(60.0, view_size.x - 60.0)
 			if absf(x - gap_x) > half_gap:
 				enemies.spawn_mine(Vector2(x, -60.0))
+				break
+	# Setor 6: grupinho do enxame e ovos avulsos (fora do corredor livre).
+	if randf() < director.swarm:
+		enemies.spawn_swarm(4, randf_range(view_size.x * 0.2, view_size.x * 0.8))
+	if randf() < director.eggs:
+		for attempt in 6:
+			var x := randf_range(60.0, view_size.x - 60.0)
+			if absf(x - gap_x) > half_gap:
+				enemies.spawn_egg(Vector2(x, -60.0))
 				break
 	# Setor 5: cometa avulso de vez em quando.
 	if randf() < director.comets:
@@ -718,7 +741,8 @@ func _check_ship_hits() -> void:
 
 	for e in enemies.enemies:
 		if e.alive and ship.position.distance_to(e.pos) < e.radius * 0.85 + Tuning.SHIP_HITBOX_RADIUS:
-			if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY):
+			var body_dmg := Tuning.SHIELD_DMG_SWARM if e.kind == EnemyLayer.Kind.SWARM else Tuning.SHIELD_DMG_ENEMY_BODY
+			if _damage_ship(body_dmg):
 				e.alive = false
 				fx.explosion(e.pos, e.radius, Palette.ENEMY_HDR)
 				if not ship.alive:
@@ -808,8 +832,26 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 
 func _on_enemy_destroyed(e: EnemyLayer.Enemy) -> void:
 	enemies_destroyed += 1
-	bonus_score += Tuning.SCORE_PER_ENEMY
 	fx.explosion(e.pos, e.radius, Palette.ENEMY_HDR)
+	match e.kind:
+		EnemyLayer.Kind.SWARM:
+			# Enxame: muitos e fracos — pouco ponto e poucos cristais cada, som curtinho.
+			bonus_score += Tuning.SCORE_PER_SWARM
+			Sfx.play("hit", -10.0, 1.6, 0.1, e.pos)
+			if randf() < Tuning.SWARM_CRYSTAL_CHANCE:
+				pickups.spawn(e.pos, PickupLayer.Kind.CRYSTAL)
+			return
+		EnemyLayer.Kind.EGG:
+			# Ovo destruído a tempo: na luta contra a Rainha sempre vira orbe de escudo.
+			eggs_destroyed += 1
+			bonus_score += Tuning.SCORE_PER_ENEMY
+			Sfx.play("explosion", -6.0, 1.4, 0.06, e.pos)
+			if boss != null:
+				pickups.spawn(e.pos, PickupLayer.Kind.SHIELD)
+			elif randf() < 0.5:
+				pickups.spawn(e.pos, PickupLayer.Kind.CRYSTAL)
+			return
+	bonus_score += Tuning.SCORE_PER_ENEMY
 	_shake = maxf(_shake, 6.0)
 	Sfx.play("explosion", -4.0, 1.1, 0.06, e.pos)
 	if randf() < Tuning.ENEMY_CRYSTAL_CHANCE:
@@ -891,6 +933,10 @@ func _spawn_boss(boss_id: String) -> void:
 			boss = cruiser
 		"medusa":
 			boss = Medusa.new()
+		"hive_queen":
+			var queen := HiveQueen.new()
+			queen.enemies = enemies  # os ovos nascem na camada de inimigos
+			boss = queen
 		"ice_colossus":
 			boss = IceColossus.new()
 		"miner":
