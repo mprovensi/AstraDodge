@@ -19,6 +19,7 @@ const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
 const PAUSE_TOP_MARGIN := 460.0
+const DIM_ALPHA := 0.82              # escurecimento do jogo atrás dos menus
 const BOSS_BAR_WIDTH := 640.0
 const BOSS_BAR_HEIGHT := 18.0
 
@@ -63,6 +64,7 @@ var _hint_timer := 0.0
 var _boss_box: VBoxContainer
 var _boss_label: Label
 var _boss_fill: ColorRect
+var _dim: ColorRect
 var _alert_layer: Control
 var _alert_bg: ColorRect
 var _alert_title: Label
@@ -91,6 +93,15 @@ func _ready() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	# Escurece o jogo atrás dos menus (pausa, fim de jogo, setor completo) para o texto
+	# e os botões não se misturarem com asteroides, tiros e nebulosa. Fica atrás do HUD.
+	_dim = ColorRect.new()
+	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dim.color = Color(0.0, 0.0, 0.02, DIM_ALPHA)
+	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dim.visible = false
+	root.add_child(_dim)
 
 	# --- Topo ---
 	_top = VBoxContainer.new()
@@ -331,6 +342,7 @@ func show_paused() -> void:
 	_show("PAUSADO", "Toque na tela para continuar", "", ["options", "quit"])
 	_center.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_center_spacer.visible = true
+	_dim.visible = true
 
 
 func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) -> void:
@@ -340,6 +352,7 @@ func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) 
 		("NOVO RECORDE! %d" if is_record else "PONTOS %d") % score,
 		"RECORDE %d" % best,
 		buttons)
+	_dim.visible = true
 
 
 ## `checks`: [setor completo, chefe sem "última chance", ≥ 70% da poeira] — uma estrela cada.
@@ -360,6 +373,7 @@ func show_sector_clear(title: String, score: int, best: int, is_record: bool, ch
 		text += "[color=%s]• %s[/color]\n" % [color, lines[i]]
 	_star_details.text = text + "[/center]"
 	_star_details.visible = true
+	_dim.visible = true
 
 
 ## Tela "ALERTA" antes do chefe. `time_left` < 0 esconde.
@@ -389,6 +403,7 @@ func set_boss_hp(ratio: float) -> void:
 
 func hide_center() -> void:
 	_center.visible = false
+	_dim.visible = false
 
 
 func _show(title: String, subtitle: String, info: String, buttons: Array) -> void:
@@ -400,6 +415,7 @@ func _show(title: String, subtitle: String, info: String, buttons: Array) -> voi
 	for id: String in _buttons:
 		_buttons[id].visible = id in buttons
 	_stars.visible = false
+	_dim.visible = false
 	_star_details.visible = false
 	_center.alignment = BoxContainer.ALIGNMENT_CENTER
 	_center_spacer.visible = false

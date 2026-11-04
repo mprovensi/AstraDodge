@@ -210,8 +210,39 @@ func _test_boss_safety() -> void:
 	var outside: float = mn.CHARGE_RADIUS + 2.0 * Tuning.SHIP_HITBOX_RADIUS
 	var blast_gap: float = mn.blast_min_gap(outside, 8)
 	assert(blast_gap >= ship_gap, "explosão em 8: vão de %.0f px < %.0f" % [blast_gap, ship_gap])
-	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px" % [
-		ship_gap, free, beam_free, blast_gap])
+
+	# Colisão x desenho das metades da Rocha-Mãe (fase 2): no máximo 5% da área de
+	# colisão pode ficar fora dos pixels do desenho — "dano sem encostar" é bug.
+	var outside_pct := _half_collision_outside_pct(rm)
+	assert(outside_pct <= 5.0, "metade da Rocha-Mãe: %.0f%% da colisão fora do desenho" % outside_pct)
+	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
+		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+func _half_collision_outside_pct(rm: GDScript) -> float:
+	var boss = rm.new()
+	boss.view_size = Vector2(1080, 2340)
+	boss.phase = 2
+	boss.state = 1  # FIGHT
+	var c := Vector2(300, 600)
+	boss._halves.assign([{"pos": c, "rest_y": 600.0, "lunge": -1.0},
+			{"pos": Vector2(800, 600), "rest_y": 600.0, "lunge": -1.0}])
+	var art = root.get_node("Game").art
+	var img: Image = art.rock_mother_half.get_image()
+	var half: float = rm.HALF_RADIUS / art.boss_fill
+	var hits := 0
+	var outside := 0
+	for y in range(-200, 201, 10):
+		for x in range(-200, 201, 10):
+			if not boss.touches(c + Vector2(x, y), 0.0):
+				continue
+			hits += 1
+			var u := int((x + half) / (2.0 * half) * img.get_width())
+			var v := int((y + half) / (2.0 * half) * img.get_height())
+			if u < 0 or v < 0 or u >= img.get_width() or v >= img.get_height() or img.get_pixel(u, v).a <= 0.5:
+				outside += 1
+	boss.free()
+	return 100.0 * outside / maxf(1.0, hits)
 
 
 func _test_boss_resume() -> void:

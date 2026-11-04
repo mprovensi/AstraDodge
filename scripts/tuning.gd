@@ -74,8 +74,8 @@ const BOSS_SCORE := 1000
 const BOSS_REWARD_ORBS := 6        # chuva de orbes e cristais ao derrotar
 const BOSS_REWARD_CRYSTALS := 6
 const STAR_DUST_RATIO := 0.7       # 3ª estrela: destruir ≥ 70% da poeira do setor
-const BOSS_SHIELD_DROP_BONUS := 0.35  # chance extra de orbe de escudo durante a luta (20% -> 55%)
-const BOSS_SHIELD_DRAIN_SCALE := 0.5  # o escudo drena pela metade durante a luta
+const BOSS_SHIELD_DROP_BONUS := 0.12  # chance extra de orbe de escudo durante a luta (20% -> 32%)
+const BOSS_SHIELD_DRAIN_SCALE := 0.75  # o escudo drena um pouco menos durante a luta
 
 # --- Inimigos (base para os setores 2–5) ---
 const SHIELD_DMG_ENEMY_SHOT := 12.0

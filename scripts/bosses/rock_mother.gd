@@ -11,7 +11,7 @@ extends Boss
 ##   aberto por vez, trocando de lado. A metade parada continua soltando pedras.
 
 const NAME := "ROCHA-MÃE"
-const MAX_HP := 200
+const MAX_HP := 235
 
 const RADIUS := 210.0
 const CORE_RADIUS := 40.0
@@ -22,24 +22,28 @@ const ENTER_TIME := 3.0
 const REST_Y_RATIO := 0.27             # altura de descanso (fração da tela): abaixo do HUD
 const SWAY := 0.12                     # balanço lateral (fração da largura)
 
-const FAN_INTERVAL := [0.0, 3.2, 2.7]  # por fase
+const FAN_INTERVAL := [0.0, 2.9, 2.4]  # por fase
 const FAN_TELEGRAPH := 0.7
 const FAN_COUNT := 5
 const FAN_SPREAD_DEG := 60.0
-const FAN_SPEED := [0.0, 320.0, 350.0]
+const FAN_SPEED := [0.0, 340.0, 375.0]
 const FAN_WARN_RADIUS := 60.0
 
-const DUST_INTERVAL := [0.0, 4.0, 5.0]
+const DUST_INTERVAL := [0.0, 5.0, 6.0]
 const DUST_RADIUS := 50.0
 const DUST_HP := 2
 
 const TRANSITION_TIME := 1.6
 const HALF_RADIUS := 155.0
 const HALF_X := [0.27, 0.73]           # posição das metades (fração da largura)
+# Colisão de cada metade: 2 círculos (frações de HALF_RADIUS) — ver _bodies().
+const HALF_BODY_SHIFT := 0.18          # deslocamento para o lado redondo
+const HALF_BODY_SPLIT := 0.38          # um círculo em cima, outro embaixo
+const HALF_BODY_RADIUS := 0.58
 const HALF_SPREAD_TIME := 0.8
 const CORE_SWAP := 2.4                 # fase 2: troca o núcleo aberto a cada N s
-const LUNGE_INTERVAL := 5.0
-const LUNGE_TELEGRAPH := 1.3
+const LUNGE_INTERVAL := 4.6
+const LUNGE_TELEGRAPH := 1.15
 const LUNGE_DROP := 0.35
 const LUNGE_HOLD := 0.25
 const LUNGE_RETURN := 0.8
@@ -250,8 +254,9 @@ func hit_bullet(p: Vector2) -> Hit:
 func touches(p: Vector2, radius: float) -> bool:
 	if state == State.DONE:
 		return false
+	var shrink := 0.9 if phase == 1 else 1.0  # os círculos das metades já são justos
 	for body in _bodies():
-		if p.distance_to(body.pos) < body.radius * 0.9 + radius:
+		if p.distance_to(body.pos) < body.radius * shrink + radius:
 			return true
 	return false
 
@@ -288,10 +293,19 @@ func _cores() -> Array[Dictionary]:
 	return list
 
 
+## Áreas de colisão (círculos). Cada metade da fase 2 NÃO é um círculo: é redonda de um
+## lado e quebrada para dentro do outro. Por isso usa dois círculos deslocados para o lado
+## redondo — assim a borda quebrada não "machuca" além do desenho.
 func _bodies() -> Array[Dictionary]:
 	if phase == 1:
 		return [{"pos": center, "radius": RADIUS}]
-	return [{"pos": _halves[0].pos, "radius": HALF_RADIUS}, {"pos": _halves[1].pos, "radius": HALF_RADIUS}]
+	var list: Array[Dictionary] = []
+	for i in _halves.size():
+		var side := -1.0 if i == 0 else 1.0  # lado redondo: esquerda na metade 0, direita na 1
+		for v: float in [-1.0, 1.0]:
+			list.append({"pos": (_halves[i].pos as Vector2) + Vector2(side * HALF_BODY_SHIFT, v * HALF_BODY_SPLIT) * HALF_RADIUS,
+					"radius": HALF_RADIUS * HALF_BODY_RADIUS})
+	return list
 
 
 func _rest_y() -> float:
