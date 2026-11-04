@@ -36,6 +36,7 @@ var _weapon_label: Label
 var _weapon_fill: ColorRect
 var _levelup_label: Label
 var _levelup_timer := 0.0
+var _hint_panel: PanelContainer
 var _hint_label: Label
 var _hint_timer := 0.0
 
@@ -88,10 +89,26 @@ func _ready() -> void:
 	_levelup_label.modulate.a = 0.0
 	_top.add_child(_levelup_label)
 
-	_hint_label = _make_label("", 40, Color.WHITE)
-	_hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_hint_label.modulate.a = 0.0
-	_top.add_child(_hint_label)
+	# Dica em destaque: painel escuro com borda neon atrás do texto, fonte maior.
+	_hint_panel = PanelContainer.new()
+	_hint_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_hint_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var hint_style := StyleBoxFlat.new()
+	hint_style.bg_color = Color(0.02, 0.05, 0.14, 0.82)
+	hint_style.border_color = Palette.NEON
+	hint_style.set_border_width_all(3)
+	hint_style.set_corner_radius_all(18)
+	hint_style.content_margin_left = 32
+	hint_style.content_margin_right = 32
+	hint_style.content_margin_top = 16
+	hint_style.content_margin_bottom = 16
+	_hint_panel.add_theme_stylebox_override("panel", hint_style)
+	_hint_panel.modulate.a = 0.0
+	_top.add_child(_hint_panel)
+	_hint_label = _make_label("", 50, Color.WHITE)
+	_hint_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	_hint_label.add_theme_constant_override("outline_size", 10)
+	_hint_panel.add_child(_hint_label)
 
 	# --- Centro (mensagens e botões) ---
 	_center = VBoxContainer.new()
@@ -138,7 +155,7 @@ func _process(delta: float) -> void:
 
 	if _hint_timer > 0.0:
 		_hint_timer -= delta
-		_hint_label.modulate.a = clampf(_hint_timer / HINT_FADE, 0.0, 1.0)
+		_hint_panel.modulate.a = clampf(_hint_timer / HINT_FADE, 0.0, 1.0)
 
 	# Rastro branco: mostra o pedaço perdido num impacto e encolhe logo depois.
 	if _shield_trail_ratio > _shield_ratio:
@@ -191,12 +208,12 @@ func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
 func show_hint(text: String, duration: float) -> void:
 	_hint_label.text = text
 	_hint_timer = duration
-	_hint_label.modulate.a = 1.0
+	_hint_panel.modulate.a = 1.0
 
 
 func clear_hint() -> void:
 	_hint_timer = 0.0
-	_hint_label.modulate.a = 0.0
+	_hint_panel.modulate.a = 0.0
 
 
 func on_weapon_level(level: int, went_up: bool) -> void:

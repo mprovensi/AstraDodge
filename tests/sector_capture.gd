@@ -26,6 +26,8 @@ func _tick() -> void:
 		drag.index = 0
 		drag.relative = Vector2(sin(_frame * 0.05) * 14.0, 0)
 		main._input(drag)
+	if _frame == 100:
+		main.hud.show_hint("Atire na poeira cinza:\nela solta orbes e cristais", 4.0)
 	if _frame == 150:
 		main.director.metals = true
 		main._on_wave_event(WaveEvent.make(0.0, WaveEvent.Kind.METAL_WALL))
