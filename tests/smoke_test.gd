@@ -132,8 +132,9 @@ func _test_campaign() -> void:
 	var game := root.get_node("Game")
 	assert(game.get_sector_best("sector_1") > 0 and game.sectors_cleared.has("sector_1"))
 	assert(int(game.sector_stars.get("sector_1", 0)) >= 1, "pelo menos 1 estrela")
-	print("CAMPANHA OK | setor 1 completo em %.1fs | paredoes=%d | chefe em %.1fs | estrelas=%s | pontos=%d" % [
-		frames * DT, walls, boss_time, str(main.star_checks()), main.score])
+	assert(main.boss_orbs_dropped >= 8, "acertar o núcleo deveria soltar orbes (%d)" % main.boss_orbs_dropped)
+	print("CAMPANHA OK | setor 1 completo em %.1fs | paredoes=%d | chefe em %.1fs | orbes do chefe=%d | estrelas=%s | pontos=%d" % [
+		frames * DT, walls, boss_time, main.boss_orbs_dropped, str(main.star_checks()), main.score])
 
 
 ## Continua de onde _test_campaign parou (Setor 1 completo): PRÓXIMO SETOR → Setor 2 inteiro.

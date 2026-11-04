@@ -64,7 +64,9 @@ var _corridor_timer := 0.0      # s até a próxima parede do corredor
 var _corridor_walls := 0        # paredes já criadas no corredor atual
 var _storm_left := 0.0          # s restantes da TEMPESTADE
 var _storm_timer := 0.0         # s até o próximo raio
-var _biome := 0                 # setor cujo cenário está na tela (no Infinito, troca sozinho)
+var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
+var boss_orbs_dropped := 0      # orbes soltos por acertos no chefe (testes)
+var _biome := 0                # setor cujo cenário está na tela (no Infinito, troca sozinho)
 # Modo Infinito
 var bosses_defeated := 0
 var endless_seed := -1                  # >= 0: semente fixa (testes, Desafio do Dia)
@@ -242,6 +244,7 @@ func _new_run() -> void:
 	hazards.clear()
 	_storm_left = 0.0
 	bosses_defeated = 0
+	boss_orbs_dropped = 0
 	bullets.clear()
 	pickups.clear()
 	fx.clear()
@@ -615,6 +618,12 @@ func _bullet_hits_boss(b: BulletLayer.Bullet) -> bool:
 		boss.damage(Tuning.BULLET_DAMAGE)
 		fx.spark(b.pos, Palette.BLAST_HDR)
 		Sfx.play("hit", -12.0, 1.5, 0.1, b.pos)
+		# Acertar o ponto fraco recompensa com escudo: a luta não depende só da poeira.
+		_boss_core_hits += 1
+		if _boss_core_hits >= maxi(1, roundi(boss.max_hp * Tuning.BOSS_ORB_EVERY_HP)):
+			_boss_core_hits = 0
+			boss_orbs_dropped += 1
+			pickups.spawn(b.pos, PickupLayer.Kind.SHIELD)
 	else:
 		fx.spark(b.pos, Palette.METAL_LINE)
 		Sfx.play("ricochet", -8.0, 0.8, 0.1, b.pos)
@@ -850,6 +859,7 @@ func _spawn_boss(boss_id: String) -> void:
 	boss.defeated.connect(_on_boss_defeated)
 	_boss_fought = true
 	_boss_last_chance = ship.last_chance
+	_boss_core_hits = 0
 	hud.show_boss_bar(boss.display_name)
 
 
