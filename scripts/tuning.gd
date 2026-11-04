@@ -52,6 +52,7 @@ const SAFE_GAP_MAX_SHIFT := 150.0        # deslocamento máximo do corredor entr
 const DUST_RAIN_DENSITY := 1.8           # linhas mais próximas durante a chuva de poeira
 const WALL_METAL_RADIUS := 70.0
 const WALL_TELEGRAPH_TIME := 1.4         # aviso antes do paredão aparecer
+const WALL_EXTRA_SPEED := 600.0          # px/s a mais que a rolagem: o paredão avisado cai rápido
 
 # --- Inimigos (base para os setores 2–5) ---
 const SHIELD_DMG_ENEMY_SHOT := 12.0

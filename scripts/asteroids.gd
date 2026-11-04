@@ -114,7 +114,7 @@ func spawn_wall() -> void:
 	var x := r
 	while x <= view_size.x:
 		if absf(x - _gap_x) >= half_gap + r:
-			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2.ZERO)
+			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2(0.0, Tuning.WALL_EXTRA_SPEED))
 		x += r * 2.0 + 6.0
 	# Espaço livre depois do paredão antes da próxima linha.
 	_distance_to_next_row = maxf(_distance_to_next_row, Tuning.ROW_SPACING_START)
