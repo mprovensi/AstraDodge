@@ -22,6 +22,8 @@ extends Resource
 @export var ship_engines_px: Array[Vector2] = []
 ## Ponta da nave no PNG (de onde saem os tiros).
 @export var ship_muzzle_px := Vector2(128, 14)
+## Pontas das asas no PNG (de onde saem os rastros de vapor nas curvas rápidas).
+@export var ship_wingtips_px: Array[Vector2] = [Vector2(36, 152), Vector2(220, 152)]
 
 @export_group("Asteroides")
 ## Variações da poeira (destrutível). O jogo sorteia uma por asteroide.

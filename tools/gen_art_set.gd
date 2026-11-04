@@ -14,6 +14,7 @@ func _initialize() -> void:
 	art.ship_glow = Color(1.6, 1.6, 1.6)
 	art.ship_engines_px.assign([Vector2(117, 197), Vector2(139, 197)])
 	art.ship_muzzle_px = Vector2(128, 14)
+	art.ship_wingtips_px.assign([Vector2(36, 152), Vector2(220, 152)])
 	art.dust_textures.assign([
 		load("res://sprites/dust_1.png"), load("res://sprites/dust_2.png"), load("res://sprites/dust_3.png")])
 	art.metal_textures.assign([

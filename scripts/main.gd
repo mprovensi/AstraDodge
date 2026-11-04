@@ -620,6 +620,7 @@ func _step(dt: float) -> void:
 	blackout.update(dt, ship.position)
 	bullets.update(dt)
 	enemy_shots.update(dt)
+	ship.scroll_speed = scroll_speed  # o rastro dos motores "escorre" com o cenário
 	ship.update(dt)
 	for kind in pickups.update(dt, scroll_speed, ship.position, ship.alive):
 		_on_pickup(kind)

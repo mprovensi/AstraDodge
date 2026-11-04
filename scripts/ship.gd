@@ -10,8 +10,8 @@ enum HitResult { IGNORED, ABSORBED, LAST_CHANCE, DEAD }
 
 const SHIELD_RING_RADIUS := 60.0
 const BANK_SPEED := 1200.0  # px/s de movimento lateral para inclinação máxima
-const FLAME_HALF_WIDTH := 5.0
-const FLAME_LENGTH := 30.0
+const FLAME_HALF_WIDTH := 6.5
+const FLAME_LENGTH := 42.0
 # Sprite, tamanho, brilho, motores e ponta da nave vêm do ArtSet ativo (Game.art).
 
 var bullets: BulletLayer
@@ -25,9 +25,18 @@ var invuln := 0.0
 var alive := true
 var drain_scale := 1.0  # o Main reduz durante as lutas contra chefes
 
+var scroll_speed := 0.0  # o Main informa: o rastro dos motores escorre com o cenário
+
 var _fire_timer := 0.0
 var _bank := 0.0  # -1 (curva p/ esquerda) a 1 (direita)
 var _t := 0.0
+var _vel := Vector2.ZERO     # velocidade suavizada (px/s) — move chamas, rastros e inclinação
+var _trail: Array = []       # rastro dos motores: [[pos no mundo, idade], ...] por motor
+var _vapor: Array = []       # rastro de vapor das pontas das asas (curvas rápidas)
+
+const TRAIL_LIFE := 0.32
+const VAPOR_LIFE := 0.28
+const VAPOR_SPEED := 650.0   # a partir desta velocidade as asas soltam vapor
 
 
 func reset(start_pos: Vector2) -> void:
@@ -42,6 +51,9 @@ func reset(start_pos: Vector2) -> void:
 	visible = true
 	modulate.a = 1.0
 	_fire_timer = 0.0
+	_vel = Vector2.ZERO
+	_trail.clear()
+	_vapor.clear()
 
 
 func resize(view_size: Vector2) -> void:
@@ -61,10 +73,12 @@ func update(dt: float) -> void:
 	if not alive:
 		return
 	_t += dt
-	var prev_x := position.x
+	var prev := position
 	position = position.lerp(target, 1.0 - exp(-Tuning.SHIP_FOLLOW_SHARPNESS * dt))
-	var vx := (position.x - prev_x) / dt
-	_bank = lerpf(_bank, clampf(vx / BANK_SPEED, -1.0, 1.0), 1.0 - exp(-12.0 * dt))
+	var v := (position - prev) / dt
+	_vel = _vel.lerp(v, 1.0 - exp(-10.0 * dt))
+	_bank = lerpf(_bank, clampf(v.x / BANK_SPEED, -1.0, 1.0), 1.0 - exp(-12.0 * dt))
+	_update_trails(dt)
 
 	invuln = maxf(0.0, invuln - dt)
 	modulate.a = 0.35 if invuln > 0.0 and int(_t * 20.0) % 2 == 0 else 1.0
@@ -181,26 +195,112 @@ func _clamp(p: Vector2) -> Vector2:
 	return Vector2(clampf(p.x, bounds.position.x, bounds.end.x), clampf(p.y, bounds.position.y, bounds.end.y))
 
 
-func _draw() -> void:
-	# Inclinação nas curvas: gira um pouco e "afina" (a nave vira de lado).
-	draw_set_transform(Vector2.ZERO, _bank * 0.15, Vector2(1.0 - 0.2 * absf(_bank), 1.0))
-
+## Rastros (no espaço do MUNDO): um ponto por motor/asa a cada quadro; envelhecem e
+## escorrem para baixo com o cenário — a nave "deixa a trilha para trás".
+func _update_trails(dt: float) -> void:
 	var art := Game.art
+	var flow := Vector2(0, scroll_speed * 0.9 * dt)
+	for list in [_trail, _vapor]:
+		for p in list:
+			p[0] += flow
+			p[1] += dt
+	while not _trail.is_empty() and _trail[0][1] > TRAIL_LIFE:
+		_trail.pop_front()
+	while not _vapor.is_empty() and _vapor[0][1] > VAPOR_LIFE:
+		_vapor.pop_front()
+	for e in art.ship_engines_px:
+		_trail.append([to_global(_tilted(art.ship_point(e))) + Vector2(0, 14), 0.0])
+	# Vapor nas pontas das asas só nas manobras rápidas.
+	if _vel.length() > VAPOR_SPEED:
+		for w in art.ship_wingtips_px:
+			_vapor.append([to_global(_tilted(art.ship_point(w))), 0.0])
 
-	# Uma chama por motor definido no ArtSet.
-	for i in art.ship_engines_px.size():
-		var e := art.ship_point(art.ship_engines_px[i])
-		var flick := 0.75 + 0.25 * sin(_t * 40.0 + i)
-		var flame := PackedVector2Array([e + Vector2(-FLAME_HALF_WIDTH, 0), e + Vector2(FLAME_HALF_WIDTH, 0),
-				e + Vector2(0, FLAME_LENGTH * flick)])
-		draw_colored_polygon(flame, Color(Game.skin_flame(), 0.85))
 
-	# Sprite: o "glow" > 1 faz só as linhas claras (neon) passarem do limiar do glow.
+## Ponto do sprite com a inclinação aplicada (o mesmo transform do desenho).
+func _tilted(p: Vector2) -> Vector2:
+	return (p * _roll_scale()).rotated(_bank * 0.15)
+
+
+## "Rolar" em 3D: na curva a nave afina (vira de lado); subindo, estica de leve (velocidade).
+func _roll_scale() -> Vector2:
+	var pitch := clampf(-_vel.y / 2500.0, -0.04, 0.05)
+	return Vector2(1.0 - 0.28 * absf(_bank), 1.0 + pitch)
+
+
+func _draw() -> void:
+	var art := Game.art
+	var flame_col := Game.skin_flame()
+	var speed := _vel.length()
+
+	# 1. Rastro dos motores: fita que afina e esmaece, na cor da chama.
+	var per := art.ship_engines_px.size()
+	for k in per:
+		var pts := PackedVector2Array()
+		var cols := PackedColorArray()
+		for i in range(k, _trail.size(), per):
+			var age: float = _trail[i][1] / TRAIL_LIFE
+			pts.append(to_local(_trail[i][0]))
+			cols.append(Color(flame_col, 0.55 * (1.0 - age)))
+		if pts.size() >= 2:
+			pts.reverse()
+			cols.reverse()
+			draw_polyline_colors(pts, cols, 5.0, true)
+	# 2. Vapor das asas: linhas brancas finas que somem rápido.
+	for k in art.ship_wingtips_px.size():
+		var pts := PackedVector2Array()
+		for i in range(k, _vapor.size(), art.ship_wingtips_px.size()):
+			pts.append(to_local(_vapor[i][0]))
+		if pts.size() >= 2:
+			draw_polyline(pts, Color(0.85, 0.95, 1.0, 0.35), 2.0, true)
+
+	# 3. Clarão dos motores atrás da nave (ilumina o espaço em volta; cresce com a aceleração).
 	var half := art.ship_size * 0.5
-	# Skin: a cor do casco multiplica o sprite (o padrão é o próprio brilho do ArtSet).
+	var glow_at := art.ship_point(Vector2(128, 205))
+	var soft := Color(minf(flame_col.r, 1.0), minf(flame_col.g, 1.0), minf(flame_col.b, 1.0), 0.025)  # sem HDR: luz suave (mistura linear: alfa baixo)
+	draw_circle(glow_at, 30.0 + 12.0 * clampf(-_vel.y / 1400.0, 0.0, 1.0), soft)
+
+	# 4. Chamas: núcleo branco-quente + chama colorida + brilho no bocal. Subindo (acelerando)
+	#    as chamas crescem; descendo (freando) encolhem. Tremulam o tempo todo.
+	draw_set_transform(Vector2.ZERO, _bank * 0.15, _roll_scale())
+	var thrust := clampf(1.0 - _vel.y / 1400.0, 0.55, 1.9)
+	for i in per:
+		var e := art.ship_point(art.ship_engines_px[i])
+		var flick := 0.8 + 0.2 * sin(_t * 47.0 + i * 2.1) + 0.08 * sin(_t * 113.0 + i)
+		var length := FLAME_LENGTH * thrust * flick
+		var w := FLAME_HALF_WIDTH * (1.0 + 0.25 * (thrust - 1.0))
+		draw_colored_polygon(PackedVector2Array([e + Vector2(-w * 1.5, 0), e + Vector2(w * 1.5, 0),
+				e + Vector2(0, length * 1.25)]), Color(flame_col, 0.35))
+		draw_colored_polygon(PackedVector2Array([e + Vector2(-w, 0), e + Vector2(w, 0),
+				e + Vector2(0, length)]), Color(flame_col, 0.9))
+		draw_colored_polygon(PackedVector2Array([e + Vector2(-w * 0.45, 0), e + Vector2(w * 0.45, 0),
+				e + Vector2(0, length * 0.55)]), Color(3.0, 3.0, 2.6))
+		draw_circle(e + Vector2(0, 2), w * 1.3, Color(flame_col, 0.5))
+
+	# 5. Propulsores laterais (RCS): um jatinho ciano do lado oposto da curva.
+	if absf(_bank) > 0.3:
+		var side := -signf(_bank)
+		var base := art.ship_point(Vector2(128 + side * 26.0, 110))
+		var puff := 12.0 + 26.0 * (absf(_bank) - 0.3) + 5.0 * sin(_t * 60.0)
+		draw_colored_polygon(PackedVector2Array([base + Vector2(0, -4), base + Vector2(0, 4),
+				base + Vector2(side * puff, 0)]), Color(Palette.NEON_HDR, 0.85))
+		draw_circle(base + Vector2(side * puff * 0.3, 0), 3.0, Color(2.6, 2.8, 3.0))
+
+	# 6. Casco. O "glow" > 1 faz só as linhas claras (neon) passarem do limiar do glow.
+	#    Skin: a cor do casco multiplica o sprite (o padrão é o próprio brilho do ArtSet).
 	var hull := art.ship_glow if Game.skin == 0 else Game.skin_hull()
 	draw_texture_rect(art.ship_texture, Rect2(-half, -half, art.ship_size, art.ship_size), false, hull)
+	# Luz deslizando pela cabine conforme a nave inclina (reflexo 2.5D).
+	var glint := art.ship_point(Vector2(128 - _bank * 10.0, 72))
+	draw_circle(glint, 4.0 + 1.5 * absf(_bank), Color(2.4, 2.6, 2.8, 0.5 + 0.4 * absf(_bank)))
 	draw_set_transform(Vector2.ZERO, 0.0)
+
+	# 7. Linhas de velocidade nas manobras muito rápidas.
+	if speed > 1100.0:
+		var dir := -_vel.normalized()
+		var k := clampf((speed - 1100.0) / 1500.0, 0.0, 1.0)
+		for j in 3:
+			var off := dir.orthogonal() * (j - 1) * 26.0
+			draw_line(off + dir * 70.0, off + dir * (70.0 + 50.0 * k), Color(0.8, 0.95, 1.0, 0.35 * k), 2.0, true)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia
 	if last_chance:
