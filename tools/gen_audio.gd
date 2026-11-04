@@ -1,5 +1,5 @@
 extends SceneTree
-## Gera os efeitos sonoros e a música synthwave em res://audio/*.wav.
+## Gera os efeitos sonoros e a música lofi em res://audio/*.wav.
 ## Tudo sintetizado aqui: sem arquivos de terceiros nem licenças.
 ## Os efeitos são montados em CAMADAS (transiente + corpo + grave + cauda) para soar
 ## mais encorpados, e os mais frequentes têm 3 variações (nome_1..3) contra repetição.
@@ -10,9 +10,8 @@ const OUT_DIR := "res://audio"
 const VARIANTS := 3
 
 # Música
-const BPM := 128.0
+const BPM := 78.0
 const BARS := 8
-const STEPS_PER_BAR := 16
 
 
 func _initialize() -> void:
@@ -267,122 +266,150 @@ func _with_echo(dry: PackedFloat32Array, delay: float, gain: float) -> PackedFlo
 
 # ---------------------------------------------------------------- música
 
-## Loop synthwave de 8 compassos (Lá menor: Am F C G), 128 BPM.
-## As caudas das notas "dão a volta" no buffer, então o loop emenda sem clique.
+## Loop lofi de 8 compassos, 78 BPM, com swing: Fmaj7 · Em7 · Dm9 · Cmaj7 (2 compassos cada).
+## Piano elétrico suave, baixo redondo, melodia esparsa, bateria abafada, chiado de vinil
+## e um filtro passa-baixa no fim para soar "quente". As caudas dão a volta no buffer,
+## então o loop emenda sem clique.
 func _music() -> PackedFloat32Array:
-	var step := 60.0 / BPM / 4.0
-	var total_steps := BARS * STEPS_PER_BAR
-	var n := int(round(step * total_steps * RATE))
+	var beat := 60.0 / BPM
+	var bar := beat * 4.0
+	var n := int(round(bar * BARS * RATE))
 	var out := _buf(n)
-	var chords := [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]]  # Am F C G
+	var chords := [
+		[53, 57, 60, 64],      # Fmaj7
+		[52, 55, 59, 62],      # Em7
+		[50, 53, 57, 60, 64],  # Dm9
+		[48, 52, 55, 59],      # Cmaj7
+	]
+	# Melodia (pentatônica de Lá menor), em colcheias: -1 = pausa. Um padrão por par de compassos.
+	var melody := [
+		[-1, 72, -1, -1, 69, -1, 67, -1, -1, -1, 69, -1, -1, -1, -1, -1],
+		[-1, -1, 76, -1, 74, -1, -1, 72, -1, -1, -1, -1, 69, -1, -1, -1],
+		[-1, 69, -1, 72, -1, -1, 74, -1, -1, 72, -1, -1, -1, -1, -1, -1],
+		[-1, -1, 67, -1, 69, -1, -1, -1, 72, -1, 69, -1, -1, -1, -1, -1],
+	]
 
-	for s in total_steps:
-		var bar := s / STEPS_PER_BAR
-		var chord: Array = chords[(bar / 2) % chords.size()]
-		var start := int(round(s * step * RATE))
-		var beat_step := s % 4
+	for b in BARS:
+		var chord: Array = chords[(b / 2) % chords.size()]
+		var bar_start := b * bar
 
-		# Bateria
-		if beat_step == 0:
-			_mix(out, start, _kick(), 0.9)
-		if s % 8 == 4:
-			_mix(out, start, _snare(), 0.55)
-		if s % 2 == 1:
-			_mix(out, start, _hat(), 0.22)
+		# Acordes: "dedilhado" lento no tempo 1 e um toque mais leve no "e" do 3.
+		for hit: Array in [[0.0, 0.42], [2.5, 0.22]]:
+			for ni in chord.size():
+				var at: float = bar_start + float(hit[0]) * beat + ni * 0.018
+				_mix(out, _at(at), _ep_note(_midi(chord[ni]), beat * 2.2), float(hit[1]) * 0.55)
 
-		# Baixo em colcheias, alternando oitava
-		if s % 2 == 0:
-			var root: int = chord[0] - 24 + (12 if s % 4 == 2 else 0)
-			_mix(out, start, _bass_note(_midi(root), step * 2.0), 0.42)
+		# Baixo: tônica no 1 e no "e" do 2, uma oitava abaixo.
+		var root: int = chord[0] - 12
+		_mix(out, _at(bar_start), _sub_bass(_midi(root), beat * 1.4), 0.55)
+		_mix(out, _at(bar_start + 1.5 * beat), _sub_bass(_midi(root), beat * 0.9), 0.4)
 
-		# Arpejo em semicolcheias (sobe e desce pelas notas do acorde)
-		var pattern := [0, 1, 2, 1]
-		var note: int = chord[pattern[s % 4]] + 12 + (12 if (s / 4) % 2 == 1 else 0)
-		_mix(out, start, _arp_note(_midi(note), step), 0.16)
+		# Melodia (só nos compassos pares de cada acorde, para respirar).
+		if b % 2 == 0:
+			var line: Array = melody[(b / 2) % melody.size()]
+			for e in line.size():
+				if line[e] >= 0:
+					_mix(out, _at(bar_start + _swing(e) * beat), _ep_note(_midi(line[e]), beat * 1.2), 0.28)
 
-		# Pad no início de cada acorde (2 compassos)
-		if s % (STEPS_PER_BAR * 2) == 0:
-			for cn: int in chord:
-				_mix(out, start, _pad_note(_midi(cn), step * STEPS_PER_BAR * 2.0), 0.07)
+		# Bateria preguiçosa: bumbo no 1 e no "e" do 2, caixa no 2 e no 4, chimbal em colcheias com swing.
+		_mix(out, _at(bar_start), _lofi_kick(), 0.75)
+		_mix(out, _at(bar_start + 1.5 * beat), _lofi_kick(), 0.5)
+		_mix(out, _at(bar_start + 1.0 * beat), _lofi_snare(), 0.45)
+		_mix(out, _at(bar_start + 3.0 * beat), _lofi_snare(), 0.45)
+		for e in 8:
+			_mix(out, _at(bar_start + _swing(e) * beat), _lofi_hat(), 0.16 if e % 2 == 0 else 0.1)
 
+	# Vinil: chiado constante + estalos raros.
+	var hiss_low := 0.0
 	for i in n:
-		out[i] = _soft(out[i] * 0.9)
+		hiss_low += 0.2 * (randf_range(-1.0, 1.0) - hiss_low)
+		out[i] += hiss_low * 0.025
+		if randf() < 0.00012:
+			out[i] += randf_range(-0.35, 0.35)
+
+	# Passa-baixa "quente" (~3,5 kHz). Duas voltas no buffer para o filtro emendar no loop.
+	var a := 1.0 - exp(-TAU * 3500.0 / RATE)
+	var y := 0.0
+	for lap in 2:
+		for i in n:
+			y += a * (out[i] - y)
+			if lap == 1:
+				out[i] = y
+
+	var peak := 0.0
+	for i in n:
+		peak = maxf(peak, absf(out[i]))
+	var gain := 0.85 / maxf(peak, 0.001)
+	for i in n:
+		out[i] = _soft(out[i] * gain)
 	return out
 
 
-func _kick() -> PackedFloat32Array:
-	var n := _len(0.3)
+## Posição (em tempos) da colcheia `e` com swing: as do contratempo atrasam um pouco.
+func _swing(e: int) -> float:
+	return floor(e / 2.0) + (0.62 if e % 2 == 1 else 0.0)
+
+
+func _at(seconds: float) -> int:
+	return int(round(seconds * RATE))
+
+
+## Piano elétrico: senoide com harmônicos curtos (ataque de sino) + tremolo lento.
+func _ep_note(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	for i in n:
+		var t := float(i) / RATE
+		var ph := TAU * freq * t
+		var tone := sin(ph) + 0.3 * sin(ph * 2.0) * exp(-t * 4.0) + 0.12 * sin(ph * 3.0) * exp(-t * 8.0)
+		var tremolo := 1.0 + 0.12 * sin(TAU * 4.5 * t)
+		var env := minf(1.0, t * 200.0) * exp(-t * 1.6) * (1.0 - smoothstep(0.85, 1.0, float(i) / n))
+		out[i] = tone * tremolo * env
+	return out
+
+
+func _sub_bass(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	for i in n:
+		var t := float(i) / RATE
+		var k := float(i) / n
+		out[i] = (sin(TAU * freq * t) + 0.2 * sin(TAU * freq * 2.0 * t)) * minf(1.0, t * 150.0) * (1.0 - k) * exp(-t * 1.2)
+	return out
+
+
+func _lofi_kick() -> PackedFloat32Array:
+	var n := _len(0.35)
 	var out := _buf(n)
 	var phase := 0.0
 	for i in n:
 		var t := float(i) / RATE
-		phase += (45.0 + 110.0 * exp(-t * 30.0)) / RATE
-		out[i] = sin(phase * TAU) * exp(-t * 9.0)
+		phase += (48.0 + 70.0 * exp(-t * 25.0)) / RATE
+		out[i] = sin(phase * TAU) * exp(-t * 8.0)
 	return out
 
 
-func _snare() -> PackedFloat32Array:
-	var n := _len(0.2)
+func _lofi_snare() -> PackedFloat32Array:
+	var n := _len(0.22)
 	var out := _buf(n)
-	var phase := 0.0
 	var low := 0.0
+	var phase := 0.0
 	for i in n:
 		var t := float(i) / RATE
-		phase += 190.0 / RATE
-		var noise := randf_range(-1, 1)
-		low += 0.3 * (noise - low)
-		out[i] = ((noise - low) * 0.8 * exp(-t * 18.0) + sin(phase * TAU) * 0.5 * exp(-t * 30.0))
+		low += 0.18 * (randf_range(-1.0, 1.0) - low)  # ruído abafado
+		phase += 180.0 / RATE
+		out[i] = low * 1.8 * exp(-t * 16.0) + sin(phase * TAU) * 0.35 * exp(-t * 35.0)
 	return out
 
 
-func _hat() -> PackedFloat32Array:
-	var n := _len(0.04)
+func _lofi_hat() -> PackedFloat32Array:
+	var n := _len(0.05)
 	var out := _buf(n)
 	var low := 0.0
 	for i in n:
-		var noise := randf_range(-1, 1)
-		low += 0.5 * (noise - low)
-		out[i] = (noise - low) * exp(-float(i) / n * 6.0)
-	return out
-
-
-func _bass_note(freq: float, duration: float) -> PackedFloat32Array:
-	var n := _len(duration)
-	var out := _buf(n)
-	var phase := 0.0
-	var low := 0.0
-	for i in n:
-		var k := float(i) / n
-		phase += freq / RATE
-		var cutoff := lerpf(0.25, 0.06, k)
-		low += cutoff * (_saw(phase) - low)
-		out[i] = low * _env(k, 0.01, 1.5)
-	return out
-
-
-func _arp_note(freq: float, duration: float) -> PackedFloat32Array:
-	var n := _len(duration * 1.6)  # leve "eco" passando da nota seguinte
-	var out := _buf(n)
-	var phase := 0.0
-	for i in n:
-		var k := float(i) / n
-		phase += freq / RATE
-		out[i] = _square(phase, 0.25) * exp(-k * 4.0)
-	return out
-
-
-func _pad_note(freq: float, duration: float) -> PackedFloat32Array:
-	var n := _len(duration)
-	var out := _buf(n)
-	var p1 := 0.0
-	var p2 := 0.0
-	var low := 0.0
-	for i in n:
-		var k := float(i) / n
-		p1 += freq * 1.004 / RATE
-		p2 += freq * 0.996 / RATE
-		low += 0.05 * ((_saw(p1) + _saw(p2)) * 0.5 - low)
-		out[i] = low * _env(k, 0.15, 0.0) * (1.0 - smoothstep(0.85, 1.0, k))
+		var noise := randf_range(-1.0, 1.0)
+		low += 0.45 * (noise - low)
+		out[i] = (noise - low) * exp(-float(i) / n * 7.0) * 0.7
 	return out
 
 
