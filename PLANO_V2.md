@@ -237,5 +237,5 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] `TelegraphLayer` (coluna, linha, círculo) — usado no aviso do paredão
 - [x] `EnemyLayer` (drone) + `EnemyBulletLayer` (mirado, leque, anel) — prontos para os setores 2–5
 - [x] Menu principal (Campanha / Infinito / Opções / Sair do jogo), pausa com Opções / Menu / Sair do jogo
-- [x] Setor 1 jogável do início ao fim (sem chefe), dicas na tela, barra de progresso, tela "SETOR COMPLETO", recorde por setor salvo
+- [x] Setor 1 jogável do início ao fim (sem chefe), dicas na tela, tela "SETOR COMPLETO", recorde por setor salvo
 - [x] Teste automático: infinito, campanha completa (3 paredões, chuva), inimigos atirando e sendo destruídos

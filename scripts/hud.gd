@@ -32,9 +32,6 @@ var _shield_danger := false
 var _blink_t := 0.0
 var _weapon_label: Label
 var _weapon_fill: ColorRect
-var _sector_label: Label
-var _sector_bg: ColorRect
-var _sector_fill: ColorRect
 var _levelup_label: Label
 var _levelup_timer := 0.0
 var _hint_label: Label
@@ -82,10 +79,6 @@ func _ready() -> void:
 	var weapon_bg := _make_bar_row(_weapon_label, Palette.MAGENTA)
 	_weapon_fill = _add_fill(weapon_bg, Palette.MAGENTA)
 
-	_sector_label = _make_label("SETOR 1", 26, Palette.TEXT_DIM)
-	_sector_bg = _make_bar_row(_sector_label, Color.WHITE)
-	_sector_fill = _add_fill(_sector_bg, Color(1, 1, 1, 0.7))
-	set_sector("", false)
 
 	_levelup_label = _make_label("", 48, Palette.MAGENTA)
 	_levelup_label.modulate.a = 0.0
@@ -184,15 +177,6 @@ func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
 	_weapon_label.text = "ARMA %d" % weapon_level
 	_weapon_fill.size = Vector2(BAR_WIDTH * clampf(weapon_progress, 0.0, 1.0), BAR_HEIGHT)
 
-
-## Barra de progresso do setor (só na campanha).
-func set_sector(title: String, on: bool) -> void:
-	_sector_label.text = title
-	_sector_bg.get_parent().visible = on
-
-
-func set_sector_progress(progress: float) -> void:
-	_sector_fill.size = Vector2(BAR_WIDTH * clampf(progress, 0.0, 1.0), BAR_HEIGHT)
 
 
 func show_hint(text: String, duration: float) -> void:

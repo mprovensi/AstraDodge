@@ -147,8 +147,6 @@ func _process(delta: float) -> void:
 	Sfx.set_music_intensity(time_scale, quiet)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
-	if director != null:
-		hud.set_sector_progress(director.progress())
 
 
 # ---------------------------------------------------------------- fluxo
@@ -159,7 +157,6 @@ func go_to_menu() -> void:
 	director = null
 	_new_run()
 	ship.visible = false
-	hud.set_sector("", false)
 	hud.clear_hint()
 	_set_state(State.MENU)
 
@@ -191,10 +188,8 @@ func _new_run() -> void:
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
-		hud.set_sector(director.sector.title, true)
 	else:
 		director = null
-		hud.set_sector("", false)
 
 
 ## Volta ao ponto salvo: mesmo setor e momento, mesma pontuação, escudo e arma.
