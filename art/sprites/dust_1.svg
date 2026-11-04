@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Poeira (destrutível): rocha cinza clara, iluminada de cima à esquerda. Raio útil ~118. -->
+  <defs>
+    <radialGradient id="rock" cx="38%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#a7a9b2"/>
+      <stop offset="0.65" stop-color="#6c6e78"/>
+      <stop offset="1" stop-color="#43454e"/>
+    </radialGradient>
+  </defs>
+  <path d="M128 12 L176 22 L214 54 L240 104 L232 158 L208 204 L160 238 L104 240 L58 214 L22 170 L16 116 L36 64 L80 26 Z"
+        fill="url(#rock)" stroke="#c9cbd3" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="96" cy="96" r="22" fill="#55575f" stroke="#8d8f98" stroke-width="3"/>
+  <circle cx="164" cy="150" r="30" fill="#4d4f57" stroke="#8a8c95" stroke-width="3"/>
+  <circle cx="92" cy="176" r="13" fill="#55575f" stroke="#8d8f98" stroke-width="2"/>
+  <circle cx="176" cy="78" r="10" fill="#5a5c64"/>
+  <path d="M60 128 Q78 120 88 136" stroke="#9fa1aa" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#282e3a"/>
+      <stop offset="1" stop-color="#0d1017"/>
+    </linearGradient>
+  </defs>
+  <path d="M66 18 L190 14 L240 82 L238 176 L188 238 L70 242 L16 178 L14 84 Z"
+        fill="url(#steel)" stroke="#7b8cab" stroke-width="7" stroke-linejoin="round"/>
+  <rect x="58" y="66" width="140" height="124" rx="10" fill="none" stroke="#56647e" stroke-width="4"/>
+  <path d="M58 128 L198 128" stroke="#56647e" stroke-width="3"/>
+  <g fill="#8fa0bf">
+    <circle cx="72" cy="80" r="5"/><circle cx="184" cy="80" r="5"/>
+    <circle cx="72" cy="176" r="5"/><circle cx="184" cy="176" r="5"/>
+  </g>
+  <path d="M90 36 L150 34" stroke="#a4b4d1" stroke-opacity="0.6" stroke-width="3" stroke-linecap="round"/>
+  <path d="M206 186 L190 210" stroke="#3d4659" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="rock" cx="40%" cy="30%" r="78%">
+      <stop offset="0" stop-color="#b0b1b8"/>
+      <stop offset="0.6" stop-color="#717380"/>
+      <stop offset="1" stop-color="#3f414a"/>
+    </radialGradient>
+  </defs>
+  <path d="M110 14 L170 18 L222 48 L242 100 L236 150 L218 196 L172 232 L118 242 L66 226 L28 186 L14 132 L26 78 L62 34 Z"
+        fill="url(#rock)" stroke="#c9cbd3" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="140" cy="88" r="26" fill="#52545c" stroke="#8d8f98" stroke-width="3"/>
+  <circle cx="84" cy="150" r="20" fill="#4e5058" stroke="#8a8c95" stroke-width="3"/>
+  <circle cx="176" cy="176" r="15" fill="#55575f" stroke="#8d8f98" stroke-width="2"/>
+  <circle cx="68" cy="88" r="8" fill="#5a5c64"/>
+  <path d="M150 210 Q170 200 186 210" stroke="#9fa1aa" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

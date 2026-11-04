@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Nave do jogador, nariz para cima, centro em (128,128). Linhas claras viram neon com o glow HDR. -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#21466e"/>
+      <stop offset="1" stop-color="#0a1626"/>
+    </linearGradient>
+    <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#173252"/>
+      <stop offset="1" stop-color="#08111f"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bff9ff"/>
+      <stop offset="0.6" stop-color="#2aa7c9"/>
+      <stop offset="1" stop-color="#0b3248"/>
+    </linearGradient>
+  </defs>
+  <!-- Asas -->
+  <path d="M128 78 L216 176 L200 192 L146 170 L110 170 L56 192 L40 176 Z"
+        fill="url(#wing)" stroke="#3ff0ff" stroke-width="5" stroke-linejoin="round"/>
+  <!-- Pontas das asas -->
+  <path d="M216 176 L222 150 L206 158 Z" fill="#3ff0ff"/>
+  <path d="M40 176 L34 150 L50 158 Z" fill="#3ff0ff"/>
+  <!-- Faixas magenta -->
+  <path d="M72 178 L112 154" stroke="#ff4fd8" stroke-width="6" stroke-linecap="round"/>
+  <path d="M184 178 L144 154" stroke="#ff4fd8" stroke-width="6" stroke-linecap="round"/>
+  <!-- Fuselagem -->
+  <path d="M128 14 L150 84 L154 178 L128 200 L102 178 L106 84 Z"
+        fill="url(#hull)" stroke="#9ffbff" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Linha central -->
+  <path d="M128 112 L128 182" stroke="#3ff0ff" stroke-opacity="0.6" stroke-width="3"/>
+  <!-- Cabine -->
+  <path d="M128 44 L141 86 L128 106 L115 86 Z" fill="url(#glass)" stroke="#d6feff" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Motores -->
+  <rect x="110" y="190" width="14" height="14" rx="3" fill="#0a1626" stroke="#ffb347" stroke-width="3"/>
+  <rect x="132" y="190" width="14" height="14" rx="3" fill="#0a1626" stroke="#ffb347" stroke-width="3"/>
+</svg>

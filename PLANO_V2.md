@@ -246,5 +246,8 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] Fundo de nebulosa procedural (shader) com cores por setor (`SectorData.nebula_a/b`)
 - [ ] Gravações reais (Sonniss/Freesound CC0) — aguardando autorização de download
 - [ ] Fonte sci-fi (Orbitron/Exo 2) — aguardando escolha e autorização de download
-- [ ] Pipeline SVG→PNG de sprites, nave e asteroides redesenhados, shaders de flash/dissolve
+- [x] Pipeline SVG→PNG (`art/sprites/*.svg` → `tools/gen_sprites.gd` → `sprites/*.png`)
+- [x] Nave redesenhada (com inclinação nas curvas e dois motores), 3 poeiras e 3 metálicos novos
+- [x] Trilha lofi (90 BPM no jogo; 78 BPM guardada), tranco com mola ao quebrar asteroide
+- [ ] Shaders de flash/dissolve, inimigos e pickups em sprite
 - [ ] Volume de música/efeitos em 0–100%

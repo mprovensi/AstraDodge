@@ -9,7 +9,12 @@ signal fired
 enum HitResult { IGNORED, ABSORBED, LAST_CHANCE, DEAD }
 
 const SHIELD_RING_RADIUS := 60.0
-const BODY := [Vector2(0, -44), Vector2(32, 30), Vector2(0, 16), Vector2(-32, 30)]
+const SPRITE := preload("res://sprites/ship.png")  # de art/sprites/ship.svg
+const SPRITE_SIZE := 128.0
+const SPRITE_GLOW := Color(1.6, 1.6, 1.6)
+const ENGINE_X := 5.5    # motores no sprite (x = 117 e 139 de 256) na escala desenhada
+const ENGINE_Y := 37.0
+const BANK_SPEED := 1200.0  # px/s de movimento lateral para inclinação máxima
 
 var bullets: BulletLayer
 var target := Vector2.ZERO
@@ -22,6 +27,7 @@ var invuln := 0.0
 var alive := true
 
 var _fire_timer := 0.0
+var _bank := 0.0  # -1 (curva p/ esquerda) a 1 (direita)
 var _t := 0.0
 
 
@@ -56,7 +62,10 @@ func update(dt: float) -> void:
 	if not alive:
 		return
 	_t += dt
+	var prev_x := position.x
 	position = position.lerp(target, 1.0 - exp(-Tuning.SHIP_FOLLOW_SHARPNESS * dt))
+	var vx := (position.x - prev_x) / dt
+	_bank = lerpf(_bank, clampf(vx / BANK_SPEED, -1.0, 1.0), 1.0 - exp(-12.0 * dt))
 
 	invuln = maxf(0.0, invuln - dt)
 	modulate.a = 0.35 if invuln > 0.0 and int(_t * 20.0) % 2 == 0 else 1.0
@@ -149,7 +158,7 @@ func _set_weapon_level(level: int) -> void:
 
 
 func _fire() -> void:
-	var muzzle := position + Vector2(0, -44)
+	var muzzle := position + Vector2(0, -52)
 	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
 	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
 	fired.emit()
@@ -174,17 +183,20 @@ func _clamp(p: Vector2) -> Vector2:
 
 
 func _draw() -> void:
-	# Chama do propulsor
-	var flick := 0.75 + 0.25 * sin(_t * 40.0)
-	var flame := PackedVector2Array([Vector2(-12, 24), Vector2(12, 24), Vector2(0, 24 + 34 * flick)])
-	draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.85))
+	# Inclinação nas curvas: gira um pouco e "afina" (a nave vira de lado).
+	draw_set_transform(Vector2.ZERO, _bank * 0.15, Vector2(1.0 - 0.2 * absf(_bank), 1.0))
 
-	# Corpo com contorno "neon" (traço largo translúcido + traço fino HDR que brilha)
-	var body := PackedVector2Array(BODY)
-	draw_colored_polygon(body, Palette.NEON_DARK)
-	var outline := body + PackedVector2Array([body[0]])
-	draw_polyline(outline, Color(Palette.NEON, 0.3), 12.0, true)
-	draw_polyline(outline, Palette.NEON_HDR, 4.0, true)
+	# Chamas dos dois motores
+	for side: float in [-1.0, 1.0]:
+		var flick := 0.75 + 0.25 * sin(_t * 40.0 + side)
+		var x := side * ENGINE_X
+		var flame := PackedVector2Array([Vector2(x - 5, ENGINE_Y), Vector2(x + 5, ENGINE_Y), Vector2(x, ENGINE_Y + 30 * flick)])
+		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.85))
+
+	# Sprite: o modulate > 1 faz só as linhas claras (neon) passarem do limiar do glow.
+	var half := SPRITE_SIZE * 0.5
+	draw_texture_rect(SPRITE, Rect2(-half, -half, SPRITE_SIZE, SPRITE_SIZE), false, SPRITE_GLOW)
+	draw_set_transform(Vector2.ZERO, 0.0)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia
 	if last_chance:
