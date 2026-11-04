@@ -10,8 +10,8 @@ var art: ArtSet = load(ART_SET_PATH)
 var high_score := 0
 var sensitivity := Tuning.DRAG_SENSITIVITY_DEFAULT
 var vibration_enabled := true
-var music_enabled := true
-var sfx_enabled := true
+var music_volume := 1.0  # 0..1 (0 = sem música)
+var sfx_volume := 1.0    # 0..1 (0 = sem efeitos)
 var persist := true  # os testes desligam para não sobrescrever o save real
 
 # Campanha
@@ -43,8 +43,11 @@ func load_data() -> void:
 	sensitivity = cfg.get_value("options", "sensitivity", Tuning.DRAG_SENSITIVITY_DEFAULT)
 	vibration_enabled = cfg.get_value("options", "vibration", true)
 	var legacy_sound: bool = cfg.get_value("options", "sound", true)  # saves antigos: um único "som"
-	music_enabled = cfg.get_value("options", "music", legacy_sound)
-	sfx_enabled = cfg.get_value("options", "sfx", legacy_sound)
+	# Saves antigos tinham só ligado/desligado: viram 100% ou 0%.
+	var old_music: bool = cfg.get_value("options", "music", legacy_sound)
+	var old_sfx: bool = cfg.get_value("options", "sfx", legacy_sound)
+	music_volume = cfg.get_value("options", "music_volume", 1.0 if old_music else 0.0)
+	sfx_volume = cfg.get_value("options", "sfx_volume", 1.0 if old_sfx else 0.0)
 	sector_best = cfg.get_value("campaign", "best", {})
 	sectors_cleared = cfg.get_value("campaign", "cleared", {})
 	checkpoint = cfg.get_value("campaign", "checkpoint", {})
@@ -62,8 +65,8 @@ func save_data() -> void:
 	cfg.set_value("score", "high", high_score)
 	cfg.set_value("options", "sensitivity", sensitivity)
 	cfg.set_value("options", "vibration", vibration_enabled)
-	cfg.set_value("options", "music", music_enabled)
-	cfg.set_value("options", "sfx", sfx_enabled)
+	cfg.set_value("options", "music_volume", music_volume)
+	cfg.set_value("options", "sfx_volume", sfx_volume)
 	cfg.set_value("campaign", "best", sector_best)
 	cfg.set_value("campaign", "cleared", sectors_cleared)
 	cfg.set_value("campaign", "checkpoint", checkpoint)

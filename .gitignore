@@ -5,3 +5,6 @@
 *.aab
 *.keystore
 export_credentials.cfg
+
+# Template de build Android (recriado por tools/exportar_release.ps1)
+android/

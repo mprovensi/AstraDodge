@@ -77,7 +77,7 @@ func _ready() -> void:
 	_engine.stream = load("res://audio/engine.wav")
 	_engine.volume_db = -80.0
 	add_child(_engine)
-	apply_enabled()
+	apply_volumes()
 
 
 func _process(delta: float) -> void:
@@ -175,9 +175,14 @@ func set_engine(on: bool, level: float) -> void:
 		_engine_target_db = -80.0
 
 
-func apply_enabled() -> void:
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), not Game.music_enabled)
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("SFX"), not Game.sfx_enabled)
+## Volume dos barramentos a partir das opções (0..1). Curva ^1,6: o meio do controle
+## soa como "metade" para o ouvido (o linear puro parece não mudar quase nada até o fim).
+func apply_volumes() -> void:
+	for pair: Array in [["Music", Game.music_volume], ["SFX", Game.sfx_volume]]:
+		var idx := AudioServer.get_bus_index(pair[0])
+		var v: float = clampf(pair[1], 0.0, 1.0)
+		AudioServer.set_bus_mute(idx, v <= 0.001)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(maxf(pow(v, 1.6), 0.0001)))
 
 
 func _load_sounds() -> void:

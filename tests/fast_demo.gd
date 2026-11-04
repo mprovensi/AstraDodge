@@ -12,6 +12,7 @@ extends SceneTree
 ##   --mortal           sem escudo infinito (a nave pode morrer; recomeça sozinha)
 ##   --arma=2           nível inicial da arma (1–5)
 ##   --infinito         Modo Infinito procedural (todos os biomas e chefes liberados)
+##   --limpo            sem o letreiro "DEMO" (para capturas de tela)
 ##
 ## O piloto automático foge de metálicos, tiros, avisos vermelhos e do corpo do chefe,
 ## e procura poeira para atirar (ou o ponto fraco do chefe).
@@ -27,6 +28,7 @@ var start_time := 0.0
 var mortal := false
 var weapon := 2
 var endless := false
+var clean := false  # --limpo: sem o letreiro da demo (capturas para a loja)
 var _frame := 0
 var _clear_wait := 0.0
 var _label: Label
@@ -37,7 +39,8 @@ func _initialize() -> void:
 	root.get_node("Game").persist = false  # a demo nunca mexe no save real
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
-	_add_overlay()
+	if not clean:
+		_add_overlay()
 	process_frame.connect(_tick)
 
 
@@ -57,6 +60,8 @@ func _parse_args() -> void:
 				mortal = true
 			"infinito":
 				endless = true
+			"limpo":
+				clean = true
 			"arma":
 				weapon = clampi(int(kv[1]), 1, 5)
 
@@ -86,7 +91,8 @@ func _tick() -> void:
 		return
 	if _frame < 3:
 		return
-	_label.text = "DEMO %sx · %s · %s" % [str(speed), _sector_title(), _state_name()]
+	if _label != null:
+		_label.text = "DEMO %sx · %s · %s" % [str(speed), _sector_title(), _state_name()]
 
 	match main.state:
 		main.State.GAME_OVER:

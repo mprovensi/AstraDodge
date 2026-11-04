@@ -86,8 +86,8 @@ var _buttons := {}  # id -> Button (na ordem em que aparecem)
 var _options_layer: Control
 var _dev_layer: Control  # seletor de fases: só existe em build de desenvolvimento (OS.is_debug_build)
 var _center_was_visible := false
-var _music_button: Button
-var _sfx_button: Button
+var _music_label: Label  # volume da música (0–100%)
+var _sfx_label: Label    # volume dos efeitos
 var _vibration_button: Button
 var _sensitivity_label: Label
 var _new_game_button: Button
@@ -610,17 +610,13 @@ func _build_options(root: Control) -> void:
 
 	box.add_child(_make_label("OPÇÕES", 80, Palette.NEON))
 
-	_music_button = _make_button("")
-	_music_button.pressed.connect(func() -> void:
-		Game.music_enabled = not Game.music_enabled
+	# Volumes de 0 a 100%, de 10 em 10.
+	_music_label = _make_volume_row(box, "MÚSICA", func(step: float) -> void:
+		Game.music_volume = clampf(snappedf(Game.music_volume + step, 0.1), 0.0, 1.0)
 		_on_option_changed())
-	box.add_child(_music_button)
-
-	_sfx_button = _make_button("")
-	_sfx_button.pressed.connect(func() -> void:
-		Game.sfx_enabled = not Game.sfx_enabled
+	_sfx_label = _make_volume_row(box, "EFEITOS", func(step: float) -> void:
+		Game.sfx_volume = clampf(snappedf(Game.sfx_volume + step, 0.1), 0.0, 1.0)
 		_on_option_changed())
-	box.add_child(_sfx_button)
 
 	_vibration_button = _make_button("")
 	_vibration_button.pressed.connect(func() -> void:
@@ -675,7 +671,7 @@ func _build_options(root: Control) -> void:
 
 
 func _on_option_changed() -> void:
-	Sfx.apply_enabled()
+	Sfx.apply_volumes()
 	Sfx.play("click", -4.0, 1.0, 0.0)
 	_refresh_options()
 
@@ -686,9 +682,38 @@ func _change_sensitivity(step: float) -> void:
 	_refresh_options()
 
 
+## Linha "RÓTULO  [-]  80%  [+]"; `change` recebe -0,1 ou +0,1. Devolve o rótulo do valor.
+func _make_volume_row(box: Container, title: String, change: Callable) -> Label:
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 20)
+	box.add_child(row)
+	var name_label := _make_label(title, 38, Palette.TEXT_DIM)
+	name_label.custom_minimum_size.x = 230
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(name_label)
+	var minus := _make_button("-")
+	minus.custom_minimum_size = Vector2(110, 110)
+	minus.pressed.connect(change.bind(-0.1))
+	row.add_child(minus)
+	var value := _make_label("", 44, Color.WHITE)
+	value.custom_minimum_size.x = 170
+	row.add_child(value)
+	var plus := _make_button("+")
+	plus.custom_minimum_size = Vector2(110, 110)
+	plus.pressed.connect(change.bind(0.1))
+	row.add_child(plus)
+	return value
+
+
+static func _percent(v: float) -> String:
+	return "DESL." if v <= 0.001 else "%d%%" % roundi(v * 100.0)
+
+
 func _refresh_options() -> void:
-	_set_toggle(_music_button, "MÚSICA", Game.music_enabled, "LIGADA", "DESLIGADA")
-	_set_toggle(_sfx_button, "EFEITOS", Game.sfx_enabled, "LIGADOS", "DESLIGADOS")
+	_music_label.text = _percent(Game.music_volume)
+	_sfx_label.text = _percent(Game.sfx_volume)
 	_set_toggle(_vibration_button, "VIBRAÇÃO", Game.vibration_enabled, "LIGADA", "DESLIGADA")
 	_sensitivity_label.text = ("%.1fx" % Game.sensitivity).replace(".", ",")
 

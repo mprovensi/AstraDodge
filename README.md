@@ -98,7 +98,20 @@ Instalar com o celular no USB (depuração USB ligada):
 %LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe install -r build\AstraDodge-debug.apk
 ```
 
-> `package/unique_name` está como `com.astradodge.game` provisoriamente — defina o definitivo antes da Play Store (não muda depois).
+Pacote definitivo: **`com.mprovensi.astradodge`** (não muda depois de publicado).
+
+### Publicar na Google Play (versão de lançamento)
+
+1. **Chave de lançamento (uma vez):** `powershell -ExecutionPolicy Bypass -File tools\criar_chave_release.ps1`
+   — cria `%USERPROFILE%\.astradodge\astradodge-release.keystore`. **Faça backup** do arquivo e guarde a senha.
+2. **Gerar o .aab:** `powershell -ExecutionPolicy Bypass -File tools\exportar_release.ps1`
+   — pede a senha (não fica salva) e gera `build\AstraDodge-release.aab` (perfil "Android Release",
+   build Gradle). Na 1ª vez baixa as ferramentas de build do Android.
+3. Subir o `.aab` no Play Console (teste fechado: 12 testadores por 14 dias).
+4. Imagens da loja: `store/screenshots/` (1080×1920). Na versão de lançamento o seletor
+   FASES (DEV) não aparece.
+
+Antes de cada envio: aumente `version/code` (e `version/name`) nos dois perfis de `export_presets.cfg`.
 
 ## Ver o jogo em modo rápido (demo com piloto automático)
 
