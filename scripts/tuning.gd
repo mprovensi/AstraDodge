@@ -98,6 +98,18 @@ const MISSILE_TURN := 1.6          # rad/s: curva devagar, dá para fugir de lad
 const MISSILE_LIFE := 7.0
 const DRONE_V_SPACING := 90.0      # formação em V
 
+# --- Setor 5: Anel Glacial ---
+const ICE_SPLIT_MIN_RADIUS := 50.0  # gelo menor que isso só quebra (não racha)
+const ICE_SHARDS := 2               # lascas por gelo rachado
+const ICE_SHARD_SPEED := 230.0      # px/s para o lado (em diagonal, somado à rolagem)
+const ICE_SHARD_RADIUS_K := 0.5     # lasca = metade do raio do gelo
+const COMET_RADIUS := 34.0
+const COMET_SPEED := 1500.0         # muito rápido: o aviso em linha é que salva
+const COMET_TELEGRAPH := 1.1
+const COMET_WARN_WIDTH := 120.0     # largura da faixa de aviso (≥ diâmetro + margem)
+const COMET_SHOWER_INTERVAL := 0.9  # s entre cometas de uma chuva
+const SHIELD_DMG_COMET := 25.0
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

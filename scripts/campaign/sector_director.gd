@@ -11,6 +11,8 @@ var armored := 0.0
 var clouds := 0.0
 var mines := 0.0
 var turrets := 0.0
+var ice := 0.0
+var comets := 0.0
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
@@ -66,25 +68,7 @@ func seek(t: float) -> void:
 	while _next < _events.size() and _events[_next].at <= t:
 		var e := _events[_next]
 		_next += 1
-		match e.kind:
-			WaveEvent.Kind.DENSITY:
-				density = e.density
-				metals = e.metals
-				moving = e.moving
-				armored = e.armored
-				clouds = e.clouds
-				mines = e.mines
-				turrets = e.turrets
-			WaveEvent.Kind.DUST_RAIN:
-				rain_left = maxf(0.0, e.at + e.duration - t)
-			WaveEvent.Kind.CALM:
-				calm_left = maxf(0.0, e.at + e.duration - t)
-			WaveEvent.Kind.END:
-				finished = true
-			WaveEvent.Kind.BOSS:
-				boss_id = e.text
-			WaveEvent.Kind.MUSIC:
-				music_track = e.text
+		_apply(e, maxf(0.0, t - e.at))
 
 
 ## Avança o tempo e devolve os eventos que dispararam neste passo.
@@ -97,24 +81,31 @@ func update(dt: float) -> Array[WaveEvent]:
 	while _next < _events.size() and _events[_next].at <= time:
 		var e := _events[_next]
 		_next += 1
-		match e.kind:
-			WaveEvent.Kind.DENSITY:
-				density = e.density
-				metals = e.metals
-				moving = e.moving
-				armored = e.armored
-				clouds = e.clouds
-				mines = e.mines
-				turrets = e.turrets
-			WaveEvent.Kind.DUST_RAIN:
-				rain_left = e.duration
-			WaveEvent.Kind.CALM:
-				calm_left = e.duration
-			WaveEvent.Kind.END:
-				finished = true
-			WaveEvent.Kind.BOSS:
-				boss_id = e.text
-			WaveEvent.Kind.MUSIC:
-				music_track = e.text
+		_apply(e, 0.0)
 		fired.append(e)
 	return fired
+
+
+## Efeito do evento no "clima" (`elapsed`: quanto tempo já passou desde ele, no seek).
+func _apply(e: WaveEvent, elapsed: float) -> void:
+	match e.kind:
+		WaveEvent.Kind.DENSITY:
+			density = e.density
+			metals = e.metals
+			moving = e.moving
+			armored = e.armored
+			clouds = e.clouds
+			mines = e.mines
+			turrets = e.turrets
+			ice = e.ice
+			comets = e.comets
+		WaveEvent.Kind.DUST_RAIN:
+			rain_left = maxf(0.0, e.duration - elapsed)
+		WaveEvent.Kind.CALM:
+			calm_left = maxf(0.0, e.duration - elapsed)
+		WaveEvent.Kind.END:
+			finished = true
+		WaveEvent.Kind.BOSS:
+			boss_id = e.text
+		WaveEvent.Kind.MUSIC:
+			music_track = e.text

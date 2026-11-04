@@ -15,6 +15,7 @@ enum Kind {
 	STORM,       ## `duration` s de tempestade: raios em colunas, cada um avisado antes
 	DRONES,      ## formação em V de `count` drones entrando pelo topo
 	BIOME,       ## (Modo Infinito) troca de cenário: `count` = índice do setor (nebulosa + trilha)
+	COMETS,      ## chuva de `count` cometas em sequência (cada um avisado em linha)
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -28,7 +29,9 @@ enum Kind {
 @export_range(0.0, 1.0) var clouds := 0.0   ## DENSITY: chance de nuvem iônica por linha
 @export_range(0.0, 1.0) var mines := 0.0    ## DENSITY: chance de mina iônica por linha
 @export_range(0.0, 1.0) var turrets := 0.0  ## DENSITY: chance de torreta (em destroço) por linha
-@export var count := 0                      ## DRONES: quantos drones na formação
+@export_range(0.0, 1.0) var ice := 0.0      ## DENSITY: chance de cada poeira ser de gelo (racha em lascas)
+@export_range(0.0, 1.0) var comets := 0.0   ## DENSITY: chance de um cometa avulso por linha
+@export var count := 0                      ## DRONES/COMETS: quantos
 
 
 static func make(at_seconds: float, event_kind: Kind, props := {}) -> WaveEvent:

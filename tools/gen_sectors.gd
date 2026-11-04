@@ -12,7 +12,48 @@ func _initialize() -> void:
 	_save(_sector_2())
 	_save(_sector_3())
 	_save(_sector_4())
+	_save(_sector_5())
 	quit()
+
+
+## Setor 5 — Anel Glacial: gelo que racha em lascas, cometas; chefe Colosso de Gelo.
+func _sector_5() -> SectorData:
+	var s := SectorData.new()
+	s.id = "sector_5"
+	s.number = 5
+	s.title = "SETOR 5"
+	s.subtitle = "Anel Glacial"
+	s.duration = 150.0
+	s.difficulty_start = 0.55
+	s.difficulty_end = 0.9
+	s.music = "sector5"
+	s.nebula_a = Color(0.06, 0.14, 0.30)  # azul-cobalto
+	s.nebula_b = Color(0.20, 0.27, 0.34)  # branco-gelo acinzentado
+	var K := WaveEvent.Kind
+	s.events.assign([
+		WaveEvent.make(0.0, K.DENSITY, {"density": 0.85, "metals": true}),
+		WaveEvent.make(0.5, K.MESSAGE, {"text": "SETOR 5\nAnel Glacial", "duration": 2.5}),
+		WaveEvent.make(5.0, K.DENSITY, {"density": 0.85, "metals": true, "ice": 0.5}),
+		WaveEvent.make(5.0, K.MESSAGE, {"text": "Gelo racha em lascas ao quebrar.\nAtire cedo, de longe!", "duration": 4.0}),
+		WaveEvent.make(25.0, K.MESSAGE, {"text": "Cometas cruzam na diagonal.\nSaia da faixa vermelha!", "duration": 4.0}),
+		WaveEvent.make(26.0, K.COMETS, {"count": 2}),
+		WaveEvent.make(35.0, K.DENSITY, {"density": 0.9, "metals": true, "ice": 0.45, "comets": 0.08}),
+		WaveEvent.make(50.0, K.METAL_WALL),
+		WaveEvent.make(62.0, K.DENSITY, {"density": 1.0, "metals": true, "ice": 0.45, "comets": 0.1,
+				"moving": 0.2, "armored": 0.15}),
+		WaveEvent.make(72.0, K.COMETS, {"count": 5}),
+		WaveEvent.make(88.0, K.DUST_RAIN, {"duration": 8.0}),
+		WaveEvent.make(88.0, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}),
+		WaveEvent.make(100.0, K.DRONES, {"count": 5}),
+		WaveEvent.make(108.0, K.DENSITY, {"density": 1.1, "metals": true, "ice": 0.5, "comets": 0.12,
+				"moving": 0.25, "armored": 0.2, "clouds": 0.15}),
+		WaveEvent.make(118.0, K.COMETS, {"count": 6}),
+		WaveEvent.make(130.0, K.METAL_WALL),
+		WaveEvent.make(138.0, K.CALM, {"duration": 9999.0}),
+		WaveEvent.make(140.0, K.MESSAGE, {"text": "O gelo à frente... está se mexendo.", "duration": 3.0}),
+		WaveEvent.make(144.0, K.BOSS, {"text": "ice_colossus"}),
+	])
+	return s
 
 
 ## Setor 4 — Destroços da Frota: torretas, drones em V, emboscada; chefe Cruzador Fantasma.

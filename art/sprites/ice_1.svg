@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Gelo (Setor 5): destrutível, racha em lascas. Bloco facetado azul-gelo. Raio útil ~118. -->
+  <defs>
+    <linearGradient id="ice" x1="0.2" y1="0.1" x2="0.8" y2="0.95">
+      <stop offset="0" stop-color="#e8f7ff"/>
+      <stop offset="0.5" stop-color="#8fc9ec"/>
+      <stop offset="1" stop-color="#3d6f9e"/>
+    </linearGradient>
+  </defs>
+  <path d="M128 12 L190 30 L236 84 L240 150 L206 212 L140 242 L74 226 L24 176 L14 108 L50 46 Z"
+        fill="url(#ice)" stroke="#f2fbff" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Facetas -->
+  <path d="M128 12 L120 110 L50 46 M120 110 L236 84 M120 110 L140 242 M120 110 L24 176" fill="none"
+        stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
+  <!-- Rachaduras (é por aqui que ele quebra) -->
+  <path d="M96 150 L120 176 L112 206 M160 120 L184 150 L178 182" fill="none" stroke="#1f4a73" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M70 70 L94 84" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+</svg>

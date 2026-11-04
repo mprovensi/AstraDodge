@@ -34,6 +34,8 @@ extends Resource
 @export_range(0.5, 1.0, 0.01) var metal_fill := 0.94
 ## Casca da poeira blindada (Setor 2), desenhada por cima da rocha; centro transparente.
 @export var dust_shell_texture: Texture2D
+## Gelo (Setor 5): poeira que racha em lascas. Mesmo encaixe da poeira (dust_fill).
+@export var ice_textures: Array[Texture2D] = []
 
 @export_group("Chefes")
 ## Rocha-Mãe inteira (fase 1). Os núcleos são desenhados pelo código na borda.
@@ -48,6 +50,8 @@ extends Resource
 @export var medusa_body: Texture2D
 ## Cruzador Fantasma (Setor 4): casco LARGO (2:1). As partes são desenhadas pelo código.
 @export var cruiser_body: Texture2D
+## Colosso de Gelo (Setor 5): bloco de gelo redondo. Núcleo e placas são desenhados pelo código.
+@export var ice_colossus_body: Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

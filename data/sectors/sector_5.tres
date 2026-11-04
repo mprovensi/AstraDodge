@@ -1,0 +1,142 @@
+[gd_resource type="Resource" script_class="SectorData" format=3]
+
+[ext_resource type="Script" path="res://scripts/campaign/wave_event.gd" id="1_4w6ai"]
+[ext_resource type="Script" path="res://scripts/campaign/sector_data.gd" id="2_c6av1"]
+
+[sub_resource type="Resource" id="Resource_euow4"]
+script = ExtResource("1_4w6ai")
+kind = 1
+density = 0.85
+
+[sub_resource type="Resource" id="Resource_01br1"]
+script = ExtResource("1_4w6ai")
+at = 0.5
+duration = 2.5
+text = "SETOR 5
+Anel Glacial"
+
+[sub_resource type="Resource" id="Resource_cqs25"]
+script = ExtResource("1_4w6ai")
+at = 5.0
+kind = 1
+density = 0.85
+ice = 0.5
+
+[sub_resource type="Resource" id="Resource_jked8"]
+script = ExtResource("1_4w6ai")
+at = 5.0
+duration = 4.0
+text = "Gelo racha em lascas ao quebrar.
+Atire cedo, de longe!"
+
+[sub_resource type="Resource" id="Resource_asv7y"]
+script = ExtResource("1_4w6ai")
+at = 25.0
+duration = 4.0
+text = "Cometas cruzam na diagonal.
+Saia da faixa vermelha!"
+
+[sub_resource type="Resource" id="Resource_u4dun"]
+script = ExtResource("1_4w6ai")
+at = 26.0
+kind = 12
+count = 2
+
+[sub_resource type="Resource" id="Resource_dvhg1"]
+script = ExtResource("1_4w6ai")
+at = 35.0
+kind = 1
+density = 0.9
+ice = 0.45
+comets = 0.08
+
+[sub_resource type="Resource" id="Resource_ers7b"]
+script = ExtResource("1_4w6ai")
+at = 50.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_y88n1"]
+script = ExtResource("1_4w6ai")
+at = 62.0
+kind = 1
+moving = 0.2
+armored = 0.15
+ice = 0.45
+comets = 0.1
+
+[sub_resource type="Resource" id="Resource_f2tmv"]
+script = ExtResource("1_4w6ai")
+at = 72.0
+kind = 12
+count = 5
+
+[sub_resource type="Resource" id="Resource_j77ua"]
+script = ExtResource("1_4w6ai")
+at = 88.0
+kind = 2
+duration = 8.0
+
+[sub_resource type="Resource" id="Resource_7g4s7"]
+script = ExtResource("1_4w6ai")
+at = 88.0
+duration = 2.5
+text = "CHUVA DE POEIRA!"
+
+[sub_resource type="Resource" id="Resource_vwi8a"]
+script = ExtResource("1_4w6ai")
+at = 100.0
+kind = 10
+count = 5
+
+[sub_resource type="Resource" id="Resource_r7whn"]
+script = ExtResource("1_4w6ai")
+at = 108.0
+kind = 1
+density = 1.1
+moving = 0.25
+armored = 0.2
+clouds = 0.15
+ice = 0.5
+comets = 0.12
+
+[sub_resource type="Resource" id="Resource_3twhe"]
+script = ExtResource("1_4w6ai")
+at = 118.0
+kind = 12
+count = 6
+
+[sub_resource type="Resource" id="Resource_xgo2g"]
+script = ExtResource("1_4w6ai")
+at = 130.0
+kind = 3
+
+[sub_resource type="Resource" id="Resource_tdxiu"]
+script = ExtResource("1_4w6ai")
+at = 138.0
+kind = 4
+duration = 9999.0
+
+[sub_resource type="Resource" id="Resource_yao4n"]
+script = ExtResource("1_4w6ai")
+at = 140.0
+duration = 3.0
+text = "O gelo à frente... está se mexendo."
+
+[sub_resource type="Resource" id="Resource_u86ox"]
+script = ExtResource("1_4w6ai")
+at = 144.0
+kind = 7
+text = "ice_colossus"
+
+[resource]
+script = ExtResource("2_c6av1")
+id = "sector_5"
+number = 5
+title = "SETOR 5"
+subtitle = "Anel Glacial"
+difficulty_start = 0.55
+difficulty_end = 0.9
+events = Array[ExtResource("1_4w6ai")]([SubResource("Resource_euow4"), SubResource("Resource_01br1"), SubResource("Resource_cqs25"), SubResource("Resource_jked8"), SubResource("Resource_asv7y"), SubResource("Resource_u4dun"), SubResource("Resource_dvhg1"), SubResource("Resource_ers7b"), SubResource("Resource_y88n1"), SubResource("Resource_f2tmv"), SubResource("Resource_j77ua"), SubResource("Resource_7g4s7"), SubResource("Resource_vwi8a"), SubResource("Resource_r7whn"), SubResource("Resource_3twhe"), SubResource("Resource_xgo2g"), SubResource("Resource_tdxiu"), SubResource("Resource_yao4n"), SubResource("Resource_u86ox")])
+music = "sector5"
+nebula_a = Color(0.06, 0.14, 0.3, 1)
+nebula_b = Color(0.2, 0.27, 0.34, 1)

@@ -3,10 +3,11 @@ extends Node2D
 ## Pool de projéteis inimigos com padrões reutilizáveis (mirado, leque, anel).
 ## Cada tipo tem forma própria — nunca diferenciar só pela cor.
 
-enum Kind { ORB, DIAMOND, ROCK, CHUNK }
+enum Kind { ORB, DIAMOND, ROCK, CHUNK, ICE }
 
 const ROCK_RADIUS := 18.0
 const CHUNK_RADIUS := 55.0  # pedaço de metal arremessado pelo Minerador
+const ICE_RADIUS := 13.0    # estaca de gelo do Colosso (pode rachar em duas no meio do caminho)
 ## Contorno da pedra (unitário; escalado pelo raio e girando).
 const ROCK_SHAPE := [Vector2(1.0, 0.0), Vector2(0.55, 0.8), Vector2(-0.2, 0.95), Vector2(-0.85, 0.45),
 		Vector2(-0.9, -0.35), Vector2(-0.3, -0.9), Vector2(0.5, -0.8)]
@@ -17,6 +18,8 @@ class Shot:
 	var vel := Vector2.ZERO
 	var radius := 14.0
 	var t := 0.0
+	var split_at := -1.0     # ICE: s até rachar em duas (-1 = não racha)
+	var split_deg := 0.0     # ICE: abertura de cada metade em relação à direção atual
 	var alive := false
 
 var pool: Array[Shot] = []
@@ -41,8 +44,19 @@ func fire(pos: Vector2, vel: Vector2, kind := Kind.ORB) -> void:
 			s.radius = ROCK_RADIUS
 		Kind.CHUNK:
 			s.radius = CHUNK_RADIUS
+		Kind.ICE:
+			s.radius = ICE_RADIUS
 	s.t = 0.0
+	s.split_at = -1.0
 	s.alive = true
+
+
+## Estaca de gelo que racha em duas depois de `after` s, abrindo ±`deg` graus.
+func fire_splitting(pos: Vector2, vel: Vector2, after: float, deg: float) -> void:
+	fire(pos, vel, Kind.ICE)
+	var s := pool[_last]
+	s.split_at = after
+	s.split_deg = deg
 
 
 func fire_aimed(pos: Vector2, target: Vector2, speed: float, kind := Kind.DIAMOND) -> void:
@@ -85,22 +99,40 @@ func clear() -> void:
 
 
 func update(dt: float) -> void:
+	var splits: Array[Shot] = []
 	for s in pool:
 		if not s.alive:
 			continue
 		s.pos += s.vel * dt
 		s.t += dt
+		if s.split_at >= 0.0 and s.t >= s.split_at:
+			splits.append(s)
 		if s.pos.y > view_size.y + 40.0 or s.pos.y < -200.0 or s.pos.x < -40.0 or s.pos.x > view_size.x + 40.0:
 			s.alive = false
+	# Racha depois do laço (fire() reaproveita tiros mortos do pool).
+	for s in splits:
+		if not s.alive:
+			continue
+		var at := s.pos
+		var vel := s.vel
+		var spread := deg_to_rad(s.split_deg)
+		s.alive = false  # (o fire() abaixo pode reaproveitar este mesmo tiro)
+		for side: float in [-1.0, 1.0]:
+			fire(at, vel.rotated(spread * side), Kind.ICE)
 	queue_redraw()
 
 
+var _last := 0  # índice no pool do último tiro criado
+
+
 func _get_free() -> Shot:
-	for s in pool:
-		if not s.alive:
-			return s
+	for i in pool.size():
+		if not pool[i].alive:
+			_last = i
+			return pool[i]
 	var ns := Shot.new()
 	pool.append(ns)
+	_last = pool.size() - 1
 	return ns
 
 
@@ -121,6 +153,15 @@ func _draw() -> void:
 				draw_texture_rect(tex, Rect2(-s.radius, -s.radius, s.radius * 2.0, s.radius * 2.0), false)
 				draw_set_transform(Vector2.ZERO, 0.0)
 			draw_arc(s.pos, s.radius * 1.1, 0.0, TAU, 32, Palette.ENEMY_HDR, 4.0, true)
+		elif s.kind == Kind.ICE:
+			# Estaca de gelo: cristal comprido, branco-gelo, contorno de perigo.
+			var dir := s.vel.normalized()
+			var side := dir.orthogonal()
+			var r := s.radius
+			var shard := PackedVector2Array([s.pos + dir * r * 2.2, s.pos + side * r * 0.7,
+					s.pos - dir * r * 1.6, s.pos - side * r * 0.7])
+			draw_colored_polygon(shard, Color(1.8, 2.2, 2.6))
+			draw_polyline(shard + PackedVector2Array([shard[0]]), Palette.ENEMY_HDR, 3.0, true)
 		elif s.kind == Kind.ROCK:
 			# Pedra girando, com contorno de perigo em brasa.
 			var rock := PackedVector2Array()

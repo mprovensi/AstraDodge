@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Gelo (Setor 5), variação 2: cristal mais alongado. Raio útil ~118. -->
+  <defs>
+    <linearGradient id="ice" x1="0.1" y1="0.0" x2="0.9" y2="1.0">
+      <stop offset="0" stop-color="#f0faff"/>
+      <stop offset="0.55" stop-color="#9ad3f0"/>
+      <stop offset="1" stop-color="#36628f"/>
+    </linearGradient>
+  </defs>
+  <path d="M110 12 L176 18 L226 62 L242 126 L222 194 L168 236 L100 240 L42 204 L14 140 L28 70 Z"
+        fill="url(#ice)" stroke="#f2fbff" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M110 12 L136 124 L226 62 M136 124 L222 194 M136 124 L100 240 M136 124 L14 140 M136 124 L28 70" fill="none"
+        stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M70 170 L96 160 L108 186 M176 96 L196 118" fill="none" stroke="#1f4a73" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M60 80 L80 62" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+</svg>

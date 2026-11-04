@@ -32,6 +32,7 @@ func _run() -> void:
 	_test_sector2()
 	_test_sector3()
 	_test_sector4()
+	_test_sector5()
 	_test_endless_generator()
 	_test_endless_run()
 	_test_boss_safety()
@@ -289,9 +290,53 @@ func _test_sector4() -> void:
 	assert(missiles_seen >= 2, "o Cruzador lança mísseis (vi %d)" % missiles_seen)
 	assert(main.enemies_destroyed > destroyed_before, "inimigos são destruídos")
 	assert(boss_seen and phase2_seen and parts_min == 0, "Cruzador: fase 2 e todas as partes destruídas")
-	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	assert(main.hud._buttons["next"].visible, "depois do Setor 4 vem o Setor 5")
 	print("SETOR 4 OK | %.1fs | inimigos=%d | misseis=%d | chefe em %.1fs | estrelas=%s" % [
 		frames * DT, seen.size(), missiles_seen, boss_time, str(main.star_checks())])
+
+
+## Continua do Setor 4: PRÓXIMO SETOR → Setor 5 inteiro (gelo que racha, cometas, Colosso).
+func _test_sector5() -> void:
+	var sfx := root.get_node("Sfx")
+	main._on_next_sector()
+	assert(main.director.sector.id == "sector_5")
+	assert(sfx.current_track() == "sector5", "Setor 5 tem trilha própria")
+	_touch(true)
+	var comet_ids := {}
+	var comets_seen := 0
+	var boss_seen := false
+	var phase2_seen := false
+	var plate_hits := 0
+	var boss_time := 0.0
+	var frames := 0
+	while main.state != main.State.SECTOR_CLEAR and frames < 60 * 360:
+		main.ship.invuln = 1.0
+		var boss = main.boss
+		if boss != null:
+			if not boss_seen:
+				main.ship.weapon_level = 3
+			boss_seen = true
+			boss_time += DT
+			phase2_seen = phase2_seen or boss.phase == 2
+			if not boss.gap_below():
+				plate_hits += 1
+			main.ship.move_by(Vector2(boss.aim_x() - main.ship.target.x, main.view_size.y * 0.6 - main.ship.target.y))
+		elif frames % 20 == 0:
+			_drag(Vector2(randf_range(-120, 120), 0))
+		main._process(DT)
+		for c in main.hazards.comets:
+			if not comet_ids.has(c):
+				comet_ids[c] = true
+				comets_seen += 1
+		frames += 1
+	assert(main.state == main.State.SECTOR_CLEAR, "o Setor 5 deveria terminar (Colosso derrotado)")
+	assert(main.ice_shards >= 10, "gelo deveria rachar em lascas (vi %d)" % main.ice_shards)
+	assert(comets_seen >= 13, "chuvas de cometas + avulsos (vi %d)" % comets_seen)
+	assert(boss_seen and phase2_seen, "Colosso: fase 2")
+	assert(plate_hits > 0, "as placas ficam embaixo do núcleo parte do tempo (fendas)")
+	assert(not main.hud._buttons["next"].visible, "último setor: sem PRÓXIMO SETOR")
+	print("SETOR 5 OK | %.1fs | lascas=%d | cometas=%d | chefe em %.1fs | estrelas=%s" % [
+		frames * DT, main.ice_shards, comets_seen, boss_time, str(main.star_checks())])
 
 
 ## Rota segura: geometria dos ataques da Rocha-Mãe sempre deixa espaço para a nave.
@@ -342,8 +387,44 @@ func _test_boss_safety() -> void:
 	var hull_out := _hull_collision_outside_pct(cr)
 	assert(hull_out <= 5.0, "casco do Cruzador: %.0f%% da colisão fora do desenho" % hull_out)
 	print("ROTA SEGURA S4 OK | canhao=%.0f | anel=%.0f | casco fora do desenho=%.0f%%" % [cannon_gap, ring_gap, hull_out])
+
+	# Setor 5 / Colosso: vão entre as estacas rachadas na altura da nave (do meio ao pé da
+	# tela, relativo ao centro do chefe), faixa do cometa = área do dano, corpo x desenho.
+	var ic: GDScript = load("res://scripts/bosses/ice_colossus.gd")
+	var shard_gap := INF
+	for h: float in [1920.0, 2340.0]:
+		var cy: float = h * ic.REST_Y_RATIO
+		for p in [1, 2]:
+			shard_gap = minf(shard_gap, ic.shard_min_gap(p, h * 0.6 - cy, h * 0.92 - cy))
+	assert(shard_gap >= ship_gap, "estacas do Colosso: vão de %.0f px" % shard_gap)
+	assert(Tuning.COMET_WARN_WIDTH * 0.5 >= Tuning.COMET_RADIUS + Tuning.SHIP_HITBOX_RADIUS,
+			"o aviso do cometa cobre toda a área do dano")
+	assert(1080.0 - Tuning.COMET_WARN_WIDTH * 2.0 >= ship_gap * 6.0, "dois cometas ainda deixam a tela livre")
+	var ice_out := _round_body_outside_pct(ic, root.get_node("Game").art.ice_colossus_body)
+	assert(ice_out <= 5.0, "corpo do Colosso: %.0f%% da colisão fora do desenho" % ice_out)
+	print("ROTA SEGURA S5 OK | estacas=%.0f | faixa do cometa=%.0f | corpo fora do desenho=%.0f%%" % [
+		shard_gap, Tuning.COMET_WARN_WIDTH, ice_out])
 	print("ROTA SEGURA OK | vao do leque >= %.0f px | livre no avanco = %.0f px | raio livre = %.0f px | vao da explosao = %.0f px | colisao fora do desenho = %.0f%%" % [
 		ship_gap, free, beam_free, blast_gap, outside_pct])
+
+
+## Corpo redondo (BODY_RADIUS) contra os pixels do sprite (SPRITE_SIZE), sem as placas.
+func _round_body_outside_pct(script: GDScript, tex: Texture2D) -> float:
+	var img: Image = tex.get_image()
+	var half: float = script.SPRITE_SIZE * 0.5
+	var r: float = script.BODY_RADIUS
+	var hits := 0
+	var outside := 0
+	for y in range(-int(r), int(r) + 1, 6):
+		for x in range(-int(r), int(r) + 1, 6):
+			if Vector2(x, y).length() >= r:
+				continue
+			hits += 1
+			var u := int((x + half) / (2.0 * half) * img.get_width())
+			var v := int((y + half) / (2.0 * half) * img.get_height())
+			if img.get_pixel(u, v).a <= 0.5:
+				outside += 1
+	return 100.0 * outside / maxf(1.0, hits)
 
 
 func _hull_collision_outside_pct(cr: GDScript) -> float:
@@ -487,8 +568,8 @@ func _test_checkpoint() -> void:
 ## Infinito procedural: mesma semente = mesma partida; 100 sementes respeitam as regras de ritmo.
 func _test_endless_generator() -> void:
 	var K := WaveEvent.Kind
-	var biomes: Array[int] = [0, 1, 2, 3]
-	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser"]
+	var biomes: Array[int] = [0, 1, 2, 3, 4]
+	var bosses: Array[String] = ["rock_mother", "miner", "medusa", "cruiser", "ice_colossus"]
 	var horizon := 900.0  # 15 min de linha do tempo
 	var a := _endless_timeline(42, biomes, bosses, horizon)
 	var b := _endless_timeline(42, biomes, bosses, horizon)
@@ -505,7 +586,7 @@ func _test_endless_generator() -> void:
 		var boss_times: Array[float] = []
 		var last_boss := ""
 		for e in events:
-			var heavy := e.kind == K.CORRIDOR or e.kind == K.STORM or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
+			var heavy := e.kind in [K.CORRIDOR, K.STORM, K.COMETS] or (e.kind == K.DRONES and e.text == "EMBOSCADA!")
 			if heavy:
 				assert(e.at - last_heavy >= 18.0, "semente %d: dois blocos pesados seguidos (%.1fs)" % [seed_value, e.at])
 				assert(e.duration <= 8.5, "bloco pesado longo demais")
@@ -557,8 +638,8 @@ func _test_endless_run() -> void:
 	var saved_cp := {"sector": 2, "time": 33.0, "weapon": 3}
 	game.checkpoint = saved_cp.duplicate()
 	main.endless_seed = 7
-	main.endless_biomes.assign([0, 1, 2, 3])
-	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser"])
+	main.endless_biomes.assign([0, 1, 2, 3, 4])
+	main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus"])
 	main.start_endless()
 	assert(main.state == main.State.READY and main.mode == main.Mode.ENDLESS)
 	_touch(true)

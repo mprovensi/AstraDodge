@@ -27,6 +27,7 @@ class Asteroid:
 	var punch := 0.0           # 1 logo após o impacto, decai para 0
 	var shell := 0             # poeira blindada: tiros que a casca ainda aguenta
 	var drift := 0.0           # metálico com propulsor: velocidade lateral (quica nas bordas)
+	var ice := false           # gelo (Setor 5): ao quebrar racha em lascas
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -40,6 +41,7 @@ var density := 1.0
 var dust_rain := false
 var moving_metals := 0.0   # chance de uma linha trazer um metálico com propulsor (Setor 2+)
 var armored := 0.0         # chance de cada poeira vir blindada (Setor 2+)
+var ice := 0.0             # chance de cada poeira ser de gelo (Setor 5)
 
 var _next_id := 0
 var _distance_to_next_row := 0.0
@@ -60,6 +62,7 @@ func reset() -> void:
 	dust_rain = false
 	moving_metals = 0.0
 	armored = 0.0
+	ice = 0.0
 	dust_spawned = 0
 	queue_redraw()
 
@@ -206,7 +209,9 @@ func _spawn_row(difficulty: float) -> void:
 			var hp := clampi(1 + int(r > 65.0) + randi_range(0, int(difficulty * 2.5)), 1, 5)
 			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(0.0, 80.0))
 			var a := _add(Kind.DUST, p, r, hp, vel)
-			if randf() < armored:
+			if randf() < ice:
+				a.ice = true  # gelo não leva casca: a novidade dele é rachar
+			elif randf() < armored:
 				a.shell = Tuning.ARMOR_SHELL_HITS
 			break
 	row_spawned.emit(_gap_x)
@@ -220,8 +225,23 @@ func _overlaps(placed: Array[Vector3], p: Vector2, r: float) -> bool:
 
 
 ## Solta uma poeira avulsa (ex.: o chefe soltando pedaços).
-func spawn_dust(pos: Vector2, radius: float, hp: int, vel: Vector2) -> void:
-	_add(Kind.DUST, pos, radius, hp, vel)
+func spawn_dust(pos: Vector2, radius: float, hp: int, vel: Vector2, is_ice := false) -> void:
+	var a := _add(Kind.DUST, pos, radius, hp, vel)
+	a.ice = is_ice
+
+
+## Gelo quebrado (Setor 5): racha em lascas menores que saem em diagonal, para os lados.
+## Retorna quantas lascas criou (0 se o gelo era pequeno demais para rachar).
+func split_ice(a: Asteroid) -> int:
+	if not a.ice or a.radius < Tuning.ICE_SPLIT_MIN_RADIUS:
+		return 0
+	var r := a.radius * Tuning.ICE_SHARD_RADIUS_K
+	for i in Tuning.ICE_SHARDS:
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var vel := Vector2(side * Tuning.ICE_SHARD_SPEED, randf_range(60.0, 120.0))
+		var shard := _add(Kind.DUST, a.pos + Vector2(side * r, 0.0), r, 1, vel)
+		shard.ice = true  # pequena: não racha de novo
+	return Tuning.ICE_SHARDS
 
 
 func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Asteroid:
@@ -257,6 +277,8 @@ func _draw() -> void:
 		var half := a.radius / fill
 		var rect := Rect2(-half, -half, half * 2.0, half * 2.0)
 		var textures := _textures(a.kind)
+		if a.ice and not art.ice_textures.is_empty():
+			textures = art.ice_textures
 		var tex := textures[a.sprite % textures.size()]
 		if a.kind == Kind.METAL:
 			var tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE

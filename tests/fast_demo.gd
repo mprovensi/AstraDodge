@@ -108,8 +108,8 @@ func _tick() -> void:
 func _start_sector(number: int) -> void:
 	Engine.time_scale = speed
 	if endless:
-		main.endless_biomes.assign([0, 1, 2, 3])
-		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser"])
+		main.endless_biomes.assign([0, 1, 2, 3, 4])
+		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus"])
 		main.start_endless()
 		main.ship.weapon_level = weapon
 		_touch()
@@ -194,6 +194,16 @@ func _danger(x: float, ship_y: float) -> float:
 		var above_c: float = ship_y - c.pos.y
 		if above_c > -c.radius and above_c < LOOK_AHEAD and absf(x - c.pos.x) < c.radius * 0.85 + 40.0:
 			d += 250.0
+	# Setor 5: cometas em voo — onde a reta dele cruza a altura da nave.
+	for cm in main.hazards.comets:
+		if not cm.flying():
+			continue
+		var dir: Vector2 = (cm.to - cm.from).normalized()
+		if dir.y <= 0.01 or cm.pos.y > ship_y + 80.0:
+			continue
+		var cross_x: float = cm.pos.x + dir.x * (ship_y - cm.pos.y) / dir.y
+		if absf(x - cross_x) < Tuning.COMET_WARN_WIDTH * 0.5 + 40.0:
+			d += 900.0
 	for e in main.enemies.enemies:
 		var above_e: float = ship_y - e.pos.y
 		if e.kind == 1:  # mina

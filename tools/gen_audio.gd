@@ -27,6 +27,8 @@ func _initialize() -> void:
 	_save("music_sector3", _lofi(84.0, SECTOR3_CHORDS, SECTOR3_MELODY, false))
 	seed(4044)
 	_save("music_sector4", _lofi(100.0, SECTOR4_CHORDS, SECTOR4_MELODY, true))
+	seed(5055)
+	_save("music_sector5", _lofi(88.0, SECTOR5_CHORDS, SECTOR5_MELODY, false, true))
 
 	for v in VARIANTS:
 		seed(100 + v)
@@ -350,11 +352,27 @@ const SECTOR4_MELODY := [
 ]
 
 
+## Setor 5 (music_sector5.wav): 88 BPM, cristalino em Mi: Emaj9 · C#m11 · Amaj7 · B6 + sinos.
+const SECTOR5_CHORDS := [
+	[52, 56, 59, 63, 66],  # Emaj9
+	[49, 52, 56, 59, 66],  # C#m11 (sem a 9ª)
+	[45, 49, 52, 56],      # Amaj7
+	[47, 51, 54, 56],      # B6
+]
+const SECTOR5_MELODY := [
+	[-1, 80, -1, -1, 83, -1, -1, 80, -1, 78, -1, -1, -1, -1, 75, -1],
+	[76, -1, -1, 78, -1, -1, 80, -1, -1, -1, 76, -1, -1, -1, -1, -1],
+	[-1, -1, 81, -1, 80, -1, -1, 76, -1, -1, 73, -1, -1, 76, -1, -1],
+	[78, -1, -1, -1, 75, -1, -1, 78, -1, 80, -1, -1, -1, -1, -1, -1],
+]
+
+
 ## Loop lofi de 8 compassos com swing (2 compassos por acorde).
 ## Piano elétrico suave, baixo redondo, melodia esparsa, bateria abafada, chiado de vinil
 ## e um filtro passa-baixa no fim para soar "quente". As caudas dão a volta no buffer,
 ## então o loop emenda sem clique. `drive`: bumbo extra no "e" do 4 (mais embalo).
-func _lofi(bpm: float, chords: Array, melody: Array, drive: bool) -> PackedFloat32Array:
+## `bells`: sinos cristalinos dobram a melodia uma oitava acima (Setor 5, gelo).
+func _lofi(bpm: float, chords: Array, melody: Array, drive: bool, bells := false) -> PackedFloat32Array:
 	var beat := 60.0 / bpm
 	var bar := beat * 4.0
 	var n := int(round(bar * BARS * RATE))
@@ -381,6 +399,11 @@ func _lofi(bpm: float, chords: Array, melody: Array, drive: bool) -> PackedFloat
 			for e in line.size():
 				if line[e] >= 0:
 					_mix(out, _at(bar_start + _swing(e) * beat), _ep_note(_midi(line[e]), beat * 1.2), 0.28)
+					if bells:
+						_mix(out, _at(bar_start + _swing(e) * beat), _bell(_midi(line[e] + 12), beat * 2.5), 0.14)
+		# Sinos: um brilho agudo do acorde no "e" do 4 de todo compasso.
+		if bells:
+			_mix(out, _at(bar_start + 3.5 * beat), _bell(_midi(chord[chord.size() - 1] + 24), beat * 2.0), 0.08)
 
 		# Bateria preguiçosa: bumbo no 1 e no "e" do 2, caixa no 2 e no 4, chimbal em colcheias com swing.
 		_mix(out, _at(bar_start), _lofi_kick(), 0.75)
@@ -438,6 +461,18 @@ func _ep_note(freq: float, duration: float) -> PackedFloat32Array:
 		var tremolo := 1.0 + 0.12 * sin(TAU * 4.5 * t)
 		var env := minf(1.0, t * 200.0) * exp(-t * 1.6) * (1.0 - smoothstep(0.85, 1.0, float(i) / n))
 		out[i] = tone * tremolo * env
+	return out
+
+
+## Sino de vidro/gelo: parciais inarmônicas (como um sino de verdade) com ataque seco.
+func _bell(freq: float, duration: float) -> PackedFloat32Array:
+	var n := _len(duration)
+	var out := _buf(n)
+	for i in n:
+		var t := float(i) / RATE
+		var ph := TAU * freq * t
+		var tone := sin(ph) + 0.5 * sin(ph * 2.76) * exp(-t * 3.0) + 0.25 * sin(ph * 5.4) * exp(-t * 6.0)
+		out[i] = tone * minf(1.0, t * 400.0) * exp(-t * 2.2) * (1.0 - smoothstep(0.85, 1.0, float(i) / n))
 	return out
 
 

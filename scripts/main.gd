@@ -11,6 +11,7 @@ const SECTORS: Array[SectorData] = [
 	preload("res://data/sectors/sector_2.tres"),
 	preload("res://data/sectors/sector_3.tres"),
 	preload("res://data/sectors/sector_4.tres"),
+	preload("res://data/sectors/sector_5.tres"),
 ]
 
 var state := State.MENU
@@ -64,6 +65,9 @@ var _corridor_timer := 0.0      # s até a próxima parede do corredor
 var _corridor_walls := 0        # paredes já criadas no corredor atual
 var _storm_left := 0.0          # s restantes da TEMPESTADE
 var _storm_timer := 0.0         # s até o próximo raio
+var _comets_left := 0           # cometas que ainda faltam na CHUVA DE COMETAS
+var _comet_timer := 0.0
+var ice_shards := 0             # lascas criadas por gelo rachado (testes)
 var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
 var boss_orbs_dropped := 0      # orbes soltos por acertos no chefe (testes)
 var _biome := 0                # setor cujo cenário está na tela (no Infinito, troca sozinho)
@@ -243,6 +247,8 @@ func _new_run() -> void:
 	telegraph.clear()
 	hazards.clear()
 	_storm_left = 0.0
+	_comets_left = 0
+	ice_shards = 0
 	bosses_defeated = 0
 	boss_orbs_dropped = 0
 	bullets.clear()
@@ -445,10 +451,12 @@ func _step(dt: float) -> void:
 		asteroids.dust_rain = director.rain_left > 0.0
 		asteroids.moving_metals = director.moving
 		asteroids.armored = director.armored
+		asteroids.ice = director.ice
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
 				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0
 		_update_corridor(dt)
 		_update_storm(dt)
+		_update_comets(dt)
 	else:
 		difficulty = Tuning.difficulty(elapsed)
 
@@ -515,6 +523,10 @@ func _on_wave_event(e: WaveEvent) -> void:
 			enemies.spawn_drone_v(e.count, randf_range(margin, view_size.x - margin))
 			if e.text != "":
 				hud.show_hint(e.text, 2.5)
+		WaveEvent.Kind.COMETS:
+			_comets_left = e.count
+			_comet_timer = 0.0
+			hud.show_hint("CHUVA DE COMETAS!\nFuja das faixas vermelhas", 2.5)
 		WaveEvent.Kind.STORM:
 			_storm_left = e.duration
 			_storm_timer = 0.3
@@ -545,6 +557,9 @@ func _on_row_spawned(gap_x: float) -> void:
 			if absf(x - gap_x) > half_gap:
 				enemies.spawn_mine(Vector2(x, -60.0))
 				break
+	# Setor 5: cometa avulso de vez em quando.
+	if randf() < director.comets:
+		_spawn_comet()
 	# Setor 4: torretas em destroços, sempre fora do corredor livre.
 	if randf() < director.turrets:
 		for attempt in 6:
@@ -556,6 +571,28 @@ func _on_row_spawned(gap_x: float) -> void:
 
 ## TEMPESTADE: um raio por vez, avisado em coluna. Metade cai perto da nave (pressão),
 ## metade em qualquer lugar.
+## CHUVA DE COMETAS: um cometa por vez, cada um avisado em linha.
+func _update_comets(dt: float) -> void:
+	if _comets_left <= 0:
+		return
+	_comet_timer -= dt
+	if _comet_timer <= 0.0:
+		_comet_timer = Tuning.COMET_SHOWER_INTERVAL
+		_comets_left -= 1
+		_spawn_comet()
+
+
+## Cometa na diagonal: entra por cima e sai por baixo, cruzando boa parte da largura.
+func _spawn_comet() -> void:
+	var w := view_size.x
+	var x0 := randf_range(0.0, w)
+	var dx := randf_range(350.0, 800.0) * (-1.0 if x0 > w * 0.5 else 1.0)
+	var from := Vector2(x0, -80.0)
+	var to := Vector2(x0 + dx, view_size.y + 80.0)
+	hazards.spawn_comet(from, to, telegraph)
+	Sfx.play("alarm", -14.0, 1.8, 0.0, from)
+
+
 func _update_storm(dt: float) -> void:
 	if _storm_left <= 0.0:
 		return
@@ -707,6 +744,11 @@ func _check_ship_hits() -> void:
 			if _damage_ship(Tuning.SHIELD_DMG_ENEMY_BODY) and not ship.alive:
 				return
 
+	# Cometas: só na faixa que foi avisada.
+	if hazards.comet_hits(ship.position, Tuning.SHIP_HITBOX_RADIUS):
+		if _damage_ship(Tuning.SHIELD_DMG_COMET) and not ship.alive:
+			return
+
 	# Raios da tempestade: atinge quem estava na coluna avisada.
 	for x in hazards.take_strikes():
 		_shake = maxf(_shake, 10.0)
@@ -746,6 +788,11 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 	Sfx.play("explosion", -5.0, lerpf(1.35, 0.8, clampf((a.radius - 40.0) / 45.0, 0.0, 1.0)), 0.06, a.pos)
 	if a.radius > 70.0:
 		Sfx.duck(-3.0)
+	# Gelo (Setor 5) racha em lascas que saem em diagonal: estilhaços azulados + som de cristal.
+	if a.ice:
+		fx.burst(a.pos, Color(1.6, 2.0, 2.4), 14, 420.0, 0.4, 5.0)
+		Sfx.play("pickup_crystal", -10.0, 0.6, 0.1, a.pos)
+		ice_shards += asteroids.split_ice(a)
 
 	var shield_chance := Tuning.DROP_SHIELD_CHANCE
 	if boss != null:
@@ -844,6 +891,8 @@ func _spawn_boss(boss_id: String) -> void:
 			boss = cruiser
 		"medusa":
 			boss = Medusa.new()
+		"ice_colossus":
+			boss = IceColossus.new()
 		"miner":
 			boss = Miner.new()
 		_:

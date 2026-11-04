@@ -188,3 +188,11 @@ Cada setor novo também entra no Infinito como bioma assim que fica pronto.
 - [x] Testes: 100 sementes x 15 min (ritmo, calmaria antes do chefe, todos os chefes aparecem), partida real com 2 chefes e troca de bioma; demo `--infinito`
 - [ ] Chefes mais rápidos a cada repetição — adiado: acelerar o chefe encurta os avisos (precisa de ajuste em cada chefe); por ora a repetição aumenta a vida
 - [ ] Multiplicador de pontos sem dano — fica para o S12 junto com o Desafio do Dia
+
+**S8 — Setor 5 (Anel Glacial): concluído (04/11/2026)**
+- [x] Gelo que racha: poeira de gelo (`ice`) que, ao quebrar, solta 2 lascas em diagonal (sprites `ice_1/2`)
+- [x] Cometas (`HazardLayer`): aviso em linha com a largura exata do dano, voo muito rápido na diagonal; chuva de cometas (`WaveEvent.Kind.COMETS`) e cometas avulsos (`comets` no DENSITY)
+- [x] Colosso de Gelo (`scripts/bosses/ice_colossus.gd`): anel de 5 placas que giram e ricocheteiam os tiros — o núcleo só leva dano quando uma fenda passa embaixo dele; estacas de gelo que racham em duas no caminho; avalanche de blocos de gelo; fase 2 com o anel mais largo e mais rápido
+- [x] Trilha própria (Mi, 88 BPM, lofi com sinos cristalinos) e nebulosa cobalto/gelo
+- [x] Infinito: bioma Glacial (gelo, cometas, chuva de cometas) e o Colosso no sorteio de chefes
+- [x] Testes: Setor 5 inteiro (bot), rota segura das estacas (zona da nave), faixa do cometa = área do dano, corpo x desenho; demo desvia de cometas

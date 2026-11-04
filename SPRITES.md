@@ -43,6 +43,8 @@ e colocá-los no jogo sem quebrar nada.
 | `boss_miner.png` | 512×512 | drone industrial, **frente para BAIXO** | olho no **centro** (256,256); brocas em (80,392) e (432,392) |
 | `boss_medusa.png` | 512×512 | cúpula de água-viva (só a cúpula) | núcleo no **centro** (256,256); tentáculos saem de ~y 320 |
 | `boss_cruiser.png` | **1024×512** | nave de guerra **larga**, vista de cima | canhões (220,300) e (804,300); lançador (512,184); ponte (512,280) |
+| `ice_1.png`, `ice_2.png` | 256×256 | bloco de **gelo** facetado azul-claro, **redondo**, ~92% do raio (racha ao quebrar) | — |
+| `boss_ice_colossus.png` | 512×512 | bloco de gelo gigante **redondo** (~94% do raio) | núcleo no **centro** (256,256), encaixe ~160 px; as placas em volta o jogo desenha |
 
 O jogo **desenha por cima** (não precisam estar na imagem): núcleos/olhos dos chefes,
 tentáculos da Medusa, canhões/lançador/ponte do Cruzador, chamas dos motores, escudo da nave.
@@ -147,3 +149,22 @@ O `.import` ao lado de cada PNG/WAV guarda **as configurações dessa conversão
 - Trocar o PNG **com o mesmo nome** mantém o `.import` (mesmas configurações, mesmo uid).
 - Não precisa editar à mão. Exceção conhecida: o **loop das músicas** fica no `.wav.import`
   (`edit/loop_mode=2`) — apagar esse arquivo faz a música parar de repetir.
+
+## Prompts prontos — Setor 5
+
+### Gelo (Setor 5) — `ice_1.png` e `ice_2.png`
+```
+Sprite 2D de bloco de gelo para jogo mobile, vista de cima, estilo vetorial neon.
+PNG 256x256 com fundo TRANSPARENTE, sem sombra, sem texto.
+Cristal de gelo REDONDO e facetado, centralizado, ~92% do raio, azul-claro quase branco em cima
+e azul-cobalto embaixo, facetas brancas e 2–3 rachaduras escuras (é por onde ele vai rachar).
+```
+
+### Chefe 5 — Colosso de Gelo — `boss_ice_colossus.png`
+```
+Sprite 2D de chefe para jogo mobile, vista de cima. PNG 512x512, fundo TRANSPARENTE.
+Bloco de gelo GIGANTE, REDONDO e facetado (~94% do raio), branco-gelo com azul-cobalto nas
+bordas, facetas que convergem para o centro e rachaduras escuras. No CENTRO (256,256), um
+encaixe circular escuro de ~160 px de diâmetro com aro gelo (o jogo desenha o núcleo).
+SEM as placas em volta (o jogo desenha o anel de placas que gira).
+```
