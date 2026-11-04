@@ -72,11 +72,14 @@ func _ready() -> void:
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
 	ship.fired.connect(func() -> void: Sfx.play("laser", -14.0, 1.0, 0.08))
-	hud.campaign_pressed.connect(start_mode.bind(Mode.CAMPAIGN))
-	hud.endless_pressed.connect(start_mode.bind(Mode.ENDLESS))
+	hud.resume_pressed.connect(resume_checkpoint)
+	hud.campaign_pressed.connect(func() -> void:
+		Game.clear_checkpoint()  # novo jogo descarta o ponto salvo
+		start_mode(Mode.CAMPAIGN))
 	hud.restart_pressed.connect(_on_restart)
 	hud.continue_pressed.connect(_on_continue)
 	hud.menu_pressed.connect(go_to_menu)
+	hud.quit_pressed.connect(_on_quit)
 	get_viewport().size_changed.connect(_on_resized)
 
 	_on_resized()
@@ -84,11 +87,15 @@ func _ready() -> void:
 
 
 func _notification(what: int) -> void:
-	# App foi para segundo plano: pausa.
+	# App foi para segundo plano: pausa (e a pausa salva o ponto para "Continuar").
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if state == State.PLAYING or state == State.SLOWMO:
 			_touch_index = -1
 			_set_state(State.PAUSED)
+		else:
+			_save_checkpoint()
+	elif what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_save_checkpoint()
 
 
 func _input(event: InputEvent) -> void:
@@ -127,7 +134,9 @@ func _process(delta: float) -> void:
 		_:
 			time_scale = 0.0
 
-	var dt := delta * time_scale
+	# Se o estado acabou de mudar para pausa/fim neste frame, nada mais avança.
+	var running := state == State.PLAYING or state == State.SLOWMO or state == State.DYING
+	var dt := delta * time_scale if running else 0.0
 	if dt > 0.0:
 		_step(dt)
 
@@ -188,6 +197,54 @@ func _new_run() -> void:
 		hud.set_sector("", false)
 
 
+## Volta ao ponto salvo: mesmo setor e momento, mesma pontuação, escudo e arma.
+## O campo de asteroides recomeça limpo, com invencibilidade curta para retomar.
+func resume_checkpoint() -> void:
+	var cp := Game.checkpoint
+	if cp.is_empty():
+		return
+	start_mode(Mode.CAMPAIGN, clampi(int(cp.get("sector", 0)), 0, SECTORS.size() - 1))
+	director.seek(float(cp.get("time", 0.0)))
+	elapsed = float(cp.get("elapsed", 0.0))
+	distance = float(cp.get("distance", 0.0))
+	bonus_score = int(cp.get("bonus", 0))
+	score = int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
+	_revive_used = bool(cp.get("revive_used", false))
+	ship.shield = float(cp.get("shield", Tuning.SHIELD_MAX))
+	ship.last_chance = bool(cp.get("last_chance", false))
+	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.WEAPON_MAX_LEVEL)
+	ship.crystals = int(cp.get("crystals", 0))
+	ship.invuln = Tuning.REVIVE_INVULN_TIME
+
+
+func _run_active() -> bool:
+	return mode == Mode.CAMPAIGN and director != null and ship.alive \
+			and state in [State.READY, State.PLAYING, State.SLOWMO, State.PAUSED]
+
+
+func _save_checkpoint() -> void:
+	if not _run_active():
+		return
+	Game.set_checkpoint({
+		"sector": sector_index,
+		"time": director.time,
+		"elapsed": elapsed,
+		"distance": distance,
+		"bonus": bonus_score,
+		"revive_used": _revive_used,
+		"shield": ship.shield,
+		"last_chance": ship.last_chance,
+		"weapon": ship.weapon_level,
+		"crystals": ship.crystals,
+	})
+
+
+func _on_quit() -> void:
+	_save_checkpoint()
+	Game.save_data()
+	get_tree().quit()
+
+
 func _ready_title() -> String:
 	return director.sector.title if mode == Mode.CAMPAIGN else "MODO INFINITO"
 
@@ -218,7 +275,7 @@ func _set_state(new_state: State) -> void:
 	state = new_state
 	match new_state:
 		State.MENU:
-			hud.show_menu()
+			hud.show_menu(not Game.checkpoint.is_empty())
 		State.READY:
 			hud.show_ready(_ready_title())
 		State.PLAYING:
@@ -228,10 +285,12 @@ func _set_state(new_state: State) -> void:
 			_state_timer = Tuning.RELEASE_SLOWMO_TIME
 		State.PAUSED:
 			hud.show_paused()
+			_save_checkpoint()
 		State.DYING:
 			_touch_index = -1
 			_state_timer = DYING_TIME
 		State.GAME_OVER:
+			Game.clear_checkpoint()  # a partida acabou: não há de onde continuar
 			var is_record: bool
 			if mode == Mode.CAMPAIGN:
 				is_record = Game.submit_sector(director.sector.id, score, false)
@@ -240,6 +299,7 @@ func _set_state(new_state: State) -> void:
 			hud.show_game_over(score, _best_for_mode(), is_record, not _revive_used)
 		State.SECTOR_CLEAR:
 			_touch_index = -1
+			Game.clear_checkpoint()
 			var is_record := Game.submit_sector(director.sector.id, score, true)
 			hud.clear_hint()
 			hud.show_sector_clear(director.sector.title, score, _best_for_mode(), is_record)

@@ -13,6 +13,7 @@ var persist := true  # os testes desligam para não sobrescrever o save real
 # Campanha
 var sector_best := {}       # id do setor -> melhor pontuação
 var sectors_cleared := {}   # id do setor -> true
+var checkpoint := {}        # ponto onde o jogador parou (vazio = nada para continuar)
 
 
 func _ready() -> void:
@@ -31,6 +32,7 @@ func load_data() -> void:
 	sfx_enabled = cfg.get_value("options", "sfx", legacy_sound)
 	sector_best = cfg.get_value("campaign", "best", {})
 	sectors_cleared = cfg.get_value("campaign", "cleared", {})
+	checkpoint = cfg.get_value("campaign", "checkpoint", {})
 
 
 func save_data() -> void:
@@ -44,6 +46,7 @@ func save_data() -> void:
 	cfg.set_value("options", "sfx", sfx_enabled)
 	cfg.set_value("campaign", "best", sector_best)
 	cfg.set_value("campaign", "cleared", sectors_cleared)
+	cfg.set_value("campaign", "checkpoint", checkpoint)
 	cfg.save(SAVE_PATH)
 
 
@@ -70,6 +73,18 @@ func submit_sector(id: String, score: int, cleared: bool) -> bool:
 	if is_record or cleared:
 		save_data()
 	return is_record
+
+
+func set_checkpoint(data: Dictionary) -> void:
+	checkpoint = data
+	save_data()
+
+
+func clear_checkpoint() -> void:
+	if checkpoint.is_empty():
+		return
+	checkpoint = {}
+	save_data()
 
 
 func vibrate(duration_ms: int) -> void:

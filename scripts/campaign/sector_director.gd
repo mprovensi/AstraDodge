@@ -28,6 +28,25 @@ func difficulty() -> float:
 	return sector.difficulty_at(time)
 
 
+## Pula direto para o tempo `t` (continuar de onde parou): aplica o "clima" dos
+## eventos já passados sem disparar mensagens nem paredões.
+func seek(t: float) -> void:
+	time = t
+	while _next < _events.size() and _events[_next].at <= t:
+		var e := _events[_next]
+		_next += 1
+		match e.kind:
+			WaveEvent.Kind.DENSITY:
+				density = e.density
+				metals = e.metals
+			WaveEvent.Kind.DUST_RAIN:
+				rain_left = maxf(0.0, e.at + e.duration - t)
+			WaveEvent.Kind.CALM:
+				calm_left = maxf(0.0, e.at + e.duration - t)
+			WaveEvent.Kind.END:
+				finished = true
+
+
 ## Avança o tempo e devolve os eventos que dispararam neste passo.
 func update(dt: float) -> Array[WaveEvent]:
 	time += dt

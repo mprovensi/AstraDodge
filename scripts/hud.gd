@@ -3,11 +3,12 @@ extends CanvasLayer
 ## HUD minimalista (pontuação, recorde, escudo, arma, progresso do setor), dicas na tela
 ## e as telas de menu, pronto, pausa, fim de jogo, setor completo e opções.
 
+signal resume_pressed
 signal campaign_pressed
-signal endless_pressed
 signal restart_pressed
 signal continue_pressed
 signal menu_pressed
+signal quit_pressed
 
 const BAR_WIDTH := 320.0
 const BAR_HEIGHT := 12.0
@@ -15,6 +16,7 @@ const BAR_LABEL_WIDTH := 150.0
 const SHIELD_TRAIL_DELAY := 0.35   # o "rastro" branco espera antes de encolher
 const SHIELD_TRAIL_SPEED := 0.8    # fração da barra por segundo
 const HINT_FADE := 0.4
+const PAUSE_TOP_MARGIN := 300.0
 
 var _top: VBoxContainer
 var _score_label: Label
@@ -39,6 +41,7 @@ var _hint_label: Label
 var _hint_timer := 0.0
 
 var _center: VBoxContainer
+var _center_spacer: Control
 var _title: Label
 var _subtitle: Label
 var _info: Label
@@ -101,6 +104,12 @@ func _ready() -> void:
 	_center.add_theme_constant_override("separation", 28)
 	root.add_child(_center)
 
+	# Na pausa o menu sobe e deixa a parte de baixo livre para tocar e voltar a jogar.
+	_center_spacer = Control.new()
+	_center_spacer.custom_minimum_size.y = PAUSE_TOP_MARGIN
+	_center_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center.add_child(_center_spacer)
+
 	_title = _make_label("", 104, Palette.NEON)
 	_center.add_child(_title)
 	_subtitle = _make_label("", 40, Color.WHITE)
@@ -108,15 +117,13 @@ func _ready() -> void:
 	_info = _make_label("", 36, Palette.TEXT_DIM)
 	_center.add_child(_info)
 
-	_add_center_button("campaign", "CAMPANHA", campaign_pressed.emit)
-	_add_center_button("endless", "MODO INFINITO", endless_pressed.emit)
+	_add_center_button("resume", "CONTINUAR", resume_pressed.emit)
+	_add_center_button("campaign", "NOVO JOGO", campaign_pressed.emit)
 	_add_center_button("restart", "REINICIAR", restart_pressed.emit)
 	_add_center_button("continue", "CONTINUAR (TESTE)", continue_pressed.emit)
 	_add_center_button("options", "OPÇÕES", open_options, false)
 	_add_center_button("menu", "MENU PRINCIPAL", menu_pressed.emit)
-	_add_center_button("quit", "SAIR DO JOGO", func() -> void:
-		Game.save_data()
-		get_tree().quit())
+	_add_center_button("quit", "SAIR DO JOGO", quit_pressed.emit)
 
 	_build_options(root)
 	hide_center()
@@ -212,17 +219,21 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 
 # ---------------------------------------------------------------- telas
 
-func show_menu() -> void:
-	_show("ASTRA DODGE", "", "", ["campaign", "endless", "options", "quit"])
+## `can_resume`: existe um ponto salvo para o botão CONTINUAR.
+func show_menu(can_resume: bool) -> void:
+	var buttons := ["resume", "campaign", "options", "quit"] if can_resume else ["campaign", "options", "quit"]
+	_show("ASTRA DODGE", "", "", buttons)
 	_top.visible = false  # pontuação/barras só fazem sentido durante uma partida
 
 
 func show_ready(title: String) -> void:
-	_show(title, "Toque e arraste para pilotar", "Solte o dedo para pausar", ["menu"])
+	_show(title, "Toque e arraste para pilotar", "Solte o dedo para pausar", [])
 
 
 func show_paused() -> void:
-	_show("PAUSADO", "Toque para continuar", "", ["options", "menu", "quit"])
+	_show("PAUSADO", "Toque na tela para continuar", "", ["options", "quit"])
+	_center.alignment = BoxContainer.ALIGNMENT_BEGIN
+	_center_spacer.visible = true
 
 
 func show_game_over(score: int, best: int, is_record: bool, can_continue: bool) -> void:
@@ -254,6 +265,8 @@ func _show(title: String, subtitle: String, info: String, buttons: Array) -> voi
 	_info.visible = info != ""
 	for id: String in _buttons:
 		_buttons[id].visible = id in buttons
+	_center.alignment = BoxContainer.ALIGNMENT_CENTER
+	_center_spacer.visible = false
 	_top.visible = true
 	_center.visible = true
 

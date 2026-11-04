@@ -29,6 +29,7 @@ func _run() -> void:
 
 	_test_endless()
 	_test_campaign()
+	_test_checkpoint()
 	_test_enemies()
 	main.free()
 	quit()
@@ -57,6 +58,12 @@ func _test_endless() -> void:
 			_touch(true)
 
 	# Soltar o dedo deve levar a câmera lenta e depois à pausa.
+	# (Garante uma partida rodando: a simulação pode ter terminado no meio de uma explosão.)
+	if main.state != main.State.PLAYING:
+		_touch(false)
+		main._on_restart()
+		_touch(true)
+		main._process(DT)
 	_touch(false)
 	for i in 60:
 		main._process(DT)
@@ -96,6 +103,42 @@ func _test_campaign() -> void:
 	var best: int = root.get_node("Game").get_sector_best("sector_1")
 	assert(best > 0 and root.get_node("Game").sectors_cleared.has("sector_1"))
 	print("CAMPANHA OK | setor 1 completo em %.1fs | paredoes=%d | pontos=%d" % [frames * DT, walls, main.score])
+
+
+func _test_checkpoint() -> void:
+	var game := root.get_node("Game")
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN)
+	_touch(true)
+	for i in 60 * 50:  # 50 s de setor, passando pela chuva de poeira (45 s)
+		main.ship.invuln = 1.0
+		main._process(DT)
+	main.ship.add_crystal()
+	# Soltar o dedo -> pausa -> ponto salvo.
+	_touch(false)
+	for i in 60:
+		main._process(DT)
+	assert(main.state == main.State.PAUSED)
+	assert(not game.checkpoint.is_empty(), "a pausa deveria salvar o ponto")
+	var saved_time: float = main.director.time
+	var saved_score: int = main.score
+	var saved_weapon: int = main.ship.weapon_level
+	var saved_crystals: int = main.ship.crystals
+
+	main.go_to_menu()
+	assert(main.hud._buttons["resume"].visible, "menu deveria mostrar CONTINUAR")
+	main.resume_checkpoint()
+	assert(main.state == main.State.READY)
+	assert(absf(main.director.time - saved_time) < 0.001, "deveria voltar ao mesmo momento do setor")
+	assert(main.score == saved_score and main.ship.weapon_level == saved_weapon and main.ship.crystals == saved_crystals)
+	assert(main.asteroids.dust_rain == false and main.director.rain_left > 0.0, "chuva em andamento deve continuar")
+
+	# Fim de jogo descarta o ponto salvo.
+	main._set_state(main.State.GAME_OVER)
+	assert(game.checkpoint.is_empty(), "fim de jogo deveria limpar o ponto salvo")
+	main.go_to_menu()
+	assert(not main.hud._buttons["resume"].visible, "sem ponto salvo, sem CONTINUAR")
+	print("CONTINUAR OK | voltou em %.1fs do setor, pontos=%d, arma=%d" % [saved_time, saved_score, saved_weapon])
 
 
 func _test_enemies() -> void:
