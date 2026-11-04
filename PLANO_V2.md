@@ -239,3 +239,12 @@ Hoje todos os sons são 8-bit sintetizados (ótimos para protótipo, mas "finos"
 - [x] Menu principal (Campanha / Infinito / Opções / Sair do jogo), pausa com Opções / Menu / Sair do jogo
 - [x] Setor 1 jogável do início ao fim (sem chefe), dicas na tela, tela "SETOR COMPLETO", recorde por setor salvo
 - [x] Teste automático: infinito, campanha completa (3 paredões, chuva), inimigos atirando e sendo destruídos
+
+**Sprint 2 — Arte e áudio: em andamento**
+- [x] Efeitos sintetizados em camadas, 3 variações dos sons frequentes, 44,1 kHz: explosão (transiente + corpo + grave + destroços), tiro "pew" suave, batida em ferro maciço no metálico, escudo (baque + zumbido), coletas de sino/vidro
+- [x] Motor de áudio: estéreo pela posição na tela, limite de vozes, eco leve nos efeitos, compressor + limitador, ducking da música, ronco do propulsor que acompanha o movimento
+- [x] Fundo de nebulosa procedural (shader) com cores por setor (`SectorData.nebula_a/b`)
+- [ ] Gravações reais (Sonniss/Freesound CC0) — aguardando autorização de download
+- [ ] Fonte sci-fi (Orbitron/Exo 2) — aguardando escolha e autorização de download
+- [ ] Pipeline SVG→PNG de sprites, nave e asteroides redesenhados, shaders de flash/dissolve
+- [ ] Volume de música/efeitos em 0–100%

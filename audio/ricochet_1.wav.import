@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://b854j4wdfpccm"
-path="res://.godot/imported/hit.wav-0ce77c86b567f5096583f88ec20be939.sample"
+uid="uid://bnbrlbb1m04vl"
+path="res://.godot/imported/ricochet_1.wav-fa33a7cfae0db2278b9ef6b9a1cbdc48.sample"
 
 [deps]
 
-source_file="res://audio/hit.wav"
-dest_files=["res://.godot/imported/hit.wav-0ce77c86b567f5096583f88ec20be939.sample"]
+source_file="res://audio/ricochet_1.wav"
+dest_files=["res://.godot/imported/ricochet_1.wav-fa33a7cfae0db2278b9ef6b9a1cbdc48.sample"]
 
 [params]
 

@@ -61,8 +61,8 @@ const SCORE_PER_ENEMY := 50
 const ENEMY_CRYSTAL_CHANCE := 0.6
 
 # --- Drops ---
-const DROP_SHIELD_CHANCE := 0.35
-const DROP_SHIELD_CHANCE_LOW_BONUS := 0.15  # extra quando o escudo está baixo
+const DROP_SHIELD_CHANCE := 0.20
+const DROP_SHIELD_CHANCE_LOW_BONUS := 0.10  # extra quando o escudo está baixo
 const DROP_CRYSTAL_CHANCE := 0.30
 const PICKUP_MAGNET_RADIUS := 170.0
 const PICKUP_COLLECT_RADIUS := 60.0

@@ -13,6 +13,7 @@ var mode := Mode.ENDLESS
 var view_size := Vector2.ZERO
 
 var world: Node2D
+var nebula: Nebula
 var starfield: Starfield
 var asteroids: AsteroidField
 var enemies: EnemyLayer
@@ -40,12 +41,16 @@ var _touch_index := -1
 var _shake := 0.0
 var _revive_used := false
 var _pending_wall := -1.0  # segundos até o paredão avisado aparecer (-1 = nenhum)
+var _last_ship_pos := Vector2.ZERO
+var _engine_level := 0.0
 
 
 func _ready() -> void:
 	_setup_glow()
 	world = Node2D.new()
 	add_child(world)
+	nebula = Nebula.new()
+	world.add_child(nebula)
 	starfield = Starfield.new()
 	world.add_child(starfield)
 	pickups = PickupLayer.new()
@@ -71,7 +76,7 @@ func _ready() -> void:
 
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
-	ship.fired.connect(func() -> void: Sfx.play("laser", -14.0, 1.0, 0.08))
+	ship.fired.connect(func() -> void: Sfx.play("laser", -19.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
 	hud.new_game_pressed.connect(start_new_game)
@@ -141,9 +146,11 @@ func _process(delta: float) -> void:
 
 	# As estrelas nunca param totalmente, para o menu e a pausa não parecerem "travados".
 	starfield.update(delta, scroll_speed * maxf(time_scale, 0.15))
+	nebula.update(delta, scroll_speed * maxf(time_scale, 0.15))
 	_update_shake(delta)
 	var quiet := state != State.PLAYING and state != State.SLOWMO and state != State.DYING
 	Sfx.set_music_intensity(time_scale, quiet)
+	_update_engine_sound(delta)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
 			ship.weapon_level, ship.weapon_progress())
 
@@ -194,6 +201,7 @@ func _new_run() -> void:
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
+		nebula.set_colors(director.sector.nebula_a, director.sector.nebula_b)
 	else:
 		director = null
 
@@ -387,7 +395,7 @@ func _check_bullet_hits() -> void:
 				_on_enemy_destroyed(e)
 			else:
 				fx.spark(b.pos, Palette.ENEMY)
-				Sfx.play("hit", -12.0, 1.3, 0.1)
+				Sfx.play("hit", -12.0, 1.3, 0.1, b.pos)
 
 
 func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> void:
@@ -396,7 +404,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 		b.alive = false
 		fx.spark(b.pos, Palette.METAL_LINE)
 		asteroids.impact(a, b.vel.normalized())
-		Sfx.play("ricochet", -12.0, 1.0, 0.12)
+		Sfx.play("ricochet", -13.0, 1.0, 0.1, b.pos)
 		if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
 			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 		return
@@ -409,7 +417,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 	else:
 		asteroids.impact(a, b.vel.normalized())
 		fx.spark(b.pos, Palette.DUST_LINE)
-		Sfx.play("hit", -12.0, 1.0, 0.1)
+		Sfx.play("hit", -12.0, 1.0, 0.1, b.pos)
 
 
 func _check_ship_hits() -> void:
@@ -452,7 +460,8 @@ func _damage_ship(amount: float) -> bool:
 		return true
 	_shake = maxf(_shake, 18.0)
 	fx.burst(ship.position, Palette.NEON_HDR, 16, 380.0, 0.35, 4.0)
-	Sfx.play("shield_hit", -2.0)
+	Sfx.play("shield_hit", -2.0, 1.0, 0.06, ship.position)
+	Sfx.duck(-4.0)
 	Game.vibrate(60)
 	return true
 
@@ -462,7 +471,9 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 	fx.explosion(a.pos, a.radius, Palette.DUST_FILL)
 	_shake = maxf(_shake, 3.0 + a.radius * 0.04)
 	# Asteroides maiores soam mais graves.
-	Sfx.play("explosion", -5.0, lerpf(1.35, 0.8, clampf((a.radius - 40.0) / 45.0, 0.0, 1.0)))
+	Sfx.play("explosion", -5.0, lerpf(1.35, 0.8, clampf((a.radius - 40.0) / 45.0, 0.0, 1.0)), 0.06, a.pos)
+	if a.radius > 70.0:
+		Sfx.duck(-3.0)
 
 	var shield_chance := Tuning.DROP_SHIELD_CHANCE
 	if ship.last_chance or ship.shield_ratio() < Tuning.SHIELD_LOW_RATIO:
@@ -479,7 +490,7 @@ func _on_enemy_destroyed(e: EnemyLayer.Enemy) -> void:
 	bonus_score += Tuning.SCORE_PER_ENEMY
 	fx.explosion(e.pos, e.radius, Palette.ENEMY_HDR)
 	_shake = maxf(_shake, 6.0)
-	Sfx.play("explosion", -4.0, 1.1)
+	Sfx.play("explosion", -4.0, 1.1, 0.06, e.pos)
 	if randf() < Tuning.ENEMY_CRYSTAL_CHANCE:
 		pickups.spawn(e.pos, PickupLayer.Kind.CRYSTAL)
 
@@ -515,6 +526,7 @@ func _on_ship_died() -> void:
 	_shake = 40.0
 	Game.vibrate(250)
 	Sfx.play("death", 0.0, 1.0, 0.0)
+	Sfx.duck(-12.0)
 	_set_state(State.DYING)
 
 
@@ -522,6 +534,7 @@ func _on_ship_died() -> void:
 
 func _on_resized() -> void:
 	view_size = get_viewport_rect().size
+	nebula.resize(view_size)
 	starfield.resize(view_size)
 	asteroids.resize(view_size)
 	enemies.resize(view_size)
@@ -555,6 +568,17 @@ func _setup_glow() -> void:
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+
+
+## Ronco do propulsor: sobe com a velocidade em que a nave está sendo arrastada.
+func _update_engine_sound(delta: float) -> void:
+	var on := ship.alive and (state == State.PLAYING or state == State.SLOWMO)
+	var speed := 0.0
+	if delta > 0.0:
+		speed = ship.position.distance_to(_last_ship_pos) / delta
+	_last_ship_pos = ship.position
+	_engine_level = lerpf(_engine_level, clampf(speed / 1400.0, 0.0, 1.0), 1.0 - exp(-8.0 * delta))
+	Sfx.set_engine(on, _engine_level)
 
 
 func _update_shake(delta: float) -> void:
