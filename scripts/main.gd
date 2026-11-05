@@ -259,7 +259,7 @@ func _process(delta: float) -> void:
 	Sfx.set_music_intensity(time_scale, quiet)
 	_update_engine_sound(delta)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
-			ship.weapon_level, ship.weapon_progress())
+			ship.weapon_level, ship.weapon_progress(), ship.weapon_cap)
 	hud.set_alert(_alert_timer)
 	hud.set_multiplier(multiplier if mode == Mode.ENDLESS else 1.0)
 	if boss != null:
@@ -299,7 +299,7 @@ func start_sector_dev(index: int, at_boss: bool) -> void:
 	_touch_index = -1
 	_hand_at_start = {}
 	start_mode(Mode.CAMPAIGN, clampi(index, 0, SECTORS.size() - 1))
-	ship.weapon_level = clampi(index + 1, 2, 4)
+	ship.weapon_level = ship.weapon_cap  # teste: já começa com a arma do teto do setor
 	if at_boss:
 		for e in director.sector.events:
 			if e.kind == WaveEvent.Kind.BOSS:
@@ -404,6 +404,7 @@ func start_mode(new_mode: Mode, index := 0) -> void:
 
 func _new_run() -> void:
 	elapsed = 0.0
+	_update_weapon_cap()  # modo e setor já definidos por quem chamou
 	distance = 0.0
 	bonus_score = 0
 	score = 0
@@ -518,7 +519,7 @@ func resume_checkpoint() -> void:
 	_revive_used = bool(cp.get("revive_used", false))
 	ship.shield = float(cp.get("shield", Tuning.SHIELD_MAX))
 	ship.last_chance = bool(cp.get("last_chance", false))
-	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.WEAPON_MAX_LEVEL)
+	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, ship.weapon_cap)
 	ship.crystals = int(cp.get("crystals", 0))
 	modules.load_dict(cp.get("modules", {}))
 	_apply_modules()
@@ -583,6 +584,15 @@ func _run_stats() -> String:
 		SECTORS[_biome].subtitle.to_upper(), _best_multiplier]
 
 
+## Teto da arma (PLANO_ARMA.md): na campanha, sobe 1 degrau por setor; no Infinito e no
+## Desafio do Dia, com o tempo de partida.
+func _update_weapon_cap() -> void:
+	var cap := Tuning.WEAPON_CAP_FIRST + sector_index
+	if mode != Mode.CAMPAIGN:
+		cap = Tuning.WEAPON_CAP_FIRST + int(elapsed / Tuning.WEAPON_CAP_ENDLESS_EVERY)
+	ship.weapon_cap = clampi(cap, Tuning.WEAPON_CAP_FIRST, Tuning.WEAPON_MAX_LEVEL)
+
+
 ## Vai para o próximo setor levando a arma (nível e cristais): recompensa por jogar bem.
 func _on_next_sector() -> void:
 	if sector_index + 1 >= SECTORS.size():
@@ -594,6 +604,8 @@ func _on_next_sector() -> void:
 	start_mode(Mode.CAMPAIGN, sector_index + 1)
 	ship.weapon_level = weapon
 	ship.crystals = crystals
+	if ship.weapon_cap > weapon:
+		hud.show_hint("ARMA: novo máximo %d" % ship.weapon_cap, 3.0)
 
 
 func _has_next_sector() -> bool:
@@ -679,6 +691,8 @@ func _set_state(new_state: State) -> void:
 func _step(dt: float) -> void:
 	if ship.alive:
 		elapsed += dt
+		if mode != Mode.CAMPAIGN:
+			_update_weapon_cap()  # Infinito/Desafio: o teto sobe com o tempo
 
 	var difficulty: float
 	if director != null:

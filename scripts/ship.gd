@@ -21,6 +21,7 @@ var shield := Tuning.SHIELD_MAX
 var last_chance := false
 var weapon_level := Tuning.WEAPON_START_LEVEL
 var crystals := 0
+var weapon_cap := Tuning.WEAPON_MAX_LEVEL  # teto do setor (o Main define); cristais não passam dele
 var invuln := 0.0
 var alive := true
 var drain_scale := 1.0  # o Main reduz durante as lutas contra chefes
@@ -117,7 +118,7 @@ func add_shield(amount: float) -> bool:
 
 
 func add_crystal() -> void:
-	if weapon_level >= Tuning.WEAPON_MAX_LEVEL:
+	if weapon_level >= weapon_cap:
 		return
 	crystals += 1
 	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
@@ -126,7 +127,7 @@ func add_crystal() -> void:
 
 
 func weapon_progress() -> float:
-	if weapon_level >= Tuning.WEAPON_MAX_LEVEL:
+	if weapon_level >= weapon_cap:
 		return 1.0
 	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
 	return float(crystals) / float(needed)
@@ -172,20 +173,26 @@ func _fire() -> void:
 	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
 	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
 	fired.emit()
+	# Cada degrau muda algo visível (PLANO_ARMA.md); a cadência fica em WEAPON_FIRE_INTERVAL.
 	match weapon_level:
-		1:
+		1, 2:  # 1 reto (o 2 é mais rápido)
 			bullets.spawn(muzzle, 0.0, false)
-		2, 3:
+		3, 4:  # 2 retos (o 4 é mais rápido)
 			bullets.spawn(muzzle - off, 0.0, false)
 			bullets.spawn(muzzle + off, 0.0, false)
-		4:
+		5, 6:  # leque de 3 (o 6 é mais rápido)
 			bullets.spawn(muzzle, -fan, false)
 			bullets.spawn(muzzle, 0.0, false)
 			bullets.spawn(muzzle, fan, false)
-		_:
+		7:  # leque de 3, o do meio perfura
 			bullets.spawn(muzzle, -fan, false)
 			bullets.spawn(muzzle, fan, false)
 			bullets.spawn(muzzle, 0.0, true)
+		_:  # 2 retos que perfuram + leque de 2
+			bullets.spawn(muzzle - off, 0.0, true)
+			bullets.spawn(muzzle + off, 0.0, true)
+			bullets.spawn(muzzle, -fan, false)
+			bullets.spawn(muzzle, fan, false)
 
 
 func _clamp(p: Vector2) -> Vector2:

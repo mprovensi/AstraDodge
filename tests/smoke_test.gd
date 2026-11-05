@@ -53,6 +53,7 @@ func _run() -> void:
 	_test_music()
 	_test_enemies()
 	_test_mothership()
+	_test_weapon()
 	main.free()
 	quit()
 
@@ -91,8 +92,9 @@ func _test_endless() -> void:
 		main._process(DT)
 	assert(main.state == main.State.PAUSED, "soltar o dedo deveria pausar")
 
-	# Arma sobe até o máximo coletando cristais.
-	for i in 50:
+	# Arma sobe até o máximo coletando cristais (sem teto).
+	main.ship.weapon_cap = Tuning.WEAPON_MAX_LEVEL
+	for i in 400:
 		main.ship.add_crystal()
 	assert(main.ship.weapon_level == Tuning.WEAPON_MAX_LEVEL, "arma deveria chegar ao nível máximo")
 
@@ -1593,6 +1595,63 @@ func _test_mothership() -> void:
 	for pk in main.pickups.pickups:
 		assert(pk.kind != PickupLayer.Kind.CARGO, "fuga não dá contêiner")
 	print("NAVE-MAE OK | em 8 setores | derrubada: setor1 sem modulo, setor2 conteiner | fuga sem premio")
+
+
+## ARMA (PLANO_ARMA.md): curva de dano sem saltos, teto por setor e por tempo, e o ritmo —
+## com o piloto, o teto do Setor 1 chega depois de boa parte do setor, mas antes do chefe.
+func _test_weapon() -> void:
+	var prev := 0.0
+	for lvl in range(1, Tuning.WEAPON_MAX_LEVEL + 1):
+		var dps: float = Tuning.WEAPON_SHOTS[lvl] / Tuning.WEAPON_FIRE_INTERVAL[lvl]
+		assert(dps > prev, "degrau %d tem que ter mais dano/s que o anterior" % lvl)
+		if prev > 0.0:
+			assert(dps / prev <= 1.61, "degrau %d: salto de %.0f%%" % [lvl, (dps / prev - 1.0) * 100.0])
+		prev = dps
+	# Teto na campanha: 1 degrau por setor.
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN, 0)
+	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST, "Setor 1: teto %d" % main.ship.weapon_cap)
+	for i in 300:
+		main.ship.add_crystal()
+	assert(main.ship.weapon_level == main.ship.weapon_cap, "cristais param no teto do setor")
+	assert(main.ship.weapon_progress() == 1.0, "no teto a barra fica cheia")
+	main._on_next_sector()
+	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST + 1, "próximo setor sobe o teto")
+	assert(main.ship.weapon_level == Tuning.WEAPON_CAP_FIRST, "e a arma continua")
+	main.start_mode(main.Mode.CAMPAIGN, main.SECTORS.size() - 1)
+	assert(main.ship.weapon_cap == Tuning.WEAPON_MAX_LEVEL, "último setor: teto máximo")
+	# Teto no Infinito: sobe com o tempo.
+	main.go_to_menu()
+	main.start_mode(main.Mode.ENDLESS)
+	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST)
+	main.elapsed = Tuning.WEAPON_CAP_ENDLESS_EVERY * 2.5
+	main._update_weapon_cap()
+	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST + 2, "Infinito: teto sobe com o tempo")
+	# Ritmo: piloto automático no Setor 1 (semente fixa: sempre a mesma partida).
+	seed(20261105)
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN, 0)
+	var pilot := Autopilot.new(main)
+	var boss_at := 0.0
+	for e: WaveEvent in main.director.sector.events:
+		if e.kind == WaveEvent.Kind.BOSS:
+			boss_at = e.at
+	var reached := -1.0
+	_touch(true)
+	while main.director.time < boss_at and main.state != main.State.GAME_OVER:
+		if main.state in [main.State.READY, main.State.PAUSED]:
+			_touch(true)
+		pilot.step(true)
+		main._process(DT)
+		if main.ship.weapon_level >= main.ship.weapon_cap:
+			reached = main.director.time
+			break
+	assert(reached > 0.0, "piloto não chegou ao teto do Setor 1 antes do chefe")
+	var ratio := reached / boss_at
+	assert(ratio >= 0.4, "teto do Setor 1 cedo demais: %.0f%% do setor" % (ratio * 100.0))
+	main.go_to_menu()
+	print("ARMA OK | 8 degraus sem saltos | teto por setor e por tempo | Setor 1: teto aos %.0fs (%.0f%% ate o chefe)" % [
+			reached, ratio * 100.0])
 
 
 func _touch(pressed: bool) -> void:

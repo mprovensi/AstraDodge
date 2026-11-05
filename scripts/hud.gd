@@ -62,6 +62,7 @@ var _shield_danger := false
 var _blink_t := 0.0
 var _weapon_label: Label
 var _weapon_fill: ColorRect
+var _weapon_cap_seen := Tuning.WEAPON_MAX_LEVEL  # teto atual (para "MÁXIMO DO SETOR!")
 var _levelup_label: Label
 var _levelup_timer := 0.0
 var _hint_panel: PanelContainer
@@ -364,7 +365,7 @@ func blocks_touch(pos: Vector2) -> bool:
 
 
 func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
-		weapon_level: int, weapon_progress: float) -> void:
+		weapon_level: int, weapon_progress: float, weapon_cap := Tuning.WEAPON_MAX_LEVEL) -> void:
 	_score_label.text = str(score)
 	_best_label.text = "RECORDE %d" % best
 
@@ -376,7 +377,8 @@ func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
 	_shield_danger = last_chance or shield_ratio < Tuning.SHIELD_LOW_RATIO
 	_shield_fill.size = Vector2(BAR_WIDTH * shield_ratio, BAR_HEIGHT)
 
-	_weapon_label.text = "ARMA %d" % weapon_level
+	_weapon_label.text = "ARMA %d/%d" % [weapon_level, weapon_cap]
+	_weapon_cap_seen = weapon_cap
 	_weapon_fill.size = Vector2(BAR_WIDTH * clampf(weapon_progress, 0.0, 1.0), BAR_HEIGHT)
 
 
@@ -397,6 +399,8 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 		_levelup_label.text = "ARMA -1"
 	elif level >= Tuning.WEAPON_MAX_LEVEL:
 		_levelup_label.text = "ARMA MÁXIMA!"
+	elif level >= _weapon_cap_seen:
+		_levelup_label.text = "MÁXIMO DO SETOR!"
 	else:
 		_levelup_label.text = "LEVEL UP!"
 	_levelup_label.add_theme_color_override("font_color", Palette.MAGENTA if went_up else Palette.DANGER)

@@ -36,10 +36,10 @@ Um degrau por setor, sem saltos. Cada degrau muda algo **visível** (mais um can
 | 2 | 1 reto rápido | 0,24 s | 4,2 | +25% |
 | 3 | 2 retos | 0,30 s | 6,7 | +60%* |
 | 4 | 2 retos rápidos | 0,26 s | 7,7 | +15% |
-| 5 | 2 retos + 1 inclinado de cada lado (fraco: só na brecha) | 0,30 s | 9,0 | +17% |
-| 6 | leque de 3 | 0,26 s | 11,5 | +28% |
-| 7 | leque de 3, centro perfura | 0,24 s | 12,5+ | +9% (+perfura) |
-| 8 | 2 retos + leque de 2, centro perfura | 0,24 s | 16,7 | +33% |
+| 5 | leque de 3 | 0,33 s | 9,1 | +18% |
+| 6 | leque de 3 rápido | 0,26 s | 11,5 | +27% |
+| 7 | leque de 3, centro perfura | 0,24 s | 12,5 (+perfura) | +9% |
+| 8 | 2 retos que perfuram + leque de 2 | 0,24 s | 16,7 | +33% |
 
 \* O degrau 3 é o primeiro "tiro duplo", o marco da arma (chega no fim do Setor 2).
 
@@ -47,8 +47,9 @@ Um degrau por setor, sem saltos. Cada degrau muda algo **visível** (mais um can
 **O degrau máximo depende do setor: Setor N → teto N+1** (Setor 1: 2; Setor 7 e 8: 8).
 - Garante **um degrau novo por setor** (o teto sobe ao entrar no setor seguinte).
 - Os chefes podem ser ajustados sabendo a arma que o jogador tem (luta justa e previsível).
-- O custo em cristais de cada degrau sobe aos poucos (ex.: 10, 14, 18, 22, 26, 30, 34) para que
-  o teto seja alcançado **perto do fim do setor**, não no começo.
+- O custo em cristais de cada degrau sobe aos poucos (15, 22, 28, 32, 36, 40, 44) para que
+  o teto chegue **por volta de 60% do setor**, não no começo (o piloto coleta ~0,18 cristal/s
+  no Setor 1 com a arma fraca).
 - Infinito: teto = 2 + 1 a cada 2 minutos (até 8). Desafio do Dia: igual ao Infinito.
 
 ### 2.3 Sobrecarga: cristal nunca é inútil
@@ -103,3 +104,16 @@ Os módulos continuam sendo o "tipo" da arma (ricochete, perfurante, ímã...); 
 2. **Sobrecarga** no teto: quer? (recomendado: sim)
 3. **Perder a barra antes do degrau** (recomendado) ou manter "perde 1 nível"?
 4. **8 degraus** (um por setor, recomendado) ou manter 5 degraus mais lentos?
+
+---
+
+## Status
+
+**W1 — Degraus, teto e tela: concluído (05/11/2026)**
+- [x] 8 degraus com a curva acima (`Tuning.WEAPON_*`, padrões em `Ship._fire`)
+- [x] Teto por setor (Setor N → N+1) e, no Infinito/Desafio, +1 a cada 2 min (até 8)
+- [x] Custos 15, 22, 28, 32, 36, 40, 44; no teto a barra fica cheia e cristal não passa dele
+- [x] HUD "ARMA n/teto", "MÁXIMO DO SETOR!" e aviso "ARMA: novo máximo N" ao entrar no setor
+- [x] Seletor de fases (dev) começa com a arma do teto do setor
+- [x] Teste ARMA: curva sem saltos (≤ +60%), teto por setor e por tempo, ritmo do Setor 1 com o piloto
+- [ ] W2: Sobrecarga e perder a barra antes do degrau · W3: vida dos chefes com a arma do teto

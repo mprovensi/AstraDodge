@@ -23,10 +23,17 @@ const REVIVE_INVULN_TIME := 2.0
 const REVIVE_CLEAR_RADIUS := 650.0
 
 # --- Arma (índice = nível; índice 0 não é usado) ---
+## 8 degraus, ~+20% de dano/s cada (PLANO_ARMA.md). O padrão de tiro de cada um fica em Ship._fire.
 const WEAPON_START_LEVEL := 1
-const WEAPON_MAX_LEVEL := 5
-const WEAPON_FIRE_INTERVAL := [0.0, 0.333, 0.333, 0.2, 0.2, 0.18]
-const WEAPON_CRYSTALS_TO_NEXT := [0, 4, 6, 9, 12]
+const WEAPON_MAX_LEVEL := 8
+const WEAPON_FIRE_INTERVAL := [0.0, 0.30, 0.24, 0.30, 0.26, 0.33, 0.26, 0.24, 0.24]
+const WEAPON_SHOTS := [0, 1, 1, 2, 2, 3, 3, 3, 4]   # tiros por disparo (para a curva de dano)
+## Custo de cada degrau: o teto do setor chega por volta de 60% do setor (medido com o piloto).
+const WEAPON_CRYSTALS_TO_NEXT := [0, 15, 22, 28, 32, 36, 40, 44]
+## Teto por setor: Setor N (índice N-1) deixa a arma chegar ao degrau N+1 (máx. 8).
+const WEAPON_CAP_FIRST := 2
+## Infinito / Desafio do Dia: o teto sobe 1 degrau a cada tantos segundos de partida.
+const WEAPON_CAP_ENDLESS_EVERY := 120.0
 const BULLET_SPEED := 2200.0
 const BULLET_DAMAGE := 1
 const DOUBLE_SHOT_OFFSET := 16.0

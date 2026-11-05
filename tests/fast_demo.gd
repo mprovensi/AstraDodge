@@ -63,7 +63,7 @@ func _parse_args() -> void:
 			"limpo":
 				clean = true
 			"arma":
-				weapon = clampi(int(kv[1]), 1, 5)
+				weapon = clampi(int(kv[1]), 1, 8)
 
 
 func _add_overlay() -> void:
