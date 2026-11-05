@@ -13,26 +13,32 @@ extends Boss
 const NAME := "CRUZADOR FANTASMA"
 const MAX_HP := 140                    # vida da PONTE (as outras partes têm a própria)
 
-const SPRITE_W := 900.0
-const SPRITE_H := 450.0
+# Arte (PLANO_CHEFES_ARTE.md): cruzador visto de cima, nariz para baixo, montado num quadrado de
+# 780 px com a PONTE no centro (tools/gen_boss_sprites.gd). As partes ficam nos encaixes da arte.
+const SPRITE_W := 780.0
+const SPRITE_H := 780.0
 const REST_Y_RATIO := 0.27             # abaixo do HUD e da barra de vida
 const ENTER_TIME := 3.2
 const SWAY := 0.05
 
-# Partes: posição no casco (px na tela), raio e vida. Posições = encaixes do SVG.
+# Partes: posição no casco (px na tela), raio e vida. Posições = encaixes da arte.
 const PARTS := [
-	{"id": "cannon_l", "offset": Vector2(-257, 39), "radius": 46.0, "hp": 30},
-	{"id": "cannon_r", "offset": Vector2(257, 39), "radius": 46.0, "hp": 30},
-	{"id": "launcher", "offset": Vector2(0, -63), "radius": 46.0, "hp": 35},
+	{"id": "cannon_l", "offset": Vector2(-182, 62), "radius": 46.0, "hp": 30},
+	{"id": "cannon_r", "offset": Vector2(182, 62), "radius": 46.0, "hp": 30},
+	{"id": "launcher", "offset": Vector2(0, -182), "radius": 40.0, "hp": 35},
 ]
-const BRIDGE_OFFSET := Vector2(0, 23)
+const BRIDGE_OFFSET := Vector2.ZERO
+const TURRET_SIZE := 150.0             # arte da torre (cúpula + cano duplo), lado maior na tela
 const BRIDGE_RADIUS := 50.0
 # Colisão do casco (círculos ao longo do comprimento) — conferida contra o desenho no teste.
+# (Mesmos círculos de CRUISER_HULL em tools/gen_boss_sprites.gd: espinha + asas.)
 const HULL_BODIES := [
-	[Vector2(-400, 0), 30.0], [Vector2(-330, 2), 55.0], [Vector2(-230, 2), 82.0], [Vector2(-115, 2), 95.0], [Vector2(0, 2), 100.0],
-	[Vector2(115, 2), 95.0], [Vector2(230, 2), 82.0], [Vector2(330, 2), 55.0], [Vector2(400, 0), 30.0],
+	[Vector2(0, -225), 30.0], [Vector2(0, -170), 58.0], [Vector2(0, -90), 70.0], [Vector2(0, 0), 74.0],
+	[Vector2(0, 90), 70.0], [Vector2(0, 180), 58.0], [Vector2(0, 245), 36.0],
+	[Vector2(-110, 40), 60.0], [Vector2(110, 40), 60.0], [Vector2(-182, 62), 58.0], [Vector2(182, 62), 58.0],
+	[Vector2(-245, 110), 44.0], [Vector2(245, 110), 44.0], [Vector2(-290, 148), 22.0], [Vector2(290, 148), 22.0],
 ]
-const HULL_BOTTOM := 105.0             # até onde os tiros "entram" pela frente do casco
+const HULL_BOTTOM := 340.0             # até onde os tiros "entram" pela frente do casco (ponta do nariz)
 
 const CANNON_INTERVAL := [0.0, 2.2, 1.7]
 const CANNON_CHARGE := 0.6
@@ -290,15 +296,29 @@ func _draw() -> void:
 				Rect2(center - Vector2(SPRITE_W, SPRITE_H) * 0.5, Vector2(SPRITE_W, SPRITE_H)), false, tint)
 
 	var pulse := 0.85 + 0.15 * sin(_t * 8.0)
-	# Canhões: base + cano mirando a nave; brilham enquanto carregam.
+	var turret := art.boss_part("cruiser_turret")
+	var wreck := art.boss_part("cruiser_wreck")
+	# Canhões: torre girando para a nave (cano duplo); brilham na boca enquanto carregam.
 	for i in 2:
 		var at := _part_pos(i)
 		if not _parts[i].alive:
-			_draw_wreck(at, 34.0)
+			if wreck != null:
+				_draw_part(wreck, at, 96.0, 0.0, Color(0.8, 0.8, 0.8, tint.a))
+				if int(_t * 10.0 + at.x) % 3 == 0:
+					draw_circle(at + Vector2(randf_range(-14, 14), randf_range(-14, 14)), 6.0, Palette.FLAME_HDR)
+			else:
+				_draw_wreck(at, 34.0)
 			continue
 		var charging := _charge >= 0.0 and _cannon_side == i
 		var k := clampf(_charge / CANNON_CHARGE, 0.0, 1.0) if charging else 0.0
 		var dir := (_ship_pos - at).normalized()
+		if turret != null:
+			# Na arte a cúpula da torre ocupa o quarto de cima e o cano aponta para baixo: a imagem
+			# gira em volta da cúpula (que fica no encaixe); a boca do cano brilha ao carregar.
+			var flash := Color(1.8, 1.7, 1.7, tint.a) if _parts[i].flash > 0.0 else Color(1, 1, 1, tint.a)
+			_draw_part(turret, at + dir * TURRET_SIZE * 0.25, TURRET_SIZE, dir.angle() - PI / 2.0, flash)
+			draw_circle(at + dir * TURRET_SIZE * 0.72, 6.0 + 10.0 * k, Palette.ENEMY.lerp(Palette.BLAST_HDR, k))
+			continue
 		draw_line(at, at + dir * 70.0, Color(0.32, 0.34, 0.4), 18.0)
 		draw_line(at, at + dir * 70.0, Palette.ENEMY.lerp(Palette.ENEMY_HDR, k), 6.0)
 		var fill: Color = Palette.WHITE_HDR if _parts[i].flash > 0.0 else Palette.ENEMY_FILL
@@ -306,29 +326,31 @@ func _draw() -> void:
 		draw_arc(at, 36.0, 0.0, TAU, 32, Palette.BLAST_HDR * pulse, 5.0, true)
 		draw_circle(at, 12.0 + 10.0 * k, Palette.ENEMY.lerp(Palette.BLAST_HDR, k))
 
-	# Lançador: caixa com dois tubos.
+	# Lançador: escotilha que abre logo antes e logo depois de soltar os mísseis.
 	var la := _part_pos(2)
+	var launcher := art.boss_part("cruiser_launcher")
+	var launcher_open := art.boss_part("cruiser_launcher_open")
 	if _parts[2].alive:
-		var lf: Color = Palette.WHITE_HDR if _parts[2].flash > 0.0 else Palette.ENEMY_FILL
-		draw_rect(Rect2(la - Vector2(44, 30), Vector2(88, 60)), lf)
-		draw_rect(Rect2(la - Vector2(44, 30), Vector2(88, 60)), Palette.BLAST_HDR * pulse, false, 4.0)
-		for sx in [-20.0, 20.0]:
-			draw_circle(la + Vector2(sx, 6), 11.0, Color(0.1, 0.1, 0.12))
-			draw_arc(la + Vector2(sx, 6), 11.0, 0.0, TAU, 16, Palette.ENEMY_HDR, 3.0, true)
+		if launcher != null and launcher_open != null:
+			var opened: bool = _missile_timer < 0.7 or _missile_timer > float(MISSILE_INTERVAL[phase]) - 0.5
+			var lt := Color(1.8, 1.7, 1.7, tint.a) if _parts[2].flash > 0.0 else Color(1, 1, 1, tint.a)
+			_draw_part(launcher_open if opened else launcher, la, 92.0, 0.0, lt)
+		else:
+			var lf: Color = Palette.WHITE_HDR if _parts[2].flash > 0.0 else Palette.ENEMY_FILL
+			draw_rect(Rect2(la - Vector2(44, 30), Vector2(88, 60)), lf)
+			draw_rect(Rect2(la - Vector2(44, 30), Vector2(88, 60)), Palette.BLAST_HDR * pulse, false, 4.0)
+	elif wreck != null:
+		_draw_part(wreck, la, 80.0, 0.0, Color(0.8, 0.8, 0.8, tint.a))
 	else:
 		_draw_wreck(la, 34.0)
 
-	# Ponte: janela que brilha quando vulnerável; escudo (bolha) enquanto houver canhão.
+	# Ponte (a cúpula âmbar da arte): escudo enquanto houver canhão; senão brilha (vulnerável).
 	var br := _bridge_pos()
-	draw_rect(Rect2(br - Vector2(64, 24), Vector2(128, 48)), Color(0.08, 0.09, 0.12))
 	if _bridge_shielded():
-		draw_rect(Rect2(br - Vector2(54, 12), Vector2(108, 24)), Color(0.3, 0.6, 0.6))
 		draw_arc(br, BRIDGE_RADIUS * 1.25, 0.0, TAU, 40, Color(Palette.NEON, 0.7), 5.0, true)
 		draw_arc(br, BRIDGE_RADIUS * 1.45, _t * 2.0, _t * 2.0 + PI, 24, Color(Palette.NEON, 0.4), 3.0, true)
 	else:
-		var c: Color = Palette.BLAST_HDR if _flash <= 0.0 else Palette.WHITE_HDR
-		draw_circle(br, BRIDGE_RADIUS * 1.3, Color(Palette.ENEMY, 0.2))
-		draw_rect(Rect2(br - Vector2(54, 14), Vector2(108, 28)), c * pulse)
+		_weak_glow(br, BRIDGE_RADIUS)
 
 
 func _draw_wreck(at: Vector2, r: float) -> void:

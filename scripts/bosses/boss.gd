@@ -117,3 +117,25 @@ func aim_x() -> float:
 ## Explosões de área que aconteceram neste passo: (x, y, raio). O Main checa a nave.
 func take_blasts() -> Array[Vector3]:
 	return []
+
+
+## Ponto fraco ABERTO desenhado por cima da arte (olho, coração, joia): halo + brilho translúcido +
+## anel pulsando. A arte continua aparecendo por baixo e a região passa do limiar do glow.
+func _weak_glow(pos: Vector2, radius: float, color := Palette.BLAST_HDR) -> void:
+	var pulse := 0.85 + 0.15 * sin(_t * 8.0)
+	# Brilho fraco (passa pouco do limiar do glow): a arte do ponto fraco continua visível.
+	var soft := Color(color.r * 0.55, color.g * 0.55, color.b * 0.55)
+	draw_circle(pos, radius * 1.4, Color(Palette.ENEMY, 0.12))
+	draw_circle(pos, radius * 0.9 * pulse, Color(soft, 0.16 if _flash <= 0.0 else 0.5))
+	draw_arc(pos, radius * pulse, 0.0, TAU, 40, Color(soft, 0.9), 3.0, true)
+
+
+## Peça de arte centrada em `pos`, com `size` = lado maior na tela (mantém a proporção).
+func _draw_part(tex: Texture2D, pos: Vector2, size: float, angle := 0.0, tint := Color.WHITE,
+		flip := false) -> void:
+	var w := float(tex.get_width())
+	var h := float(tex.get_height())
+	var k := size / maxf(w, h)
+	draw_set_transform(pos, angle, Vector2(-k if flip else k, k))
+	draw_texture(tex, Vector2(-w, -h) * 0.5, tint)
+	draw_set_transform(Vector2.ZERO, 0.0)

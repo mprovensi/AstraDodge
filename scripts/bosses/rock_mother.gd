@@ -356,7 +356,8 @@ func _draw() -> void:
 		tint = Color(1.6, 0.7, 0.6)
 	if phase == 1:
 		var half := RADIUS / art.boss_fill
-		draw_set_transform(center, rot)
+		# As 4 sondas da arte ficam nas diagonais: +45° põe cada uma num núcleo.
+		draw_set_transform(center, rot + PI / 4.0)
 		draw_texture_rect(art.rock_mother_body, Rect2(-half, -half, half * 2.0, half * 2.0), false, tint)
 		draw_set_transform(Vector2.ZERO, 0.0)
 	else:
@@ -367,13 +368,29 @@ func _draw() -> void:
 			draw_texture_rect(art.rock_mother_half, Rect2(-half, -half, half * 2.0, half * 2.0), false, tint)
 		draw_set_transform(Vector2.ZERO, 0.0)
 
-	var pulse := 0.85 + 0.15 * sin(_t * 8.0)
+	# Núcleos: cristal incandescente (aberto) ou tampa de rocha (fechado: ricochete).
+	var crystal := art.boss_part("rock_crystal")
+	var lid := art.boss_part("rock_lid")
 	for core in _cores():
 		var pos: Vector2 = core.pos
+		var out := (pos - _core_anchor(pos)).angle() + PI / 2.0  # ponta do cristal para fora
 		if core.open:
-			draw_circle(pos, CORE_RADIUS * 1.6, Color(Palette.ENEMY, 0.22))
-			draw_circle(pos, CORE_RADIUS * pulse, Palette.BLAST_HDR)
-			draw_circle(pos, CORE_RADIUS * 0.45, Palette.WHITE_HDR)
+			if crystal != null:
+				_draw_part(crystal, pos, CORE_RADIUS * 2.3, out, tint)
+			_weak_glow(pos, CORE_RADIUS)
+		elif lid != null:
+			_draw_part(lid, pos, CORE_RADIUS * 2.4, out, tint)
 		else:
 			draw_circle(pos, CORE_RADIUS * 0.9, Color(0.22, 0.07, 0.05))
 			draw_arc(pos, CORE_RADIUS * 0.9, 0.0, TAU, 32, Color(0.55, 0.32, 0.28), 4.0, true)
+
+
+## Centro da rocha de onde o núcleo sai (para orientar o cristal/tampa para fora).
+func _core_anchor(pos: Vector2) -> Vector2:
+	if phase == 1:
+		return center
+	var best: Vector2 = _halves[0].pos
+	for h in _halves:
+		if (h.pos as Vector2).distance_squared_to(pos) < best.distance_squared_to(pos):
+			best = h.pos
+	return best

@@ -829,8 +829,8 @@ func _hull_collision_outside_pct(cr: GDScript) -> float:
 	var hh: float = cr.SPRITE_H * 0.5
 	var hits := 0
 	var outside := 0
-	for y in range(-230, 231, 10):
-		for x in range(-460, 461, 10):
+	for y in range(-int(hh), int(hh) + 1, 10):
+		for x in range(-int(hw), int(hw) + 1, 10):
 			if not boss.touches(c + Vector2(x, y), 0.0):
 				continue
 			hits += 1

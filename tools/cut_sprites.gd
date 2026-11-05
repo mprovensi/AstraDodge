@@ -1,19 +1,22 @@
 extends SceneTree
-## Recorta os objetos de uma folha de sprites com FUNDO BRANCO (ex.: imagens geradas por IA em
-## sprite_test/). Passos: apaga o branco a partir das bordas (o branco dentro do contorno fica),
+## Recorta os objetos de uma folha de sprites com FUNDO LISO (branco ou cinza; ex.: imagens geradas
+## por IA em sprite_test/). Passos: apaga o fundo a partir das bordas (a cor do fundo é medida nas
+## bordas da imagem; o que tem essa cor dentro do contorno fica),
 ## separa cada objeto (pedaços ligados), descarta pedacinhos soltos, tira 1 px da borda (o
 ## "halo" claro do JPG), recorta num quadrado centrado e salva PNG transparente.
 ## Saída: {out}/{prefixo}_{n}.png, numerados de cima para baixo, da esquerda para a direita.
 ## Uso: godot --headless --path . --script res://tools/cut_sprites.gd -- --in=CAMINHO --out=PASTA --prefixo=a [--min=6000] [--px=256]
+##      --px=0 mantém o tamanho original do recorte; --tol=0.14 tolerância de cor do fundo;
+##      --rect=x0,y0,x1,y1 recorta só esse retângulo da folha antes (peças muito próximas);
+##      --halo=1 apaga o halo claro de brilho em volta do contorno (cristais, bolhas, faíscas).
 
-const WHITE := 0.86      # mais claro que isso (e pouco colorido) é fundo
-const SAT := 0.12
-const HOLE_WHITE := 0.95  # furo fechado: branco quase puro...
+const SAT := 0.12        # fundo é pouco colorido
+const HOLE_TOL := 0.5     # furo fechado: cor do fundo quase exata (fração da tolerância)...
 const HOLE_MIN := 900     # ...e grande (px) — brilho de pintura é menor
 
 
 func _initialize() -> void:
-	var args := {"min": "6000", "px": "256", "prefixo": "s"}
+	var args := {"min": "6000", "px": "256", "prefixo": "s", "tol": "0.14"}
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--") and "=" in a:
 			args[a.substr(2, a.find("=") - 2)] = a.get_slice("=", 1)
@@ -23,11 +26,16 @@ func _initialize() -> void:
 		quit(1)
 		return
 	img.convert(Image.FORMAT_RGBA8)
+	if args.has("rect"):
+		var v := (args["rect"] as String).split(",")
+		img = img.get_region(Rect2i(int(v[0]), int(v[1]), int(v[2]) - int(v[0]), int(v[3]) - int(v[1])))
 	var w := img.get_width()
 	var h := img.get_height()
 	DirAccess.make_dir_recursive_absolute(args["out"])
 
-	# 1. Fundo: inundação a partir das bordas por pixels quase brancos.
+	# 1. Fundo: cor média das bordas; inundação a partir delas por pixels parecidos com ela.
+	var bgc := _border_color(img)
+	var tol := float(args["tol"])
 	var bg := PackedByteArray()
 	bg.resize(w * h)
 	var stack := PackedInt32Array()
@@ -43,7 +51,7 @@ func _initialize() -> void:
 		if bg[i] == 1:
 			continue
 		var c := img.get_pixel(i % w, i / w)
-		if minf(c.r, minf(c.g, c.b)) < WHITE or c.s > SAT:
+		if maxf(absf(c.r - bgc.r), maxf(absf(c.g - bgc.g), absf(c.b - bgc.b))) > tol or c.s > SAT:
 			continue
 		bg[i] = 1
 		var x := i % w
@@ -53,15 +61,33 @@ func _initialize() -> void:
 		if y > 0: stack.append(i - w)
 		if y < h - 1: stack.append(i + w)
 
-	# 1b. Furos: áreas grandes de branco puro FECHADAS pelo objeto (miolo da engrenagem, janelas
-	# da treliça) também são fundo. Brilhos pequenos da pintura ficam (área < HOLE_MIN).
+	# 1a. Halo de brilho: a partir do fundo, avança por pixels claros (o contorno escuro para).
+	if args.get("halo", "0") == "1":
+		for i in w * h:
+			if bg[i] == 1:
+				stack.append(i)
+		while not stack.is_empty():
+			var i := stack[stack.size() - 1]
+			stack.resize(stack.size() - 1)
+			var x := i % w
+			var y := i / w
+			for nb: int in [i - 1 if x > 0 else -1, i + 1 if x < w - 1 else -1, i - w, i + w]:
+				if nb < 0 or nb >= w * h or bg[nb] == 1:
+					continue
+				var c := img.get_pixel(nb % w, nb / w)
+				if c.v > 0.72 and c.s < 0.55:
+					bg[nb] = 1
+					stack.append(nb)
+
+	# 1b. Furos: áreas grandes da cor do fundo FECHADAS pelo objeto (miolo da engrenagem, janelas
+	# da treliça, vão entre os anéis) também são fundo. Brilhos pequenos da pintura ficam (< HOLE_MIN).
+	var hole_tol := tol * HOLE_TOL
 	var seen := PackedByteArray()
 	seen.resize(w * h)
 	for start in w * h:
 		if bg[start] == 1 or seen[start] == 1:
 			continue
-		var c0 := img.get_pixel(start % w, start / w)
-		if minf(c0.r, minf(c0.g, c0.b)) < HOLE_WHITE:
+		if not _near(img.get_pixel(start % w, start / w), bgc, hole_tol):
 			continue
 		var region := PackedInt32Array()
 		stack.append(start)
@@ -75,8 +101,7 @@ func _initialize() -> void:
 			for nb: int in [i - 1 if x > 0 else -1, i + 1 if x < w - 1 else -1, i - w, i + w]:
 				if nb < 0 or nb >= w * h or seen[nb] == 1 or bg[nb] == 1:
 					continue
-				var c := img.get_pixel(nb % w, nb / w)
-				if minf(c.r, minf(c.g, c.b)) >= HOLE_WHITE - 0.06:
+				if _near(img.get_pixel(nb % w, nb / w), bgc, hole_tol * 1.6):
 					seen[nb] = 1
 					stack.append(nb)
 		if region.size() >= HOLE_MIN:
@@ -145,8 +170,33 @@ func _initialize() -> void:
 				var sy: int = f["y0"] + y
 				if label[sy * w + sx] == f["id"]:
 					out.set_pixel(ox + x, oy + y, img.get_pixel(sx, sy))
-		out.resize(px, px, Image.INTERPOLATE_LANCZOS)
+		if px > 0:
+			out.resize(px, px, Image.INTERPOLATE_LANCZOS)
 		var path := "%s/%s_%02d.png" % [args["out"], args["prefixo"], n]
 		out.save_png(path)
 		print("%s_%02d  area=%d  caixa=%dx%d  em (%d,%d)" % [args["prefixo"], n, f["area"], bw, bh, f["x0"], f["y0"]])
 	quit()
+
+
+## Cor do fundo: mediana (por canal) dos pixels da borda da imagem.
+func _border_color(img: Image) -> Color:
+	var rs: Array[float] = []
+	var gs: Array[float] = []
+	var bs: Array[float] = []
+	var w := img.get_width()
+	var h := img.get_height()
+	for k in 200:
+		for p: Vector2i in [Vector2i(k * w / 200, 2), Vector2i(k * w / 200, h - 3),
+				Vector2i(2, k * h / 200), Vector2i(w - 3, k * h / 200)]:
+			var c := img.get_pixelv(p)
+			rs.append(c.r)
+			gs.append(c.g)
+			bs.append(c.b)
+	rs.sort()
+	gs.sort()
+	bs.sort()
+	return Color(rs[rs.size() / 2], gs[gs.size() / 2], bs[bs.size() / 2])
+
+
+func _near(c: Color, ref: Color, tol: float) -> bool:
+	return maxf(absf(c.r - ref.r), maxf(absf(c.g - ref.g), absf(c.b - ref.b))) <= tol and c.s <= SAT

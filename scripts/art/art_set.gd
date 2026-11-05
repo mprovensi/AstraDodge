@@ -56,7 +56,7 @@ extends Resource
 @export var miner_body: Texture2D
 ## Medusa (Setor 3): cúpula de plasma. Núcleo e tentáculos são desenhados pelo código.
 @export var medusa_body: Texture2D
-## Cruzador Fantasma (Setor 4): casco LARGO (2:1). As partes são desenhadas pelo código.
+## Cruzador Fantasma (Setor 4): casco visto de cima, nariz para baixo, quadrado com a ponte no centro.
 @export var cruiser_body: Texture2D
 ## Colosso de Gelo (Setor 5): bloco de gelo redondo. Núcleo e placas são desenhados pelo código.
 @export var ice_colossus_body: Texture2D
@@ -66,6 +66,13 @@ extends Resource
 @export var sentinel_body: Texture2D
 ## Núcleo da Fenda (Setor 8, chefe final): esfera escura com borda magenta. Núcleo e halo pelo código.
 @export var rift_core_body: Texture2D
+## Peças que se mexem / estados dos chefes (arte de IA, tools/gen_boss_sprites.gd), por nome
+## ("rock_crystal", "miner_lid", "cruiser_turret"...). Sem a peça, o chefe desenha a forma simples.
+@export var boss_parts := {}
+
+
+func boss_part(name: String) -> Texture2D:
+	return boss_parts.get(name) as Texture2D
 
 
 ## Converte um ponto do PNG da nave para coordenadas locais da nave na tela.

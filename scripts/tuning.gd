@@ -186,7 +186,7 @@ const BOSS_SHIELD_DROP_BONUS := 0.06  # chance extra de orbe na poeira durante a
 const BOSS_SHIELD_DRAIN_SCALE := 0.45  # o escudo drena bem menos durante a luta (~0,7/s)
 ## Vida dos chefes da campanha por setor (índice = setor - 1). A luta fica mais longa a cada
 ## setor (medido com o bot no padrão 3: ~47 s no Setor 1 subindo até ~85 s no Setor 8).
-const BOSS_HP_BY_SECTOR := [1.0, 1.75, 1.25, 1.95, 1.35, 2.25, 2.25, 1.4]
+const BOSS_HP_BY_SECTOR := [1.0, 1.75, 1.25, 4.3, 1.35, 2.25, 2.25, 1.4]
 const BOSS_ORB_EVERY_HP := 0.1         # a cada 10% da vida do chefe em acertos no núcleo, cai 1 orbe
 
 # --- Inimigos (base para os setores 2–5) ---

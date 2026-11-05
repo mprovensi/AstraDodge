@@ -14,7 +14,7 @@ extends Boss
 const NAME := "MEDUSA"
 const MAX_HP := 200
 
-const SPRITE_SIZE := 380.0
+const SPRITE_SIZE := 440.0
 const CORE_RADIUS := 46.0
 # Colisão da cúpula (o desenho é uma cúpula, não um círculo): círculo grande em cima e
 # dois menores nas laterais de baixo. Conferido contra os pixels no teste automático.
@@ -265,6 +265,25 @@ func _tentacle_points(i: int) -> PackedVector2Array:
 	return pts
 
 
+## Tentáculo com textura: faixa ao longo dos pontos, afinando da base (44 px) à ponta (26 px).
+func _draw_tentacle(tex: Texture2D, pts: PackedVector2Array) -> void:
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	var uv_l := PackedVector2Array()
+	var uv_r := PackedVector2Array()
+	for k in pts.size():
+		var t := float(k) / (pts.size() - 1)
+		var dir := (pts[mini(k + 1, pts.size() - 1)] - pts[maxi(k - 1, 0)]).normalized()
+		var side := Vector2(-dir.y, dir.x) * lerpf(22.0, 13.0, t)
+		left.append(pts[k] + side)
+		right.append(pts[k] - side)
+		uv_l.append(Vector2(0.0, t))
+		uv_r.append(Vector2(1.0, t))
+	for k in pts.size() - 1:  # um quadrado por trecho (sempre convexo)
+		draw_polygon(PackedVector2Array([left[k], left[k + 1], right[k + 1], right[k]]),
+				PackedColorArray([Color.WHITE]), PackedVector2Array([uv_l[k], uv_l[k + 1], uv_r[k + 1], uv_r[k]]), tex)
+
+
 func _node_pos(i: int) -> Vector2:
 	var pts := _tentacle_points(i)
 	return pts[pts.size() - 1]
@@ -294,17 +313,33 @@ func _draw() -> void:
 	var art := Game.art
 	var pulse := 0.85 + 0.15 * sin(_t * 7.0)
 
-	# Tentáculos (atrás da cúpula): linhas brilhantes que ondulam; nódulos na ponta (fase 2).
+	# Tentáculos (atrás da cúpula): faixa com a arte do tentáculo seguindo a curva que ondula;
+	# ponta farpada no fim; na fase 2 os nódulos (bolhas âmbar) ficam na ponta.
+	var seg := art.boss_part("medusa_tentacle")
+	var tip_tex := art.boss_part("medusa_tip")
+	var node_tex := art.boss_part("medusa_node")
 	for i in TENTACLE_BASES.size():
 		var pts := _tentacle_points(i)
-		draw_polyline(pts, Color(Palette.ION, 0.35), 16.0, true)
-		draw_polyline(pts, Palette.ION_HDR * 0.8, 5.0, true)
+		if seg != null:
+			_draw_tentacle(seg, pts)
+			if tip_tex != null and not (phase == 2 and i < _nodes.size()):
+				var end := pts[pts.size() - 1]
+				var dir := end - pts[pts.size() - 2]
+				_draw_part(tip_tex, end + dir.normalized() * 26.0, 80.0, dir.angle() + PI / 2.0)
+		else:
+			draw_polyline(pts, Color(Palette.ION, 0.35), 16.0, true)
+			draw_polyline(pts, Palette.ION_HDR * 0.8, 5.0, true)
 		if phase == 2 and i < _nodes.size():
 			var tip := pts[pts.size() - 1]
 			if _nodes[i].alive:
-				var c: Color = Palette.WHITE_HDR if _nodes[i].flash > 0.0 else Palette.BLAST_HDR
-				draw_circle(tip, NODE_RADIUS * 1.5, Color(Palette.ENEMY, 0.2))
-				draw_circle(tip, NODE_RADIUS * pulse, c)
+				if node_tex != null:
+					_draw_part(node_tex, tip, NODE_RADIUS * 2.1, 0.0,
+							Color(1.8, 1.8, 1.8) if _nodes[i].flash > 0.0 else Color.WHITE)
+					draw_circle(tip, NODE_RADIUS * 1.5, Color(Palette.ENEMY, 0.16))
+				else:
+					var c: Color = Palette.WHITE_HDR if _nodes[i].flash > 0.0 else Palette.BLAST_HDR
+					draw_circle(tip, NODE_RADIUS * 1.5, Color(Palette.ENEMY, 0.2))
+					draw_circle(tip, NODE_RADIUS * pulse, c)
 			else:
 				draw_circle(tip, NODE_RADIUS * 0.5, Color(0.25, 0.1, 0.3))
 
@@ -318,9 +353,7 @@ func _draw() -> void:
 
 	# Núcleo: aberto (brilha laranja) ou com escudo (bolha violeta) na fase 2.
 	if _core_open() or state == State.ENTERING:
-		draw_circle(center, CORE_RADIUS * 1.5, Color(Palette.ENEMY, 0.22))
-		draw_circle(center, CORE_RADIUS * pulse, Palette.BLAST_HDR)
-		draw_circle(center, CORE_RADIUS * 0.4, Palette.WHITE_HDR)
+		_weak_glow(center, CORE_RADIUS)
 	else:
 		draw_circle(center, CORE_RADIUS * 0.7, Color(0.5, 0.25, 0.2))
 		draw_arc(center, CORE_RADIUS * 1.05, 0.0, TAU, 40, Palette.ION_HDR, 5.0, true)

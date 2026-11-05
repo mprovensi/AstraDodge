@@ -14,7 +14,7 @@ extends Boss
 const NAME := "SENTINELA"
 const MAX_HP := 170
 
-const SPRITE_SIZE := 360.0
+const SPRITE_SIZE := 560.0
 const BODY_RADIUS := 140.0
 const CORE_RADIUS := 42.0
 const ENTER_TIME := 3.0
@@ -23,6 +23,7 @@ const SWAY := 0.08
 
 const ARMS := [Vector2(-250, 60), Vector2(250, 60)]
 const ARM_RADIUS := 46.0
+const ARM_ART_AXIS := 0.88  # rad: na arte, o braço vai do suporte (em cima, à esquerda) ao cano (embaixo, à direita)
 const ARM_HP := 28
 const ARM_FIRE := [0.0, 2.2, 1.8]
 const ARM_CHARGE := 0.5
@@ -373,7 +374,9 @@ static func walls_free_width(view_w: float) -> float:
 
 func _draw() -> void:
 	var art := Game.art
-	var pulse := 0.85 + 0.15 * sin(_t * 7.0)
+	var arm_tex := art.boss_part("sentinel_arm")
+	var broken_tex := art.boss_part("sentinel_arm_broken")
+	var drone_tex := art.boss_part("sentinel_drone")
 
 	# Paredes de energia da fase 2 (atrás do corpo).
 	if _wall_t >= WALL_TELEGRAPH:
@@ -391,16 +394,27 @@ func _draw() -> void:
 	for i in _arms.size():
 		var p := _arm_pos(i)
 		draw_line(center + Vector2(signf(p.x - center.x) * BODY_RADIUS * 0.8, 20.0), p, Color(0.3, 0.3, 0.36), 22.0)
+		var left := p.x < center.x
 		if _arms[i].alive:
 			var dir := (_ship - p).normalized()
 			var charge := 1.0 - clampf(float(_arms[i].fire) / ARM_CHARGE, 0.0, 1.0)
+			if arm_tex != null:
+				# Arte: do suporte (em cima, junto do corpo) ao cano (embaixo, mirando a nave).
+				var flash := Color(1.8, 1.7, 1.7) if _arms[i].flash > 0.0 else Color.WHITE
+				var axis := ARM_ART_AXIS if not left else PI - ARM_ART_AXIS  # o braço esquerdo é espelhado
+				_draw_part(arm_tex, p, ARM_RADIUS * 4.4, dir.angle() - axis, flash, left)
+				draw_circle(p + dir * ARM_RADIUS * 1.5, 6.0 + 10.0 * charge, Palette.ENEMY.lerp(Palette.ENEMY_HDR, charge))
+				continue
 			draw_circle(p, ARM_RADIUS, Palette.WHITE_HDR if _arms[i].flash > 0.0 else Color(0.26, 0.26, 0.32))
 			draw_arc(p, ARM_RADIUS, 0.0, TAU, 28, Palette.ENEMY_HDR, 4.0, true)
 			draw_line(p, p + dir * ARM_RADIUS * 1.4, Color(0.4, 0.4, 0.46), 16.0)
 			draw_line(p, p + dir * ARM_RADIUS * 1.4, Palette.ENEMY.lerp(Palette.ENEMY_HDR, charge), 5.0)
 			draw_circle(p, 10.0 + 10.0 * charge, Palette.ENEMY.lerp(Palette.ENEMY_HDR, charge))
 		else:
-			draw_circle(p, ARM_RADIUS * 0.55, Color(0.15, 0.15, 0.18))
+			if broken_tex != null:
+				_draw_part(broken_tex, p, ARM_RADIUS * 4.0, 0.0, Color(0.8, 0.8, 0.8), left)
+			else:
+				draw_circle(p, ARM_RADIUS * 0.55, Color(0.15, 0.15, 0.18))
 			if int(_t * 10.0) % 3 == 0:
 				draw_circle(p + Vector2(randf_range(-12, 12), randf_range(-12, 12)), 5.0, Palette.FLAME_HDR)
 
@@ -412,16 +426,18 @@ func _draw() -> void:
 		draw_texture_rect(art.sentinel_body, Rect2(center - Vector2(half, half), Vector2(SPRITE_SIZE, SPRITE_SIZE)),
 				false, tint)
 
-	# Olho: anel vermelho que segue a nave.
-	var look := (_ship - center).normalized() * 10.0
-	draw_circle(center, CORE_RADIUS * 1.5, Color(Palette.ENEMY, 0.22))
-	draw_circle(center, CORE_RADIUS * pulse, Palette.BLAST_HDR)
-	draw_circle(center + look, CORE_RADIUS * 0.4, Palette.WHITE_HDR)
+	# Olho (o da arte), com a pupila clara seguindo a nave.
+	_weak_glow(center, CORE_RADIUS)
+	draw_circle(center + (_ship - center).normalized() * 10.0, CORE_RADIUS * 0.22, Palette.WHITE_HDR)
 
 	# Drones de reparo: cruz com luz verde e um raio fino ligando ao braço.
 	for d in _drones:
 		var dp: Vector2 = d.pos
 		draw_line(dp, _arm_pos(d.arm), Color(0.4, 1.0, 0.5, 0.35), 2.0)
+		if drone_tex != null:
+			_draw_part(drone_tex, dp, DRONE_RADIUS * 2.6, 0.0, Color(2.0, 2.0, 2.0) if d.flash > 0.0 else Color.WHITE)
+			draw_circle(dp + Vector2(DRONE_RADIUS * 0.9, 0), 4.0, Color(0.5, 2.2, 0.8))  # solda
+			continue
 		draw_rect(Rect2(dp - Vector2(DRONE_RADIUS, 7), Vector2(DRONE_RADIUS * 2.0, 14)), Color(0.35, 0.36, 0.4))
 		draw_rect(Rect2(dp - Vector2(7, DRONE_RADIUS), Vector2(14, DRONE_RADIUS * 2.0)), Color(0.35, 0.36, 0.4))
 		draw_circle(dp, 11.0, Palette.WHITE_HDR if d.flash > 0.0 else Color(0.5, 2.2, 0.8))

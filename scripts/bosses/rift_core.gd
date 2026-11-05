@@ -13,7 +13,7 @@ extends Boss
 const NAME := "NÚCLEO DA FENDA"
 const MAX_HP := 360
 
-const SPRITE_SIZE := 360.0
+const SPRITE_SIZE := 480.0
 const BODY_RADIUS := 130.0
 const CORE_RADIUS := 46.0
 const ENTER_TIME := 3.5
@@ -296,12 +296,12 @@ func _draw() -> void:
 	if state == State.TRANSITION and int(_state_t * 12.0) % 2 == 0:
 		tint = Color(2.0, 1.2, 2.0)
 	if art.rift_core_body != null:
+		# A esfera com os anéis antigos gira devagar (a joia fica no centro do giro).
 		var half := SPRITE_SIZE * 0.5
-		draw_texture_rect(art.rift_core_body, Rect2(center - Vector2(half, half), Vector2(SPRITE_SIZE, SPRITE_SIZE)),
-				false, tint)
-	draw_circle(center, CORE_RADIUS * 1.6, Color(Palette.MAGENTA, 0.2))
-	draw_circle(center, CORE_RADIUS * pulse, Palette.MAGENTA_HDR)
-	draw_circle(center, CORE_RADIUS * 0.45, Palette.WHITE_HDR)
+		draw_set_transform(center, _t * 0.12)
+		draw_texture_rect(art.rift_core_body, Rect2(-half, -half, SPRITE_SIZE, SPRITE_SIZE), false, tint)
+		draw_set_transform(Vector2.ZERO, 0.0)
+	_weak_glow(center, CORE_RADIUS * pulse, Palette.MAGENTA_HDR)
 
 	# Raios do "eco do Minerador".
 	if _beam_t >= BEAM_TELEGRAPH:

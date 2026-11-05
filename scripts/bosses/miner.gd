@@ -15,7 +15,7 @@ extends Boss
 const NAME := "MINERADOR"
 const MAX_HP := 170
 
-const SPRITE_SIZE := 500.0            # lado do sprite na tela
+const SPRITE_SIZE := 664.0            # lado do sprite na tela
 const EYE_RADIUS := 52.0
 const BODY_RADIUS := 125.0
 const BODY_OFFSET := Vector2(0, -10)
@@ -313,13 +313,11 @@ func _draw() -> void:
 				false, tint)
 
 	# Olho: aberto (brilha, a pupila segue a nave) ou fechado (placas de aço).
+	var lid := art.boss_part("miner_lid")
 	if _eye_open():
-		var pulse := 0.88 + 0.12 * sin(_t * 9.0)
-		var color := Palette.BLAST_HDR if phase == 1 else Palette.DANGER_HDR
-		draw_circle(center, EYE_RADIUS * 1.5, Color(Palette.ENEMY, 0.22))
-		draw_circle(center, EYE_RADIUS * pulse, color)
-		var look := (_ship_pos - center).limit_length(EYE_RADIUS * 0.35)
-		draw_circle(center + look, EYE_RADIUS * 0.35, Color(0.1, 0.02, 0.02))
+		_weak_glow(center, EYE_RADIUS, Palette.BLAST_HDR if phase == 1 else Palette.DANGER_HDR)
+	elif lid != null:
+		_draw_part(lid, center, EYE_RADIUS * 2.5, 0.0, tint)
 	else:
 		draw_circle(center, EYE_RADIUS, Color(0.16, 0.18, 0.22))
 		draw_line(center + Vector2(-EYE_RADIUS, 0), center + Vector2(EYE_RADIUS, 0), Color(0.6, 0.66, 0.78), 6.0)

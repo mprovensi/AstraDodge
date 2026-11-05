@@ -15,7 +15,7 @@ extends Boss
 const NAME := "RAINHA DA COLMEIA"
 const MAX_HP := 190
 
-const SPRITE_SIZE := 360.0
+const SPRITE_SIZE := 520.0
 const CORE_RADIUS := 40.0
 ## Colisão do corpo: abdômen (em cima), tórax (centro) e cabeça (embaixo). Conferido nos pixels.
 const BODIES := [[Vector2(0, -88), 78.0], [Vector2(0, 0), 86.0], [Vector2(0, 100), 46.0]]
@@ -281,7 +281,6 @@ static func acid_min_gap(view_w: float) -> float:
 
 func _draw() -> void:
 	var art := Game.art
-	var pulse := 0.85 + 0.15 * sin(_t * 7.0)
 	var tint := Color(1.6, 1.5, 1.2) if _flash > 0.0 else Color.WHITE
 	if state == State.TRANSITION and int(_state_t * 12.0) % 2 == 0:
 		tint = Color(1.8, 1.5, 0.6)
@@ -290,10 +289,8 @@ func _draw() -> void:
 		draw_texture_rect(art.hive_queen_body, Rect2(center - Vector2(half, half), Vector2(SPRITE_SIZE, SPRITE_SIZE)),
 				false, tint)
 
-	# Coração: pulsa como um órgão.
-	draw_circle(center, CORE_RADIUS * 1.5, Color(Palette.ENEMY, 0.22))
-	draw_circle(center, CORE_RADIUS * pulse, Palette.BLAST_HDR)
-	draw_circle(center, CORE_RADIUS * 0.4, Palette.WHITE_HDR)
+	# Coração (o da arte): pulsa como um órgão.
+	_weak_glow(center, CORE_RADIUS)
 
 	# Guardas (fase 2): insetos maiores girando em volta.
 	for i in _guards.size():

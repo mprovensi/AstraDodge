@@ -253,11 +253,20 @@ func _draw() -> void:
 
 	# Núcleo frio e brilhante; fica mais forte quando há fenda embaixo (hora de atirar).
 	var open := gap_below() and is_vulnerable()
-	draw_circle(center, CORE_RADIUS * 1.5, Color(Palette.ENEMY, 0.25 if open else 0.12))
-	draw_circle(center, CORE_RADIUS * pulse, Palette.BLAST_HDR if open else Color(0.9, 0.5, 0.4))
-	draw_circle(center, CORE_RADIUS * 0.4, Palette.WHITE_HDR)
+	if open:
+		_weak_glow(center, CORE_RADIUS)
+	else:
+		draw_circle(center, CORE_RADIUS * 1.5, Color(Palette.ENEMY, 0.1 * pulse))
 
-	# Anel de placas de gelo: faixa em arco, preenchimento claro e contorno de perigo.
+	# Anel de placas de gelo: lâminas de gelo (arte) ao longo do arco; sem a arte, faixa em arco.
+	var blade := art.boss_part("ice_blade")
+	if blade != null:
+		for i in PLATES:
+			var mid := _plate_angle(i)
+			var at := center + Vector2.from_angle(mid) * _ring_r
+			# A lâmina é comprida na vertical: deitada ao longo do arco (tangente).
+			_draw_part(blade, at, _ring_r * PLATE_ARC * 1.15, mid, tint)
+		return
 	for i in PLATES:
 		var mid := _plate_angle(i)
 		var a0 := mid - PLATE_ARC * 0.5

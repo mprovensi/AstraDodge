@@ -24,13 +24,15 @@ func _initialize() -> void:
 		load("res://sprites/metal_1.png"), load("res://sprites/metal_2.png"), load("res://sprites/metal_3.png")])
 	art.dust_fill = 0.92
 	art.metal_fill = 0.94
-	art.rock_mother_body = load("res://sprites/boss_rock_mother.png")
-	art.rock_mother_half = load("res://sprites/boss_rock_mother_half.png")
-	art.boss_fill = 0.95
+	# Chefes: arte de IA no estilo cartoon (PLANO_CHEFES_ARTE.md, tools/gen_boss_sprites.gd). Os
+	# corpos já vêm montados no quadrado que cada chefe desenha; os antigos boss_*.png ficam de reserva.
+	art.rock_mother_body = load("res://sprites/ia/boss/rock_body.png")
+	art.rock_mother_half = load("res://sprites/ia/boss/rock_half_l.png")
+	art.boss_fill = 0.85
 	art.dust_shell_texture = load("res://sprites/dust_shell.png")
-	art.miner_body = load("res://sprites/boss_miner.png")
-	art.medusa_body = load("res://sprites/boss_medusa.png")
-	art.cruiser_body = load("res://sprites/boss_cruiser.png")
+	art.miner_body = load("res://sprites/ia/boss/miner_body.png")
+	art.medusa_body = load("res://sprites/ia/boss/medusa_dome.png")
+	art.cruiser_body = load("res://sprites/ia/boss/cruiser_hull.png")
 	art.ice_textures.assign([load("res://sprites/ice_1.png"), load("res://sprites/ice_2.png")])
 	# Visual por setor (PLANO_SPRITES_IA.md): rochas e lixo desenhados (recortes das folhas de IA,
 	# tools/gen_ia_sprites.gd), girando no plano. O lixo tem a luz âmbar num ponto fixo da peça.
@@ -46,10 +48,14 @@ func _initialize() -> void:
 			look.metal_lamps.append(Vector2(p.x, p.y))
 		looks.append(look)
 	art.sector_looks.assign(looks)
-	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
-	art.hive_queen_body = load("res://sprites/boss_hive_queen.png")
-	art.sentinel_body = load("res://sprites/boss_sentinel.png")
-	art.rift_core_body = load("res://sprites/boss_rift_core.png")
+	art.ice_colossus_body = load("res://sprites/ia/boss/ice_body.png")
+	art.hive_queen_body = load("res://sprites/ia/boss/queen_body.png")
+	art.sentinel_body = load("res://sprites/ia/boss/sentinel_body.png")
+	art.rift_core_body = load("res://sprites/ia/boss/rift_body.png")
+	for part in ["rock_crystal", "rock_lid", "miner_eye", "miner_lid", "medusa_tentacle", "medusa_tip",
+			"medusa_node", "cruiser_turret", "cruiser_launcher", "cruiser_launcher_open", "cruiser_wreck",
+			"ice_blade", "sentinel_arm", "sentinel_arm_broken", "sentinel_drone"]:
+		art.boss_parts[part] = load("%s%s.png" % ["res://sprites/ia/boss/", part])
 	var err := ResourceSaver.save(art, OUT)
 	print("%s -> %s" % [OUT, "OK" if err == OK else "ERRO %d" % err])
 	quit()

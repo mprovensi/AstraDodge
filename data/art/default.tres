@@ -2,37 +2,51 @@
 
 [ext_resource type="Texture2D" path="res://sprites/dust_1.png" id="1_0djt3"]
 [ext_resource type="Texture2D" path="res://sprites/dust_shell.png" id="1_5hgmi"]
-[ext_resource type="Texture2D" path="res://sprites/boss_cruiser.png" id="1_5u5ty"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/rock_crystal.png" id="1_syov3"]
 [ext_resource type="Texture2D" path="res://sprites/dust_2.png" id="2_7ck5r"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/rock_lid.png" id="2_i0evk"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/miner_eye.png" id="3_50y10"]
 [ext_resource type="Texture2D" path="res://sprites/dust_3.png" id="3_pucd1"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/miner_lid.png" id="4_70jpy"]
 [ext_resource type="Texture2D" path="res://sprites/metal_1.png" id="4_tff5p"]
 [ext_resource type="Texture2D" path="res://sprites/metal_2.png" id="5_5hgmi"]
-[ext_resource type="Texture2D" path="res://sprites/boss_medusa.png" id="5_ik4b2"]
-[ext_resource type="Texture2D" path="res://sprites/boss_hive_queen.png" id="6_4jbvx"]
-[ext_resource type="Texture2D" path="res://sprites/boss_ice_colossus.png" id="6_7yqe6"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/medusa_tentacle.png" id="5_t5b1j"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/medusa_tip.png" id="6_h10sp"]
 [ext_resource type="Texture2D" path="res://sprites/metal_3.png" id="6_ik4b2"]
 [ext_resource type="Texture2D" path="res://sprites/ice_1.png" id="7_4jbvx"]
 [ext_resource type="Script" path="res://scripts/art/art_set.gd" id="7_5u5ty"]
-[ext_resource type="Texture2D" path="res://sprites/boss_rock_mother.png" id="7_pucd1"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/medusa_node.png" id="7_ae18a"]
 [ext_resource type="Texture2D" path="res://sprites/ship.png" id="8_6f0oc"]
-[ext_resource type="Texture2D" path="res://sprites/boss_miner.png" id="8_ik4b2"]
-[ext_resource type="Texture2D" path="res://sprites/boss_rock_mother_half.png" id="8_tff5p"]
 [ext_resource type="Texture2D" path="res://sprites/ice_2.png" id="8_u4o7u"]
-[ext_resource type="Texture2D" path="res://sprites/boss_rift_core.png" id="15_raho5"]
-[ext_resource type="Texture2D" path="res://sprites/boss_sentinel.png" id="18_u4o7u"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/cruiser_turret.png" id="8_y82fg"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/cruiser_launcher.png" id="9_0bj7a"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/cruiser_launcher_open.png" id="10_lqh6p"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/cruiser_wreck.png" id="11_m8tmv"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/ice_blade.png" id="12_alhjc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/sentinel_arm.png" id="13_d2qng"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/sentinel_arm_broken.png" id="14_omk8w"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/sentinel_drone.png" id="15_yq5rm"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/cruiser_hull.png" id="16_syov3"]
 [ext_resource type="Script" path="res://scripts/art/asteroid_look.gd" id="19_qf7ya"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_1.png" id="20_pc5wu"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_2.png" id="21_qfm8n"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/queen_body.png" id="21_shynv"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_3.png" id="22_ig5tt"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/ice_body.png" id="22_okgbg"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_4.png" id="23_1df5e"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_1.png" id="24_p6qos"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_2.png" id="25_ctvkw"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/medusa_dome.png" id="25_hfpt5"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_3.png" id="26_dkcw6"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_4.png" id="27_34l3a"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_1.png" id="28_iuv4d"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/miner_body.png" id="29_hjq35"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_2.png" id="29_r1bfp"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/rift_body.png" id="30_he3e5"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_3.png" id="30_wqaxh"]
 [ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_4.png" id="31_6ajcc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/rock_body.png" id="31_sa1v6"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/rock_half_l.png" id="32_b25lr"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_1.png" id="32_t1acc"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_2.png" id="33_utqkh"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_3.png" id="34_8e0a8"]
@@ -89,57 +103,58 @@
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_2.png" id="81_inl40"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_3.png" id="82_pe6eu"]
 [ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_4.png" id="83_o4lik"]
+[ext_resource type="Texture2D" path="res://sprites/ia/boss/sentinel_body.png" id="99_7xcr8"]
 
-[sub_resource type="Resource" id="Resource_fp40q"]
+[sub_resource type="Resource" id="Resource_i0evk"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("20_pc5wu"), ExtResource("21_qfm8n"), ExtResource("22_ig5tt"), ExtResource("23_1df5e")])
 metal_textures = Array[Texture2D]([ExtResource("24_p6qos"), ExtResource("25_ctvkw"), ExtResource("26_dkcw6"), ExtResource("27_34l3a")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_mh4yn"]
+[sub_resource type="Resource" id="Resource_50y10"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("28_iuv4d"), ExtResource("29_r1bfp"), ExtResource("30_wqaxh"), ExtResource("31_6ajcc")])
 metal_textures = Array[Texture2D]([ExtResource("32_t1acc"), ExtResource("33_utqkh"), ExtResource("34_8e0a8"), ExtResource("35_syov3")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_ninbi"]
+[sub_resource type="Resource" id="Resource_70jpy"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("36_i0evk"), ExtResource("37_50y10"), ExtResource("38_70jpy"), ExtResource("39_t5b1j")])
 metal_textures = Array[Texture2D]([ExtResource("40_h10sp"), ExtResource("41_ae18a"), ExtResource("42_y82fg"), ExtResource("43_0bj7a")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_3t0sr"]
+[sub_resource type="Resource" id="Resource_t5b1j"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("44_lqh6p"), ExtResource("45_m8tmv"), ExtResource("46_alhjc"), ExtResource("47_d2qng")])
 metal_textures = Array[Texture2D]([ExtResource("48_omk8w"), ExtResource("49_yq5rm"), ExtResource("50_shynv"), ExtResource("51_okgbg")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_cn6uo"]
+[sub_resource type="Resource" id="Resource_h10sp"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("52_hfpt5"), ExtResource("53_hjq35"), ExtResource("54_he3e5"), ExtResource("55_sa1v6")])
 metal_textures = Array[Texture2D]([ExtResource("56_b25lr"), ExtResource("57_7xcr8"), ExtResource("58_5qsih"), ExtResource("59_xqk1d")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_caqkf"]
+[sub_resource type="Resource" id="Resource_ae18a"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("60_cmag4"), ExtResource("61_md5bl"), ExtResource("62_jjrob"), ExtResource("63_ghldl")])
 metal_textures = Array[Texture2D]([ExtResource("64_abdg6"), ExtResource("65_6glqr"), ExtResource("66_xr3hc"), ExtResource("67_hj5rr")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_ars15"]
+[sub_resource type="Resource" id="Resource_y82fg"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("68_y51yj"), ExtResource("69_o6jaf"), ExtResource("70_kprv0"), ExtResource("71_iade4")])
 metal_textures = Array[Texture2D]([ExtResource("72_loupt"), ExtResource("73_h7701"), ExtResource("74_rfmpx"), ExtResource("75_s2hk5")])
 junk_paths = PackedStringArray()
 metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_yat7p"]
+[sub_resource type="Resource" id="Resource_0bj7a"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("76_dnh78"), ExtResource("77_ubb3u"), ExtResource("78_s4e4e"), ExtResource("79_xbn8m")])
 metal_textures = Array[Texture2D]([ExtResource("80_gvmci"), ExtResource("81_inl40"), ExtResource("82_pe6eu"), ExtResource("83_o4lik")])
@@ -156,14 +171,32 @@ ship_roll_textures = Array[Texture2D]([ExtResource("49_7y1fc"), ExtResource("50_
 dust_textures = Array[Texture2D]([ExtResource("1_0djt3"), ExtResource("2_7ck5r"), ExtResource("3_pucd1")])
 metal_textures = Array[Texture2D]([ExtResource("4_tff5p"), ExtResource("5_5hgmi"), ExtResource("6_ik4b2")])
 dust_shell_texture = ExtResource("1_5hgmi")
-sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_fp40q"), SubResource("Resource_mh4yn"), SubResource("Resource_ninbi"), SubResource("Resource_3t0sr"), SubResource("Resource_cn6uo"), SubResource("Resource_caqkf"), SubResource("Resource_ars15"), SubResource("Resource_yat7p")])
+sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_i0evk"), SubResource("Resource_50y10"), SubResource("Resource_70jpy"), SubResource("Resource_t5b1j"), SubResource("Resource_h10sp"), SubResource("Resource_ae18a"), SubResource("Resource_y82fg"), SubResource("Resource_0bj7a")])
 ice_textures = Array[Texture2D]([ExtResource("7_4jbvx"), ExtResource("8_u4o7u")])
-rock_mother_body = ExtResource("7_pucd1")
-rock_mother_half = ExtResource("8_tff5p")
-miner_body = ExtResource("8_ik4b2")
-medusa_body = ExtResource("5_ik4b2")
-cruiser_body = ExtResource("1_5u5ty")
-ice_colossus_body = ExtResource("6_7yqe6")
-hive_queen_body = ExtResource("6_4jbvx")
-sentinel_body = ExtResource("18_u4o7u")
-rift_core_body = ExtResource("15_raho5")
+rock_mother_body = ExtResource("31_sa1v6")
+rock_mother_half = ExtResource("32_b25lr")
+boss_fill = 0.85
+miner_body = ExtResource("29_hjq35")
+medusa_body = ExtResource("25_hfpt5")
+cruiser_body = ExtResource("16_syov3")
+ice_colossus_body = ExtResource("22_okgbg")
+hive_queen_body = ExtResource("21_shynv")
+sentinel_body = ExtResource("99_7xcr8")
+rift_core_body = ExtResource("30_he3e5")
+boss_parts = {
+"cruiser_launcher": ExtResource("9_0bj7a"),
+"cruiser_launcher_open": ExtResource("10_lqh6p"),
+"cruiser_turret": ExtResource("8_y82fg"),
+"cruiser_wreck": ExtResource("11_m8tmv"),
+"ice_blade": ExtResource("12_alhjc"),
+"medusa_node": ExtResource("7_ae18a"),
+"medusa_tentacle": ExtResource("5_t5b1j"),
+"medusa_tip": ExtResource("6_h10sp"),
+"miner_eye": ExtResource("3_50y10"),
+"miner_lid": ExtResource("4_70jpy"),
+"rock_crystal": ExtResource("1_syov3"),
+"rock_lid": ExtResource("2_i0evk"),
+"sentinel_arm": ExtResource("13_d2qng"),
+"sentinel_arm_broken": ExtResource("14_omk8w"),
+"sentinel_drone": ExtResource("15_yq5rm")
+}
