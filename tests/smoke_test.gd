@@ -1052,7 +1052,28 @@ func _test_dev_selector() -> void:
 			boss_id = main.boss.display_name
 			break
 	assert(boss_id == "SENTINELA", "CHEFE do Setor 7 começa direto no Sentinela (veio: %s)" % boss_id)
-	print("SELETOR DE FASES OK | setor 5 do inicio, chefe do setor 7 em segundos")
+	# JOGO AUTOMÁTICO: o piloto joga sozinho sem salvar nada; tocar na tela devolve o controle
+	# e volta o save como estava (persist e escolha automática de cartas restaurados).
+	var game = root.get_node("Game")
+	var pick_before: bool = main.auto_pick_modules
+	main.go_to_menu()
+	main.hud.dev_auto = true
+	main.start_sector_dev(1, false)
+	assert(main.autopilot != null and not game.persist, "automático: piloto ligado e save desligado")
+	var start_x: float = main.ship.target.x
+	var moved := 0.0
+	for i in 60 * 20:
+		main._process(DT)
+		moved = maxf(moved, absf(main.ship.target.x - start_x))
+	assert(main.state == main.State.PLAYING, "automático: a partida segue sozinha (estado %d)" % main.state)
+	assert(moved > 50.0, "automático: o piloto move a nave")
+	assert(main.director.time > 15.0, "automático: o setor anda sozinho (%.1fs)" % main.director.time)
+	_touch(true)  # toque do jogador
+	assert(main.autopilot == null, "tocar na tela devolve o controle")
+	assert(game.persist == false and main.auto_pick_modules == pick_before, "parar restaura o que o piloto mudou")
+	main.hud.dev_auto = false
+	_touch(false)
+	print("SELETOR DE FASES OK | setor 5 do inicio, chefe do setor 7 em segundos | jogo automatico ok")
 
 
 ## Desafio do Dia: semente do dia, todos os cenários, 1ª tentativa vale (e já conta ao

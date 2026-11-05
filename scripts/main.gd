@@ -100,6 +100,12 @@ var _best_multiplier := 1.0
 # Módulos (PLANO_CARTAS.md)
 var modules := Modules.new()
 var auto_pick_modules := false        # testes/demo: escolhe a 1ª carta sozinho
+## JOGO AUTOMÁTICO (seletor de fases, só build de desenvolvimento): o piloto joga a fase com
+## escudo infinito; nada é salvo enquanto ele joga. Tocar na tela devolve o controle.
+var autopilot: Autopilot = null
+var _bot_input := false              # o toque que está chegando é do piloto, não do jogador
+var _auto_wait := 0.0
+var _auto_saved := {}                # o que o piloto mudou e volta ao parar (persist, cartas)
 var _offer: Array[String] = []
 var _hand_at_start := {}              # mão no começo do setor (morrer recomeça com ela)
 var _mod := "none"                      # modificador do Infinito nesta partida (Game.MODS)
@@ -182,6 +188,10 @@ func _notification(what: int) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
+		if touch.pressed and autopilot != null and not _bot_input:
+			stop_autopilot()
+			hud.show_hint("Você assumiu o controle", 1.5)
+			_touch_index = -1  # o dedo do piloto "sai" e o seu entra no lugar
 		if touch.pressed:
 			if hud.blocks_touch(touch.position):
 				return  # toque em botão/opções: não inicia a partida
@@ -215,6 +225,8 @@ func _apply_graphics() -> void:
 
 func _process(delta: float) -> void:
 	_apply_graphics()
+	if autopilot != null:
+		_drive_autopilot(delta)
 	match state:
 		State.PLAYING:
 			time_scale = move_toward(time_scale, 1.0, delta * 6.0)
@@ -257,6 +269,7 @@ func _process(delta: float) -> void:
 # ---------------------------------------------------------------- fluxo
 
 func go_to_menu() -> void:
+	stop_autopilot()
 	_touch_index = -1
 	mode = Mode.ENDLESS
 	_new_run()
@@ -281,6 +294,8 @@ func start_new_game() -> void:
 func start_sector_dev(index: int, at_boss: bool) -> void:
 	if not OS.is_debug_build():
 		return
+	if hud.dev_auto:
+		start_autopilot()
 	_touch_index = -1
 	_hand_at_start = {}
 	start_mode(Mode.CAMPAIGN, clampi(index, 0, SECTORS.size() - 1))
@@ -290,6 +305,64 @@ func start_sector_dev(index: int, at_boss: bool) -> void:
 			if e.kind == WaveEvent.Kind.BOSS:
 				director.seek(maxf(0.0, e.at - 4.0))
 				break
+
+
+## Liga o JOGO AUTOMÁTICO (só build de desenvolvimento). Desliga o save até parar.
+func start_autopilot() -> void:
+	if not OS.is_debug_build() or autopilot != null:
+		return
+	_auto_saved = {"persist": Game.persist, "pick": auto_pick_modules}
+	Game.persist = false
+	auto_pick_modules = true
+	autopilot = Autopilot.new(self)
+	_auto_wait = 0.0
+	hud.show_hint("JOGO AUTOMÁTICO
+Toque na tela para assumir", 3.0)
+
+
+## Desliga o piloto e desfaz o que ele mudou: volta o save do disco (recorde, estrelas e
+## checkpoint ficam como estavam antes dele jogar) e religa o salvamento.
+func stop_autopilot() -> void:
+	if autopilot == null:
+		return
+	autopilot = null
+	auto_pick_modules = _auto_saved.get("pick", false)
+	Game.persist = _auto_saved.get("persist", true)
+	if Game.persist:
+		Game.load_data()
+
+
+## Um quadro do piloto: começa/retoma sozinho, segue para o próximo setor e pilota.
+func _drive_autopilot(delta: float) -> void:
+	match state:
+		State.READY, State.PAUSED:
+			_bot_touch()
+		State.GAME_OVER:
+			_on_restart()
+			_bot_touch()
+		State.SECTOR_CLEAR:
+			_auto_wait += delta
+			if _auto_wait > 2.5:
+				_auto_wait = 0.0
+				if _has_next_sector():
+					var lvl := ship.weapon_level
+					_on_next_sector()
+					ship.weapon_level = lvl
+					_bot_touch()
+				else:
+					stop_autopilot()  # campanha acabou: fica na tela de vitória
+		State.PLAYING, State.SLOWMO:
+			autopilot.step(true)
+
+
+func _bot_touch() -> void:
+	var t := InputEventScreenTouch.new()
+	t.index = 0
+	t.pressed = true
+	t.position = Vector2(30, view_size.y - 30)
+	_bot_input = true
+	_input(t)
+	_bot_input = false
 
 
 ## Modo Infinito: nova semente a cada partida (o ponto salvo da campanha não é tocado).

@@ -86,6 +86,7 @@ var _buttons := {}  # id -> Button (na ordem em que aparecem)
 
 var _options_layer: Control
 var _dev_layer: Control  # seletor de fases: só existe em build de desenvolvimento (OS.is_debug_build)
+var dev_auto := false   # seletor de fases: a fase escolhida é jogada pelo piloto automático
 var _center_was_visible := false
 var _music_label: Label  # volume da música (0–100%)
 var _sfx_label: Label    # volume dos efeitos
@@ -624,6 +625,18 @@ func setup_dev_selector(sectors: Array) -> void:
 	_dev_layer.add_child(box)
 	box.add_child(_make_label("FASES (DEV)", 70, Palette.MAGENTA))
 	box.add_child(_make_label("Só no APK de desenvolvimento", 26, Palette.TEXT_DIM))
+	var auto := _make_button("")
+	auto.custom_minimum_size = Vector2(816, 96)
+	auto.add_theme_font_size_override("font_size", 34)
+	var paint := func() -> void:
+		auto.text = "JOGO AUTOMÁTICO: %s" % ("SIM" if dev_auto else "NÃO")
+		auto.modulate = Palette.NEON if dev_auto else Color.WHITE
+	paint.call()
+	auto.pressed.connect(func() -> void:
+		Sfx.play("click", -4.0, 1.0, 0.0)
+		dev_auto = not dev_auto
+		paint.call())
+	box.add_child(auto)
 
 	for i in sectors.size():
 		var row := HBoxContainer.new()
