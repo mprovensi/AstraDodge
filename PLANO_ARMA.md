@@ -76,7 +76,7 @@ Os módulos continuam sendo o "tipo" da arma (ricochete, perfurante, ímã...); 
 ## 3. Testes automáticos (rodam em todo deploy)
 
 - **Curva**: dano/s sobe a cada degrau, e nenhum salto passa de +60%.
-- **Ritmo**: com o piloto, o teto do Setor 1 chega **depois de 60%** do setor (hoje: 67 s de 190 s).
+- **Ritmo**: com o piloto, o teto do Setor 1 chega **depois de 60%** do setor (hoje o nível 2 chega aos 17 s e o máximo aos 127 s).
 - **Teto**: cristal no teto enche a Sobrecarga, nunca passa do teto; entrar no setor seguinte sobe o teto.
 - **Dano**: escudo zerado tira a barra; com barra vazia, cai 1 degrau.
 - **Chefes**: com a arma do teto de cada setor, o bot derruba cada chefe numa janela de tempo
