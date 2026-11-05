@@ -33,6 +33,8 @@ class Asteroid:
 	var slide_phase := 0.0
 	var ported := false        # já passou por um portal (Setor 8): não teleporta de novo
 	var look := 0              # visual do setor em que nasceu (ArtSet.sector_looks)
+	var spin_rate := 0.0       # giro 3D (voltas por segundo) das rochas com folha de quadros
+	var spin_phase := 0.0
 	var alive := true
 
 var asteroids: Array[Asteroid] = []
@@ -313,6 +315,8 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 	a.rot = randf() * TAU
 	a.rot_speed = randf_range(-1.2, 1.2) if kind == Kind.DUST else randf_range(-0.3, 0.3)
 	a.look = look
+	a.spin_rate = randf_range(0.25, 0.6) * (-1.0 if randf() < 0.5 else 1.0)
+	a.spin_phase = randf()
 	a.sprite = randi() % maxi(1, _textures(kind, look).size())
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
@@ -344,7 +348,17 @@ func _draw() -> void:
 			var tint := Color.WHITE.darkened(dmg * 0.35)
 			if a.flash > 0.0 and a.shell <= 0:
 				tint = Color(3.0, 3.0, 3.0)
-			draw_texture_rect(tex, rect, false, tint)
+			var sheets := art.dust_sheets(a.look) if not a.ice else ([] as Array[Texture2D])
+			if sheets.is_empty():
+				draw_texture_rect(tex, rect, false, tint)
+			else:
+				# Giro 3D: quadro da folha conforme o tempo (cada rocha com ritmo e fase próprios).
+				var sheet := sheets[a.sprite % sheets.size()]
+				var frame := posmod(int(floor((_slide_t * a.spin_rate + a.spin_phase) * ArtSet.SHEET_FRAMES)), ArtSet.SHEET_FRAMES)
+				var fw := sheet.get_width() / ArtSet.SHEET_COLS
+				var fh := sheet.get_height() / ArtSet.SHEET_ROWS
+				var src := Rect2((frame % ArtSet.SHEET_COLS) * fw, (frame / ArtSet.SHEET_COLS) * fh, fw, fh)
+				draw_texture_rect_region(sheet, rect, src, tint)
 			if a.shell > 0 and art.dust_shell_texture != null:
 				var shell_tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
 				shell_tint.a = 0.55 + 0.45 * float(a.shell) / float(Tuning.ARMOR_SHELL_HITS)

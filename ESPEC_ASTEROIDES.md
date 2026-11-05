@@ -91,3 +91,16 @@ crateras e relevo — o "2.5D" do exemplo da galeria —, porém **assado em ima
 3. **Fonte da arte**: assar o shader da galeria (eu faço tudo) ou IA de imagem/artista?
 4. **Quantas variações por setor**: 3 poeiras + 3 metais está bom?
 5. O **metal** muda agora junto (pré-renderizado) ou espera o lixo espacial (A3)?
+
+---
+
+## 8. Decisão (05/11/2026)
+
+**Meio-termo:** sprites pré-renderizados **com giro 3D**, em estilo **estilizado** (não realista):
+- sombreado em **3 tons chapados** (claro, médio, escuro), crateras simples, **contorno escuro** e
+  uma borda de luz no lado iluminado — combina com o resto do jogo (neon/cartoon);
+- o giro 3D é uma **folha de quadros** (ex.: 12 quadros) gerada uma vez por uma ferramenta
+  (`tools/bake_rocks.gd`) a partir de um shader só de geração; no jogo cada rocha é 1 imagem
+  por quadro (mesmo custo de um sprite);
+- borda lisa (antialias na imagem), sem recorte calculado no celular;
+- protótipo no **Setor 1** para aprovação antes de levar aos outros setores.

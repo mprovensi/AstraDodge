@@ -6,3 +6,6 @@ extends Resource
 
 @export var dust_textures: Array[Texture2D] = []
 @export var metal_textures: Array[Texture2D] = []
+## Folhas de quadros do giro 3D (tools/bake_rocks.gd). Se houver, a POEIRA usa estas no lugar
+## de dust_textures. Grade: ArtSet.SHEET_COLS x ArtSet.SHEET_ROWS quadros.
+@export var dust_sheets: Array[Texture2D] = []

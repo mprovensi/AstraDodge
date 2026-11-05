@@ -99,3 +99,16 @@ const ROLL_POSES := [-1.0, -0.5, 0.0, 0.5, 1.0]
 ## Índice da pose de rolagem para uma inclinação contínua (-1..1).
 static func roll_pose(bank: float) -> int:
 	return clampi(roundi((bank + 1.0) * 2.0), 0, ROLL_POSES.size() - 1)
+
+
+## Folhas de quadros das rochas que giram em 3D (AsteroidLook.dust_sheets).
+const SHEET_FRAMES := 12
+const SHEET_COLS := 4
+const SHEET_ROWS := 3
+
+
+## Folhas de giro da poeira do setor `look` (vazio = usa as imagens fixas).
+func dust_sheets(look: int) -> Array[Texture2D]:
+	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
+		return sector_looks[look].dust_sheets
+	return []

@@ -33,7 +33,11 @@ func _initialize() -> void:
 	art.cruiser_body = load("res://sprites/boss_cruiser.png")
 	art.ice_textures.assign([load("res://sprites/ice_1.png"), load("res://sprites/ice_2.png")])
 	# Visual por setor: Setor 1 = padrão (lista vazia); 2..8 = dust_sN_k / metal_sN_k.
-	var looks: Array[AsteroidLook] = [AsteroidLook.new()]
+	var first := AsteroidLook.new()
+	# Protótipo do giro 3D estilizado (ESPEC_ASTEROIDES.md, seção 8): Setor 1.
+	first.dust_sheets.assign([load("res://sprites/rock_s1_1.png"), load("res://sprites/rock_s1_2.png"),
+			load("res://sprites/rock_s1_3.png")])
+	var looks: Array[AsteroidLook] = [first]
 	for sector in range(2, 9):
 		var look := AsteroidLook.new()
 		for k in [1, 2]:

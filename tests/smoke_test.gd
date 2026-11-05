@@ -621,6 +621,22 @@ func _test_boss_safety() -> void:
 					assert(lum < 0.36, "metal tem que ser escuro: %s (%.2f)" % [tex.resource_path, lum])
 				else:
 					assert(lum > 0.36, "poeira tem que ser clara: %s (%.2f)" % [tex.resource_path, lum])
+	# Folhas de giro 3D (ESPEC_ASTEROIDES.md): em TODOS os quadros, o círculo que machuca a nave
+	# fica dentro do desenho e o desenho é quase todo coberto pela colisão do tiro.
+	var worst_sheet := 0.0
+	for look in art.sector_looks.size():
+		for sheet: Texture2D in art.dust_sheets(look):
+			var img := sheet.get_image()
+			if img.is_compressed():
+				img.decompress()
+			var fw: int = img.get_width() / ArtSet.SHEET_COLS
+			var fh: int = img.get_height() / ArtSet.SHEET_ROWS
+			for f in ArtSet.SHEET_FRAMES:
+				var frame := img.get_region(Rect2i((f % ArtSet.SHEET_COLS) * fw, (f / ArtSet.SHEET_COLS) * fh, fw, fh))
+				var out := _circle_outside_pct(ImageTexture.create_from_image(frame), art.dust_fill * 0.85)
+				worst_sheet = maxf(worst_sheet, out)
+				assert(out <= 5.0, "%s quadro %d: %.0f%% da colisão fora do desenho" % [sheet.resource_path, f, out])
+	print("GIRO 3D OK | pior colisao fora do desenho=%.1f%%" % worst_sheet)
 	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])
 
 	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,
