@@ -33,6 +33,12 @@
 | 3.3 | **Chefes no estilo novo (B0–B5)** | os 8 chefes com corpo detalhado, partes móveis, luz no ponto fraco, dano e queda em pedaços — [PLANO_CHEFES_ARTE.md](PLANO_CHEFES_ARTE.md) |
 | 3.4 | **Obstáculos novos 2 (O4)** | rio de destroços, satélite giratório, ricochete, rocha magnética |
 
+## Fase 2B — Arma (PLANO_ARMA.md)
+
+| # | Etapa | Entrega |
+|---|---|---|
+| W1–W5 | **Progressão da arma** | 8 degraus (um por setor), teto por setor, Sobrecarga no teto, perder a barra antes do degrau, chefes ajustados |
+
 ## Fase 3B — Cartas (PLANO_CARTAS.md)
 
 | # | Etapa | Entrega |
