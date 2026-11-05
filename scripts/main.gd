@@ -893,11 +893,11 @@ func _check_bullet_hits() -> void:
 			continue
 		if boss != null and _bullet_hits_boss(b):
 			continue
-		var a := asteroids.hit_test(b.pos, b.hit_ids)
+		var a := asteroids.hit_test(b.pos, b.hit_ids, b.prev)
 		if a != null:
 			_bullet_hits_asteroid(b, a)
 			continue
-		var e := enemies.hit_test(b.pos, b.hit_ids)
+		var e := enemies.hit_test(b.pos, b.hit_ids, b.prev)
 		if e != null:
 			if b.pierce:
 				b.hit_ids[-e.id] = true

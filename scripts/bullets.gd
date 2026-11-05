@@ -4,6 +4,7 @@ extends Node2D
 
 class Bullet:
 	var pos := Vector2.ZERO
+	var prev := Vector2.ZERO  # posição no quadro anterior (o teste de acerto usa o trajeto)
 	var vel := Vector2.ZERO
 	var pierce := false
 	var alive := false
@@ -20,6 +21,7 @@ func resize(size: Vector2) -> void:
 func spawn(pos: Vector2, angle: float, pierce: bool) -> void:
 	var b := _get_free()
 	b.pos = pos
+	b.prev = pos
 	b.vel = Vector2(0, -Tuning.BULLET_SPEED).rotated(angle)
 	b.pierce = pierce
 	b.alive = true
@@ -30,6 +32,7 @@ func update(dt: float) -> void:
 	for b in pool:
 		if not b.alive:
 			continue
+		b.prev = b.pos
 		b.pos += b.vel * dt
 		if b.pos.y < -60.0 or b.pos.y > view_size.y + 60.0 or b.pos.x < -60.0 or b.pos.x > view_size.x + 60.0:
 			b.alive = false

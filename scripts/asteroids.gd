@@ -111,9 +111,14 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 
 
 ## Primeiro asteroide vivo que contém o ponto (ignorando os ids em `exclude`).
-func hit_test(p: Vector2, exclude: Dictionary = {}) -> Asteroid:
+## Primeiro asteroide vivo que o TRAJETO do tiro neste quadro (de `from` até `p`) cruza.
+## Testar o caminho inteiro (e não só o ponto final) impede o tiro de "pular" a rocha quando
+## o quadro é longo (celular lento: o tiro anda 70+ px por quadro).
+func hit_test(p: Vector2, exclude: Dictionary = {}, from: Variant = null) -> Asteroid:
+	var a0: Vector2 = p if from == null else from
 	for a in asteroids:
-		if a.alive and not exclude.has(a.id) and p.distance_squared_to(a.pos) < a.radius * a.radius:
+		if a.alive and not exclude.has(a.id) \
+				and Geometry2D.get_closest_point_to_segment(a.pos, a0, p).distance_squared_to(a.pos) < a.radius * a.radius:
 			return a
 	return null
 
@@ -243,15 +248,7 @@ func _spawn_row(difficulty: float) -> void:
 
 	var dust_count := randi_range(1, 2 + int(difficulty * 2.0)) + (2 if dust_rain else 0)
 	for i in dust_count:
-		# Tamanhos variados: pedrinhas pequenas e RÁPIDAS, pedregulhos grandes e LENTOS
-		# (com bastante vida), e as médias de sempre.
-		var roll := randf()
-		var size := 1  # 0 = pedrinha, 1 = média, 2 = pedregulho
-		if roll < Tuning.PEBBLE_CHANCE:
-			size = 0
-		elif roll < Tuning.PEBBLE_CHANCE + Tuning.BOULDER_CHANCE:
-			size = 2
-		var r: float = [randf_range(24.0, 34.0), randf_range(40.0, 85.0), randf_range(95.0, 112.0)][size]
+		var r := randf_range(40.0, 85.0)
 		for attempt in 10:
 			var p := Vector2(randf_range(r, w - r), -r - randf_range(0.0, 220.0))
 			if _overlaps(placed, p, r):
@@ -259,12 +256,6 @@ func _spawn_row(difficulty: float) -> void:
 			placed.append(Vector3(p.x, p.y, r))
 			var hp := clampi(1 + int(r > 65.0) + randi_range(0, int(difficulty * 2.5)), 1, 5)
 			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(0.0, 80.0))
-			if size == 0:
-				hp = 1
-				vel.y += Tuning.PEBBLE_EXTRA_SPEED
-			elif size == 2:
-				hp = Tuning.BOULDER_HP + int(difficulty * 3.0)
-				vel.y -= Tuning.BOULDER_SLOWDOWN
 			var a := _add(Kind.DUST, p, r, hp, vel)
 			if randf() < ice:
 				a.ice = true  # gelo não leva casca: a novidade dele é rachar

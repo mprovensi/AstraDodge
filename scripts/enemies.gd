@@ -192,9 +192,12 @@ func take_blasts() -> Array[Vector3]:
 	return _blasts
 
 
-func hit_test(p: Vector2, exclude: Dictionary = {}) -> Enemy:
+## Como AsteroidField.hit_test: testa o trajeto do tiro no quadro (de `from` até `p`).
+func hit_test(p: Vector2, exclude: Dictionary = {}, from: Variant = null) -> Enemy:
+	var a0: Vector2 = p if from == null else from
 	for e in enemies:
-		if e.alive and not exclude.has(-e.id) and p.distance_squared_to(e.pos) < e.radius * e.radius:
+		if e.alive and not exclude.has(-e.id) \
+				and Geometry2D.get_closest_point_to_segment(e.pos, a0, p).distance_squared_to(e.pos) < e.radius * e.radius:
 			return e
 	return null
 
