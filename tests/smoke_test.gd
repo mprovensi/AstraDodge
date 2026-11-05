@@ -649,9 +649,17 @@ func _test_boss_safety() -> void:
 	var worst_junk := 0.0
 	var junk_count := 0
 	for look in art.sector_looks.size():
-		var lights: Array[Texture2D] = art.junk_lights(look)
+		var lamps: Array[PackedVector3Array] = art.junk_lamps(look)
 		var sheets: Array[Texture2D] = art.junk_sheets(look)
-		assert(lights.size() == sheets.size(), "cada peça de lixo precisa da sua luz")
+		assert(lamps.size() == sheets.size(), "cada peça de lixo precisa da sua luz")
+		for lamp: PackedVector3Array in lamps:
+			assert(lamp.size() == ArtSet.JUNK_FRAMES, "luz âmbar: um ponto por quadro")
+			var shown := 0
+			for v in lamp:
+				assert(absf(v.x) <= 1.0 and absf(v.y) <= 1.0, "luz âmbar dentro do quadro")
+				if v.z > 0.5:
+					shown += 1
+			assert(shown >= ArtSet.JUNK_FRAMES / 3, "luz âmbar visível em boa parte do giro")
 		for sheet: Texture2D in sheets:
 			junk_count += 1
 			var img := sheet.get_image()
@@ -667,7 +675,7 @@ func _test_boss_safety() -> void:
 				assert(out <= 5.0, "%s quadro %d: %.0f%% da colisão fora do desenho" % [sheet.resource_path, f, out])
 			var lum := _mean_luminance(sheet)
 			assert(lum < 0.36, "lixo tem que ser escuro: %s (%.2f)" % [sheet.resource_path, lum])
-	assert(junk_count > 0, "lixo espacial no ArtSet")
+	assert(junk_count >= 8 * 4, "lixo espacial: 4 peças em cada um dos 8 setores")
 	print("LIXO ESPACIAL OK | %d pecas x %d quadros | pior colisao fora do desenho=%.1f%%" % [
 			junk_count, ArtSet.JUNK_FRAMES, worst_junk])
 	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])

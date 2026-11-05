@@ -38,9 +38,6 @@ func _initialize() -> void:
 	first.dust_sheets.assign([load("res://sprites/rock_s1_1.png"), load("res://sprites/rock_s1_2.png"),
 			load("res://sprites/rock_s1_3.png")])
 	# Lixo espacial girando em 3D (PLANO_INDESTRUTIVEIS.md, J0): Setor 1.
-	for k in [1, 2, 3]:
-		first.junk_sheets.append(load("res://sprites/junk_s1_%d.png" % k))
-		first.junk_lights.append(load("res://sprites/junk_s1_%d_luz.png" % k))
 	var looks: Array[AsteroidLook] = [first]
 	for sector in range(2, 9):
 		var look := AsteroidLook.new()
@@ -51,6 +48,14 @@ func _initialize() -> void:
 		for k in [1, 2, 3]:
 			look.dust_sheets.append(load("res://sprites/rock_s%d_%d.png" % [sector, k]))
 		looks.append(look)
+	# Lixo espacial girando em 3D (PLANO_INDESTRUTIVEIS.md, J1): 4 peças por setor, carregadas
+	# só no setor em jogo (caminhos); a luz âmbar vem de data/art/junk_lamps.tres.
+	var lamps: JunkLamps = load("res://data/art/junk_lamps.tres")
+	for sector in range(1, 9):
+		var look := looks[sector - 1]
+		for k in range(1, 5):
+			look.junk_paths.append("res://sprites/junk_s%d_%d.png" % [sector, k])
+			look.junk_lamps.append(lamps.frames["s%d_%d" % [sector, k]])
 	art.sector_looks.assign(looks)
 	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
 	art.hive_queen_body = load("res://sprites/boss_hive_queen.png")

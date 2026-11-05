@@ -119,14 +119,27 @@ func dust_sheets(look: int) -> Array[Texture2D]:
 	return []
 
 
-## Lixo espacial do setor `look`: [folhas de cor, folhas da luz âmbar] (vazio = blocos fixos).
+## Folhas do lixo espacial carregadas: { look: Array[Texture2D] }. Guarda só os 2 setores
+## mais recentes (o atual e o anterior, cujas peças ainda podem estar na tela).
+var _junk_cache := {}
+
+
+## Folhas do lixo espacial do setor `look` (vazio = blocos fixos). Carrega na 1ª vez.
 func junk_sheets(look: int) -> Array[Texture2D]:
+	if _junk_cache.has(look):
+		return _junk_cache[look]
+	var list: Array[Texture2D] = []
 	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
-		return sector_looks[look].junk_sheets
-	return []
+		for path in sector_looks[look].junk_paths:
+			list.append(load(path))
+	while _junk_cache.size() >= 2:
+		_junk_cache.erase(_junk_cache.keys()[0])
+	_junk_cache[look] = list
+	return list
 
 
-func junk_lights(look: int) -> Array[Texture2D]:
+## Luz âmbar de cada peça do setor `look` (mesma ordem de junk_sheets).
+func junk_lamps(look: int) -> Array[PackedVector3Array]:
 	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
-		return sector_looks[look].junk_lights
+		return sector_looks[look].junk_lamps
 	return []

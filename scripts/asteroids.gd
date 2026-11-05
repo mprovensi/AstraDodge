@@ -346,7 +346,7 @@ func _draw() -> void:
 			if junk.is_empty():
 				draw_texture_rect(tex, rect, false, tint)
 			else:
-				_draw_junk(a, junk, art.junk_lights(a.look), rect, s, tint)
+				_draw_junk(a, junk, art.junk_lamps(a.look), rect, s, tint)
 		else:
 			# Mais escura conforme leva dano; pisca branco (HDR) ao ser atingida.
 			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
@@ -385,7 +385,7 @@ func _draw() -> void:
 
 ## Lixo espacial (folha de giro 3D): sem giro no plano nem espelho, para a luz pintada ficar
 ## sempre de cima à esquerda; a luz âmbar de alerta pisca por cima (só ela brilha).
-func _draw_junk(a: Asteroid, sheets: Array[Texture2D], lights: Array[Texture2D], rect: Rect2, s: float, tint: Color) -> void:
+func _draw_junk(a: Asteroid, sheets: Array[Texture2D], lamps: Array[PackedVector3Array], rect: Rect2, s: float, tint: Color) -> void:
 	draw_set_transform(a.pos, 0.0, Vector2(s, s))
 	var i := a.sprite % sheets.size()
 	var sheet := sheets[i]
@@ -395,9 +395,14 @@ func _draw_junk(a: Asteroid, sheets: Array[Texture2D], lights: Array[Texture2D],
 	var fh := sheet.get_height() / ArtSet.JUNK_ROWS
 	var src := Rect2((frame % ArtSet.JUNK_COLS) * fw, (frame / ArtSet.JUNK_COLS) * fh, fw, fh)
 	draw_texture_rect_region(sheet, rect, src, tint)
-	if i < lights.size():
-		var blink := 0.35 + 0.65 * float(fmod(_slide_t * 1.2 + a.spin_phase, 1.0) < 0.5)
-		draw_texture_rect_region(lights[i], rect, src, Color(Palette.FLAME_HDR, blink))
+	if i < lamps.size() and frame < lamps[i].size():
+		var lamp := lamps[i][frame]
+		if lamp.z > 0.05:
+			var blink := 0.35 + 0.65 * float(fmod(_slide_t * 1.2 + a.spin_phase, 1.0) < 0.5)
+			var at := Vector2(lamp.x, lamp.y) * rect.size.x * 0.5
+			var r := rect.size.x * 0.045
+			draw_circle(at, r * 2.2, Color(Palette.FLAME_HDR, 0.18 * blink * lamp.z))
+			draw_circle(at, r, Color(Palette.FLAME_HDR, blink * lamp.z))
 
 
 func _textures(kind: Kind, from_look: int) -> Array[Texture2D]:

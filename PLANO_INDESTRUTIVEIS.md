@@ -152,3 +152,10 @@ Todas giram devagar (folha de 12 quadros) e têm **uma luz âmbar** piscando (ca
 - [x] Sem giro no plano: a luz pintada fica sempre de cima à esquerda; a luz âmbar pisca por cima
 - [x] Teste LIXO ESPACIAL: colisão dentro do desenho em todos os quadros (pior 0,2%), peça escura, cada peça com a sua luz
 - [ ] Aprovar no S20 FE e no A5 → J1 (8 famílias)
+
+**J1 — Lixo nos 8 setores: concluído (05/11/2026)**
+- [x] 4 peças por setor (32 no total), cada setor com a sua família: sucata (1), mineração com broca (2), sondas e satélites (3), canhões do cruzador (4), peças com gelo (5), metal com resina da colmeia (6), dutos e contêineres da estação (7), metal escuro com veios magenta da Fenda (8)
+- [x] Peças novas: tanque esférico, satélite, broca, canhão morto, duto
+- [x] Memória do celular antigo: só as folhas do setor em jogo ficam carregadas (no máximo 2 setores); a luz âmbar virou um ponto calculado no bake (posição e quanto aparece por quadro), sem folha extra
+- [x] Teste LIXO ESPACIAL: 32 peças × 24 quadros, colisão dentro do desenho, peça escura, luz âmbar dentro do quadro e visível em boa parte do giro
+- [ ] Medir no A5 (FPS e memória) → J2 (paredões e paredes)

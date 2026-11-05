@@ -624,6 +624,7 @@ func _step(dt: float) -> void:
 		asteroids.armored = director.armored
 		asteroids.ice = director.ice
 		asteroids.look = _biome  # visual das rochas do setor/cenário atual
+		Game.art.junk_sheets(_biome)  # carrega o lixo espacial do cenário já na entrada
 		asteroids.spawn_enabled = director.calm_left <= 0.0 and _pending_wall < 0.0 and not director.finished \
 				and boss == null and _alert_timer < 0.0 and _corridor_left <= 0.0 \
 				and _gates_left <= 0 and hazards.gates.is_empty() and _slides_left <= 0 \
