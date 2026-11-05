@@ -29,12 +29,18 @@
 [ext_resource type="Texture2D" path="res://sprites/metal_s2_1.png" id="22_ygu4n"]
 [ext_resource type="Texture2D" path="res://sprites/metal_s2_2.png" id="23_7y1fc"]
 [ext_resource type="Texture2D" path="res://sprites/rock_s2_1.png" id="23_df7rf"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_1_luz.png" id="23_rpg4n"]
 [ext_resource type="Texture2D" path="res://sprites/dust_s3_1.png" id="24_g38c0"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_2_luz.png" id="24_jfgc8"]
 [ext_resource type="Texture2D" path="res://sprites/rock_s2_2.png" id="24_rk5hu"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_3_luz.png" id="25_rb4r7"]
 [ext_resource type="Texture2D" path="res://sprites/rock_s2_3.png" id="25_um1ul"]
 [ext_resource type="Texture2D" path="res://sprites/dust_s3_2.png" id="25_wegar"]
 [ext_resource type="Texture2D" path="res://sprites/metal_s3_1.png" id="26_8leb2"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_1.png" id="26_16nuw"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_2.png" id="27_vrggo"]
 [ext_resource type="Texture2D" path="res://sprites/metal_s3_2.png" id="27_y73jx"]
+[ext_resource type="Texture2D" path="res://sprites/junk_s1_3.png" id="28_6sfsf"]
 [ext_resource type="Texture2D" path="res://sprites/dust_s4_1.png" id="28_qp0an"]
 [ext_resource type="Texture2D" path="res://sprites/dust_s4_2.png" id="29_7u776"]
 [ext_resource type="Texture2D" path="res://sprites/rock_s3_1.png" id="30_ddfg0"]
@@ -78,47 +84,49 @@
 [ext_resource type="Texture2D" path="res://sprites/rock_s8_2.png" id="66_34l3a"]
 [ext_resource type="Texture2D" path="res://sprites/rock_s8_3.png" id="67_iuv4d"]
 
-[sub_resource type="Resource" id="Resource_r1bfp"]
+[sub_resource type="Resource" id="Resource_pc5wu"]
 script = ExtResource("19_qf7ya")
 dust_sheets = Array[Texture2D]([ExtResource("20_8leb2"), ExtResource("21_y73jx"), ExtResource("22_qp0an")])
+junk_sheets = Array[Texture2D]([ExtResource("26_16nuw"), ExtResource("27_vrggo"), ExtResource("28_6sfsf")])
+junk_lights = Array[Texture2D]([ExtResource("23_rpg4n"), ExtResource("24_jfgc8"), ExtResource("25_rb4r7")])
 
-[sub_resource type="Resource" id="Resource_wqaxh"]
+[sub_resource type="Resource" id="Resource_qfm8n"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("20_y3bld"), ExtResource("21_17dcm")])
 metal_textures = Array[Texture2D]([ExtResource("22_ygu4n"), ExtResource("23_7y1fc")])
 dust_sheets = Array[Texture2D]([ExtResource("23_df7rf"), ExtResource("24_rk5hu"), ExtResource("25_um1ul")])
 
-[sub_resource type="Resource" id="Resource_6ajcc"]
+[sub_resource type="Resource" id="Resource_ig5tt"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("24_g38c0"), ExtResource("25_wegar")])
 metal_textures = Array[Texture2D]([ExtResource("26_8leb2"), ExtResource("27_y73jx")])
 dust_sheets = Array[Texture2D]([ExtResource("30_ddfg0"), ExtResource("31_rad2v"), ExtResource("32_7uuao")])
 
-[sub_resource type="Resource" id="Resource_t1acc"]
+[sub_resource type="Resource" id="Resource_1df5e"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("28_qp0an"), ExtResource("29_7u776")])
 metal_textures = Array[Texture2D]([ExtResource("30_h5i11"), ExtResource("31_refdq")])
 dust_sheets = Array[Texture2D]([ExtResource("37_rpg4n"), ExtResource("38_jfgc8"), ExtResource("39_rb4r7")])
 
-[sub_resource type="Resource" id="Resource_utqkh"]
+[sub_resource type="Resource" id="Resource_p6qos"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("32_evvwi"), ExtResource("33_3wl70")])
 metal_textures = Array[Texture2D]([ExtResource("34_n27dk"), ExtResource("35_47dpc")])
 dust_sheets = Array[Texture2D]([ExtResource("44_16nuw"), ExtResource("45_vrggo"), ExtResource("46_6sfsf")])
 
-[sub_resource type="Resource" id="Resource_8e0a8"]
+[sub_resource type="Resource" id="Resource_ctvkw"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("36_10j05"), ExtResource("37_l5451")])
 metal_textures = Array[Texture2D]([ExtResource("38_irv5l"), ExtResource("39_g1ip7")])
 dust_sheets = Array[Texture2D]([ExtResource("51_pc5wu"), ExtResource("52_qfm8n"), ExtResource("53_ig5tt")])
 
-[sub_resource type="Resource" id="Resource_syov3"]
+[sub_resource type="Resource" id="Resource_dkcw6"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("40_wr55g"), ExtResource("41_g0qvi")])
 metal_textures = Array[Texture2D]([ExtResource("42_q8iye"), ExtResource("43_2iakl")])
 dust_sheets = Array[Texture2D]([ExtResource("58_1df5e"), ExtResource("59_p6qos"), ExtResource("60_ctvkw")])
 
-[sub_resource type="Resource" id="Resource_i0evk"]
+[sub_resource type="Resource" id="Resource_34l3a"]
 script = ExtResource("19_qf7ya")
 dust_textures = Array[Texture2D]([ExtResource("44_f7s35"), ExtResource("45_p7stv")])
 metal_textures = Array[Texture2D]([ExtResource("46_7h6ei"), ExtResource("47_df7rf")])
@@ -134,7 +142,7 @@ ship_roll_textures = Array[Texture2D]([ExtResource("49_7y1fc"), ExtResource("50_
 dust_textures = Array[Texture2D]([ExtResource("1_0djt3"), ExtResource("2_7ck5r"), ExtResource("3_pucd1")])
 metal_textures = Array[Texture2D]([ExtResource("4_tff5p"), ExtResource("5_5hgmi"), ExtResource("6_ik4b2")])
 dust_shell_texture = ExtResource("1_5hgmi")
-sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_r1bfp"), SubResource("Resource_wqaxh"), SubResource("Resource_6ajcc"), SubResource("Resource_t1acc"), SubResource("Resource_utqkh"), SubResource("Resource_8e0a8"), SubResource("Resource_syov3"), SubResource("Resource_i0evk")])
+sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_pc5wu"), SubResource("Resource_qfm8n"), SubResource("Resource_ig5tt"), SubResource("Resource_1df5e"), SubResource("Resource_p6qos"), SubResource("Resource_ctvkw"), SubResource("Resource_dkcw6"), SubResource("Resource_34l3a")])
 ice_textures = Array[Texture2D]([ExtResource("7_4jbvx"), ExtResource("8_u4o7u")])
 rock_mother_body = ExtResource("7_pucd1")
 rock_mother_half = ExtResource("8_tff5p")

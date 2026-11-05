@@ -644,6 +644,32 @@ func _test_boss_safety() -> void:
 				worst_sheet = maxf(worst_sheet, out)
 				assert(out <= 5.0, "%s quadro %d: %.0f%% da colisão fora do desenho" % [sheet.resource_path, f, out])
 	print("GIRO 3D OK | pior colisao fora do desenho=%.1f%%" % worst_sheet)
+	# Lixo espacial (PLANO_INDESTRUTIVEIS.md): mesma regra em todos os quadros, cada peça com a
+	# sua luz âmbar, e escuro (indestrutível = metal escuro).
+	var worst_junk := 0.0
+	var junk_count := 0
+	for look in art.sector_looks.size():
+		var lights: Array[Texture2D] = art.junk_lights(look)
+		var sheets: Array[Texture2D] = art.junk_sheets(look)
+		assert(lights.size() == sheets.size(), "cada peça de lixo precisa da sua luz")
+		for sheet: Texture2D in sheets:
+			junk_count += 1
+			var img := sheet.get_image()
+			if img.is_compressed():
+				img.decompress()
+			var fw: int = img.get_width() / ArtSet.JUNK_COLS
+			var fh: int = img.get_height() / ArtSet.JUNK_ROWS
+			for f in ArtSet.JUNK_FRAMES:
+				var frame_tex := ImageTexture.create_from_image(
+						img.get_region(Rect2i((f % ArtSet.JUNK_COLS) * fw, (f / ArtSet.JUNK_COLS) * fh, fw, fh)))
+				var out := _circle_outside_pct(frame_tex, art.metal_fill * 0.85)
+				worst_junk = maxf(worst_junk, out)
+				assert(out <= 5.0, "%s quadro %d: %.0f%% da colisão fora do desenho" % [sheet.resource_path, f, out])
+			var lum := _mean_luminance(sheet)
+			assert(lum < 0.36, "lixo tem que ser escuro: %s (%.2f)" % [sheet.resource_path, lum])
+	assert(junk_count > 0, "lixo espacial no ArtSet")
+	print("LIXO ESPACIAL OK | %d pecas x %d quadros | pior colisao fora do desenho=%.1f%%" % [
+			junk_count, ArtSet.JUNK_FRAMES, worst_junk])
 	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])
 
 	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,

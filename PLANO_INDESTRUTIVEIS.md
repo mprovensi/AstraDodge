@@ -141,3 +141,14 @@ Todas giram devagar (folha de 12 quadros) e têm **uma luz âmbar** piscando (ca
 2. **Luzes de pista na brecha** do paredão: quer? Ajudam a ler, mas facilitam um pouco.
 3. **J3 (peças compridas)** muda a jogabilidade: fazer agora ou deixar para depois?
 4. **Ordem**: antes ou depois das naves inimigas e do [plano dos chefes](PLANO_CHEFES_ARTE.md)?
+
+---
+
+## Status
+
+**J0 — Amostras: pronto para você aprovar (05/11/2026)**
+- [x] `tools/bake_junk.gd`: monta a peça em 3D (sombreado estilizado), gira e balança e grava 24 quadros + a camada da luz âmbar
+- [x] 3 peças no Setor 1 no lugar do bloco de metal: placa de casco, turbina (as pás giram), contêiner octogonal
+- [x] Sem giro no plano: a luz pintada fica sempre de cima à esquerda; a luz âmbar pisca por cima
+- [x] Teste LIXO ESPACIAL: colisão dentro do desenho em todos os quadros (pior 0,2%), peça escura, cada peça com a sua luz
+- [ ] Aprovar no S20 FE e no A5 → J1 (8 famílias)

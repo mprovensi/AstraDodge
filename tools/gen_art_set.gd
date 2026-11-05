@@ -37,6 +37,10 @@ func _initialize() -> void:
 	# Protótipo do giro 3D estilizado (ESPEC_ASTEROIDES.md, seção 8): Setor 1.
 	first.dust_sheets.assign([load("res://sprites/rock_s1_1.png"), load("res://sprites/rock_s1_2.png"),
 			load("res://sprites/rock_s1_3.png")])
+	# Lixo espacial girando em 3D (PLANO_INDESTRUTIVEIS.md, J0): Setor 1.
+	for k in [1, 2, 3]:
+		first.junk_sheets.append(load("res://sprites/junk_s1_%d.png" % k))
+		first.junk_lights.append(load("res://sprites/junk_s1_%d_luz.png" % k))
 	var looks: Array[AsteroidLook] = [first]
 	for sector in range(2, 9):
 		var look := AsteroidLook.new()

@@ -342,7 +342,11 @@ func _draw() -> void:
 		var tex := textures[a.sprite % textures.size()]
 		if a.kind == Kind.METAL:
 			var tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
-			draw_texture_rect(tex, rect, false, tint)
+			var junk := art.junk_sheets(a.look)
+			if junk.is_empty():
+				draw_texture_rect(tex, rect, false, tint)
+			else:
+				_draw_junk(a, junk, art.junk_lights(a.look), rect, s, tint)
 		else:
 			# Mais escura conforme leva dano; pisca branco (HDR) ao ser atingida.
 			var dmg := 1.0 - float(a.hp) / float(a.max_hp)
@@ -377,6 +381,23 @@ func _draw() -> void:
 		var flame := PackedVector2Array([base + Vector2(0, -12), base + Vector2(0, 12),
 				base + Vector2(back * 46.0 * flick, 0)])
 		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.9))
+
+
+## Lixo espacial (folha de giro 3D): sem giro no plano nem espelho, para a luz pintada ficar
+## sempre de cima à esquerda; a luz âmbar de alerta pisca por cima (só ela brilha).
+func _draw_junk(a: Asteroid, sheets: Array[Texture2D], lights: Array[Texture2D], rect: Rect2, s: float, tint: Color) -> void:
+	draw_set_transform(a.pos, 0.0, Vector2(s, s))
+	var i := a.sprite % sheets.size()
+	var sheet := sheets[i]
+	var t := _slide_t * a.spin_rate * 0.5 + a.spin_phase
+	var frame := posmod(int(floor(t * ArtSet.JUNK_FRAMES)), ArtSet.JUNK_FRAMES)
+	var fw := sheet.get_width() / ArtSet.JUNK_COLS
+	var fh := sheet.get_height() / ArtSet.JUNK_ROWS
+	var src := Rect2((frame % ArtSet.JUNK_COLS) * fw, (frame / ArtSet.JUNK_COLS) * fh, fw, fh)
+	draw_texture_rect_region(sheet, rect, src, tint)
+	if i < lights.size():
+		var blink := 0.35 + 0.65 * float(fmod(_slide_t * 1.2 + a.spin_phase, 1.0) < 0.5)
+		draw_texture_rect_region(lights[i], rect, src, Color(Palette.FLAME_HDR, blink))
 
 
 func _textures(kind: Kind, from_look: int) -> Array[Texture2D]:

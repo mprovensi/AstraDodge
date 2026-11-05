@@ -105,10 +105,28 @@ static func roll_pose(bank: float) -> int:
 const SHEET_FRAMES := 12
 const SHEET_COLS := 4
 const SHEET_ROWS := 3
+## Folhas do lixo espacial (tools/bake_junk.gd): mais quadros, porque peça de metal tem
+## quinas e detalhes que "pulam" com poucos quadros.
+const JUNK_FRAMES := 24
+const JUNK_COLS := 6
+const JUNK_ROWS := 4
 
 
 ## Folhas de giro da poeira do setor `look` (vazio = usa as imagens fixas).
 func dust_sheets(look: int) -> Array[Texture2D]:
 	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
 		return sector_looks[look].dust_sheets
+	return []
+
+
+## Lixo espacial do setor `look`: [folhas de cor, folhas da luz âmbar] (vazio = blocos fixos).
+func junk_sheets(look: int) -> Array[Texture2D]:
+	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
+		return sector_looks[look].junk_sheets
+	return []
+
+
+func junk_lights(look: int) -> Array[Texture2D]:
+	if look >= 0 and look < sector_looks.size() and sector_looks[look] != null:
+		return sector_looks[look].junk_lights
 	return []
