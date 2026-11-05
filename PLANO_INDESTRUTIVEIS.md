@@ -159,3 +159,10 @@ Todas giram devagar (folha de 12 quadros) e têm **uma luz âmbar** piscando (ca
 - [x] Memória do celular antigo: só as folhas do setor em jogo ficam carregadas (no máximo 2 setores); a luz âmbar virou um ponto calculado no bake (posição e quanto aparece por quadro), sem folha extra
 - [x] Teste LIXO ESPACIAL: 32 peças × 24 quadros, colisão dentro do desenho, peça escura, luz âmbar dentro do quadro e visível em boa parte do giro
 - [ ] Medir no A5 (FPS e memória) → J2 (paredões e paredes)
+
+**J2 — Paredões e paredes: concluído (05/11/2026)**
+- [x] Paredão, corredor e parede móvel: peças vizinhas ligadas por 2 cabos (nunca atravessam a brecha)
+- [x] Luzes de pista verdes nas duas peças da brecha, piscando em sequência para dentro (fixas no modo Simples)
+- [x] Parede móvel (Setor 7): setas âmbar mostram para que lado ela está indo
+- [x] Inversão (Setor 8): rastro magenta fraco embaixo das rochas (lê "vem de baixo")
+- [x] Teste FILEIRAS JUSTAS: todas as peças na mesma parede, luzes nas duas bordas, cabos fora da brecha

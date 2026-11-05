@@ -29,3 +29,5 @@ const ENEMY_FILL := Color(0.18, 0.04, 0.04)
 # Setor 3 (iônico): violeta elétrico.
 const ION := Color(0.72, 0.45, 1.0)
 const ION_HDR := Color(1.4, 0.8, 2.4)
+## Luzes de pista nas bordas da brecha dos paredões ("passe aqui").
+const RUNWAY_HDR := Color(0.45, 2.1, 0.75)

@@ -32,6 +32,7 @@ class Asteroid:
 	var slide_base := 0.0
 	var slide_phase := 0.0
 	var ported := false        # já passou por um portal (Setor 8): não teleporta de novo
+	var wall := 0              # paredão/parede a que pertence (0 = peça solta): cabos e luzes
 	var look := 0              # visual do setor em que nasceu (ArtSet.sector_looks)
 	var spin_rate := 0.0       # giro 3D (voltas por segundo) das rochas com folha de quadros
 	var spin_phase := 0.0
@@ -56,6 +57,7 @@ var _next_id := 0
 var _distance_to_next_row := 0.0
 var _gap_x := 0.0
 var _slide_t := 0.0  # relógio das paredes móveis
+var _wall_id := 0    # numeração dos paredões (Asteroid.wall)
 
 
 func resize(size: Vector2) -> void:
@@ -163,9 +165,10 @@ func spawn_wall(fast := true) -> void:
 	var r := Tuning.WALL_METAL_RADIUS
 	var x := r
 	var extra := Tuning.WALL_EXTRA_SPEED if fast else 0.0
+	_wall_id += 1
 	while x <= view_size.x:
 		if absf(x - _gap_x) >= half_gap + r:
-			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2(0.0, extra))
+			_add(Kind.METAL, Vector2(x, -r), r, 1, Vector2(0.0, extra)).wall = _wall_id
 		x += r * 2.0 + 6.0
 	# Espaço livre depois do paredão antes da próxima linha.
 	_distance_to_next_row = maxf(_distance_to_next_row, Tuning.ROW_SPACING_START)
@@ -188,6 +191,7 @@ func spawn_sliding_wall() -> void:
 	# Centro da brecha no meio do movimento: o vaivém nunca a leva para fora da tela.
 	var gap := clampf(_gap_x, half_gap + amp + 20.0, view_size.x - half_gap - amp - 20.0)
 	var phase := randf() * TAU
+	_wall_id += 1
 	var x := gap - half_gap - r
 	while x > -amp - r:
 		_add_slider(x, r, phase)
@@ -202,6 +206,7 @@ func spawn_sliding_wall() -> void:
 func _add_slider(x: float, r: float, phase: float) -> void:
 	var a := _add(Kind.METAL, Vector2(x, -r), r, 1, Vector2.ZERO)
 	a.sliding = true
+	a.wall = _wall_id
 	a.slide_base = x
 	a.slide_phase = phase
 	a.rot_speed = 0.0
@@ -330,6 +335,9 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 
 func _draw() -> void:
 	var art := Game.art
+	var walls := wall_links()
+	_draw_cables(walls)
+	_draw_inverted_trails()
 	for a in asteroids:
 		var s := 1.0 - Tuning.HIT_PUNCH_SCALE * a.punch
 		draw_set_transform(a.pos, a.rot, Vector2(s * a.flip, s))
@@ -370,6 +378,7 @@ func _draw() -> void:
 				shell_tint.a = 0.55 + 0.45 * float(a.shell) / float(Tuning.ARMOR_SHELL_HITS)
 				draw_texture_rect(art.dust_shell_texture, rect, false, shell_tint)
 	draw_set_transform(Vector2.ZERO, 0.0)
+	_draw_wall_lights(walls)
 
 	# Propulsores dos metálicos móveis: chama do lado oposto ao movimento (lê-se "vai para lá").
 	for a in asteroids:
@@ -381,6 +390,93 @@ func _draw() -> void:
 		var flame := PackedVector2Array([base + Vector2(0, -12), base + Vector2(0, 12),
 				base + Vector2(back * 46.0 * flick, 0)])
 		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.9))
+
+
+## Peças de cada paredão, em ordem da esquerda para a direita, e onde fica a brecha:
+## [{ "pieces": [Asteroid...], "links": [[a, b]...], "edges": [esquerda, direita] }].
+## `links` liga só vizinhas encostadas (cabo) — nunca atravessa a brecha. `edges` são as
+## duas peças que ladeiam a brecha (luzes de pista); null se a brecha encosta na borda.
+func wall_links() -> Array[Dictionary]:
+	var groups := {}
+	for a in asteroids:
+		if a.wall != 0 and a.alive:
+			if not groups.has(a.wall):
+				groups[a.wall] = []
+			groups[a.wall].append(a)
+	var out: Array[Dictionary] = []
+	for id in groups:
+		var list: Array = groups[id]
+		list.sort_custom(func(p: Asteroid, q: Asteroid) -> bool: return p.pos.x < q.pos.x)
+		var links := []
+		var edges := [null, null]
+		for i in range(1, list.size()):
+			var p: Asteroid = list[i - 1]
+			var q: Asteroid = list[i]
+			if q.pos.x - p.pos.x <= p.radius + q.radius + 12.0:
+				links.append([p, q])
+			elif edges[0] == null:
+				edges = [p, q]
+		out.append({"pieces": list, "links": links, "edges": edges})
+	return out
+
+
+## Cabos entre as peças do paredão: parece uma barreira montada, não blocos soltos.
+func _draw_cables(walls: Array[Dictionary]) -> void:
+	for w in walls:
+		for pair: Array in w["links"]:
+			var p: Asteroid = pair[0]
+			var q: Asteroid = pair[1]
+			for k: float in [-0.35, 0.3]:
+				var a := p.pos + Vector2(0, p.radius * k)
+				var b := q.pos + Vector2(0, q.radius * k)
+				var mid := (a + b) * 0.5 + Vector2(0, 7.0)  # cabo cede um pouco no meio
+				var pts := PackedVector2Array([a, a.lerp(mid, 0.5) + Vector2(0, 2.0), mid, b.lerp(mid, 0.5) + Vector2(0, 2.0), b])
+				draw_polyline(pts, Color(0.05, 0.055, 0.07), 7.0, true)
+				draw_polyline(pts, Color(0.32, 0.35, 0.4), 3.0, true)
+
+
+## Luzes de pista verdes nas bordas da brecha (piscam em sequência para dentro) e, nas
+## paredes móveis, setas âmbar mostrando para que lado a parede está indo.
+func _draw_wall_lights(walls: Array[Dictionary]) -> void:
+	var simple := Game.graphics_simple()
+	for w in walls:
+		var edges: Array = w["edges"]
+		for side in 2:
+			var a: Asteroid = edges[side]
+			if a == null:
+				continue
+			var dir := 1.0 if side == 0 else -1.0  # aponta para dentro da brecha
+			for k in 3:
+				var on := simple or posmod(int(_slide_t * 6.0) - k, 3) == 0
+				var at := a.pos + Vector2(dir * a.radius * 0.95, (k - 1) * a.radius * 0.45)
+				draw_circle(at, 9.0, Color(Palette.RUNWAY_HDR, 0.18 if on else 0.06))
+				draw_circle(at, 4.5, Color(Palette.RUNWAY_HDR, 1.0 if on else 0.35))
+		var first: Asteroid = w["pieces"][0]
+		if first.sliding:
+			var v := cos(TAU * _slide_t / Tuning.SLIDE_PERIOD + first.slide_phase)
+			if absf(v) > 0.15:
+				for a: Asteroid in edges:
+					if a != null:
+						_draw_chevrons(a.pos + Vector2(0, -a.radius - 20.0), signf(v))
+
+
+func _draw_chevrons(at: Vector2, dir: float) -> void:
+	for k in 2:
+		var c := at + Vector2(dir * (k * 18.0 - 9.0), 0)
+		draw_polyline(PackedVector2Array([c + Vector2(-dir * 7.0, -9.0), c + Vector2(dir * 5.0, 0), c + Vector2(-dir * 7.0, 9.0)]),
+				Color(Palette.FLAME_HDR, 0.9), 4.0, true)
+
+
+## Inversão (Setor 8): rastro magenta fraco embaixo de cada rocha — lê "vem de baixo".
+func _draw_inverted_trails() -> void:
+	if not inverted:
+		return
+	for a in asteroids:
+		var w := a.radius * 0.6
+		var top := a.pos
+		var length := a.radius * 1.9
+		draw_polygon(PackedVector2Array([top + Vector2(-w, 0), top + Vector2(w, 0), top + Vector2(w * 0.25, length), top + Vector2(-w * 0.25, length)]),
+				PackedColorArray([Color(Palette.MAGENTA, 0.13), Color(Palette.MAGENTA, 0.13), Color(Palette.MAGENTA, 0.0), Color(Palette.MAGENTA, 0.0)]))
 
 
 ## Lixo espacial (folha de giro 3D): sem giro no plano nem espelho, para a luz pintada ficar

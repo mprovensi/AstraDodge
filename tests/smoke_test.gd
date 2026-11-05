@@ -1370,8 +1370,33 @@ func _test_rows_fair() -> void:
 	for i in range(1, xs.size()):
 		widest = maxf(widest, xs[i] - xs[i - 1] - 2.0 * Tuning.WALL_METAL_RADIUS)
 	assert(widest >= 2.0 * Tuning.SHIP_HITBOX_RADIUS + 60.0, "paredão sem brecha (%.0f px)" % widest)
+	# J2: cabos ligam só peças vizinhas (nunca atravessam a brecha) e as luzes de pista
+	# ficam nas duas peças que ladeiam a brecha. Vale para paredão, corredor e parede móvel.
+	var cables := 0
+	for kind in ["wall", "corridor", "slide"]:
+		for i in 30:
+			field.reset()
+			match kind:
+				"wall": field.spawn_wall()
+				"corridor": field.spawn_corridor_wall()
+				"slide": field.spawn_sliding_wall()
+			var walls: Array = field.wall_links()
+			assert(walls.size() == 1, "%s: uma parede por chamada" % kind)
+			var wl: Dictionary = walls[0]
+			assert(wl["pieces"].size() == field.asteroids.size(), "%s: todas as peças na parede" % kind)
+			var edges: Array = wl["edges"]
+			assert(edges[0] != null and edges[1] != null, "%s: luzes nas duas bordas da brecha" % kind)
+			var gap_l: float = edges[0].pos.x + edges[0].radius
+			var gap_r: float = edges[1].pos.x - edges[1].radius
+			assert(gap_r - gap_l >= 2.0 * Tuning.SHIP_HITBOX_RADIUS + 60.0, "%s: brecha entre as luzes" % kind)
+			for pair: Array in wl["links"]:
+				cables += 1
+				var x0: float = minf(pair[0].pos.x, pair[1].pos.x)
+				var x1: float = maxf(pair[0].pos.x, pair[1].pos.x)
+				assert(x1 <= gap_l + 0.5 or x0 >= gap_r - 0.5, "%s: cabo atravessando a brecha" % kind)
 	field.reset()
-	print("FILEIRAS JUSTAS OK | %d fileiras sem metal na brecha | paredao com brecha de %.0f px" % [rows, widest])
+	print("FILEIRAS JUSTAS OK | %d fileiras sem metal na brecha | paredao com brecha de %.0f px | %d cabos fora da brecha" % [
+			rows, widest, cables])
 
 
 ## REGRAS DA NAVE: escudo, invencibilidade, "última chance", orbe que salva, morte, limites da tela.
