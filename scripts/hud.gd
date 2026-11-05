@@ -93,6 +93,7 @@ var _skin_button: Button
 var _skin_info: Label
 var _mod_button: Button
 var _mod_info: Label
+var _graphics_button: Button
 var _sensitivity_label: Label
 var _new_game_button: Button
 var _new_game_armed := 0.0  # > 0: aguardando o toque de confirmação
@@ -640,6 +641,13 @@ func _build_options(root: Control) -> void:
 	_mod_info = _make_label("", 26, Palette.TEXT_DIM)
 	box.add_child(_mod_info)
 
+	# Gráficos: Automático (simples em celular antigo) / Completo / Simples.
+	_graphics_button = _make_button("")
+	_graphics_button.pressed.connect(func() -> void:
+		Game.next_graphics()
+		_on_option_changed())
+	box.add_child(_graphics_button)
+
 	_vibration_button = _make_button("")
 	_vibration_button.pressed.connect(func() -> void:
 		Game.vibration_enabled = not Game.vibration_enabled
@@ -752,6 +760,10 @@ func _refresh_options() -> void:
 			next_mod = " · próximo com %d" % x[2]
 			break
 	_mod_info.text = "%s%s" % [m[4], next_mod]
+	var gname: String = Game.GRAPHICS_NAMES[Game.graphics]
+	if Game.graphics == 0:
+		gname += " (%s)" % ("SIMPLES" if Game.graphics_simple() else "COMPLETO")
+	_graphics_button.text = "GRÁFICOS: %s" % gname
 	_set_toggle(_vibration_button, "VIBRAÇÃO", Game.vibration_enabled, "LIGADA", "DESLIGADA")
 	_sensitivity_label.text = ("%.1fx" % Game.sensitivity).replace(".", ",")
 

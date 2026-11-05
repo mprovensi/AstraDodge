@@ -58,6 +58,7 @@ func load_data() -> void:
 	daily_best = cfg.get_value("daily", "best", 0)
 	skin = clampi(cfg.get_value("options", "skin", 0), 0, SKINS.size() - 1)
 	mod = clampi(cfg.get_value("options", "mod", 0), 0, MODS.size() - 1)
+	graphics = clampi(cfg.get_value("options", "graphics", 0), 0, 2)
 
 
 func save_data() -> void:
@@ -79,6 +80,7 @@ func save_data() -> void:
 	cfg.set_value("daily", "best", daily_best)
 	cfg.set_value("options", "skin", skin)
 	cfg.set_value("options", "mod", mod)
+	cfg.set_value("options", "graphics", graphics)
 	cfg.save(SAVE_PATH)
 
 
@@ -262,3 +264,22 @@ func mod_id() -> String:
 
 func mod_bonus() -> float:
 	return float(MODS[mod][3]) if mod_unlocked(mod) else 1.0
+
+
+# ---------------------------------------------------------------- gráficos
+
+## 0 = automático, 1 = completo, 2 = simples (salvo). Automático: simples quando o aparelho
+## roda no modo de compatibilidade (GPU antiga sem Vulkan completo, ex.: Galaxy A5 2017).
+const GRAPHICS_NAMES := ["AUTO", "COMPLETO", "SIMPLES"]
+var graphics := 0
+
+
+func graphics_simple() -> bool:
+	if graphics == 0:
+		return RenderingServer.get_current_rendering_method() == "gl_compatibility"
+	return graphics == 2
+
+
+func next_graphics() -> void:
+	graphics = (graphics + 1) % GRAPHICS_NAMES.size()
+	save_data()

@@ -7,6 +7,7 @@ uniform vec4 color_b : source_color = vec4(0.16, 0.04, 0.28, 1.0);
 uniform float intensity = 0.85;
 uniform float scroll = 0.0;          // avanço vertical (atualizado pelo script)
 uniform vec2 aspect = vec2(1.0, 2.2); // proporção da tela (largura, altura)
+uniform int octaves = 4;              // gráficos simples: 2 (bem mais leve em celular antigo)
 
 // Hash sem seno (estável em GPU de celular, sem "blocos").
 float hash(vec2 p) {
@@ -28,6 +29,9 @@ float fbm(vec2 p) {
 	float a = 0.5;
 	mat2 rot = mat2(vec2(0.8, 0.6), vec2(-0.6, 0.8));  // gira cada camada: esconde a grade
 	for (int i = 0; i < 4; i++) {
+		if (i >= octaves) {
+			break;
+		}
 		v += a * noise(p);
 		p = rot * p * 2.03 + vec2(1.7, 9.2);
 		a *= 0.5;

@@ -62,3 +62,8 @@ func update(dt: float, speed: float) -> void:
 
 func _draw() -> void:
 	draw_rect(Rect2(-Vector2.ONE * MARGIN, view_size + Vector2.ONE * MARGIN * 2.0), Color.WHITE)
+
+
+## Gráficos simples: menos camadas de ruído (celular antigo).
+func set_simple(simple: bool) -> void:
+	_material.set_shader_parameter("octaves", 2 if simple else 4)

@@ -1087,6 +1087,21 @@ func _test_polish() -> void:
 	assert(not main._env.glow_enabled, "retrô desliga o brilho")
 	main.start_daily()
 	assert(main._mod == "none" and main._env.glow_enabled, "o Desafio do Dia ignora modificadores")
+	# Tiro não atravessa rocha em quadro longo (celular lento): o trajeto inteiro é testado.
+	main.asteroids.asteroids.clear()
+	main.asteroids.spawn_dust(Vector2(300, 500), 30.0, 1, Vector2.ZERO)
+	assert(main.asteroids.hit_test(Vector2(300, 440)) == null, "o ponto final sozinho erraria")
+	assert(main.asteroids.hit_test(Vector2(300, 440), {}, Vector2(300, 560)) != null, "o trajeto acerta a rocha")
+	main.asteroids.asteroids.clear()
+
+	# Gráficos simples: nebulosa leve e sem brilho; volta ao completo.
+	game.graphics = 2
+	main._process(DT)
+	assert(not main._env.glow_enabled, "gráficos simples: sem brilho (e nebulosa leve)")
+	game.graphics = 1
+	main._process(DT)
+	assert(main._env.glow_enabled, "gráficos completos voltam o brilho")
+	game.graphics = 0
 	game.mod = 0
 	game.skin = 0
 	game.sector_stars = saved_stars

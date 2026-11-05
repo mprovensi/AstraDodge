@@ -100,6 +100,7 @@ var _best_multiplier := 1.0
 var _mod := "none"                      # modificador do Infinito nesta partida (Game.MODS)
 var _mod_bonus := 1.0
 var _env: Environment
+var _gfx_simple := -1                   # gráficos simples aplicados (-1 = ainda não)
 
 
 func _ready() -> void:
@@ -191,7 +192,23 @@ func _input(event: InputEvent) -> void:
 			ship.move_by(drag.relative * Game.sensitivity)
 
 
+## Brilho neon: desligado no modificador Retrô e nos gráficos simples (pesa em GPU antiga).
+func _update_glow() -> void:
+	_env.glow_enabled = _mod != "retro" and not Game.graphics_simple()
+
+
+## Opção Gráficos (Automático/Completo/Simples): aplica quando muda (inclusive na 1ª vez).
+func _apply_graphics() -> void:
+	var simple := Game.graphics_simple()
+	if int(simple) == _gfx_simple:
+		return
+	_gfx_simple = int(simple)
+	nebula.set_simple(simple)
+	_update_glow()
+
+
 func _process(delta: float) -> void:
+	_apply_graphics()
 	match state:
 		State.PLAYING:
 			time_scale = move_toward(time_scale, 1.0, delta * 6.0)
@@ -239,7 +256,7 @@ func go_to_menu() -> void:
 	_new_run()
 	director = null  # o menu não roda linha do tempo
 	_mod = "none"
-	_env.glow_enabled = true
+	_update_glow()
 	ship.visible = false
 	hud.clear_hint()
 	_set_state(State.MENU)
@@ -357,7 +374,7 @@ func _new_run() -> void:
 	_mod_bonus = Game.mod_bonus() if _mod != "none" else 1.0
 	if _mod == "bosses":
 		director.generator.boss_every = EndlessGenerator.BOSS_EVERY * 0.5
-	_env.glow_enabled = _mod != "retro"
+	_update_glow()
 	nebula.set_colors(SECTORS[_biome].nebula_a, SECTORS[_biome].nebula_b)
 	Sfx.play_music(SECTORS[_biome].music)
 
