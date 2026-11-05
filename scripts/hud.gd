@@ -94,6 +94,8 @@ var _skin_info: Label
 var _mod_button: Button
 var _mod_info: Label
 var _graphics_button: Button
+var _fps_label: Label           # só em build de desenvolvimento
+var _fps_window: Array[float] = []  # duração dos quadros dos últimos 3 s
 var _sensitivity_label: Label
 var _new_game_button: Button
 var _new_game_armed := 0.0  # > 0: aguardando o toque de confirmação
@@ -288,10 +290,27 @@ func _ready() -> void:
 	_add_center_button("quit", "SAIR DO JOGO", quit_pressed.emit)
 
 	_build_options(root)
+
+	# Contador de FPS (só no APK de desenvolvimento): FPS agora e o MÍNIMO dos últimos 3 s,
+	# para comparar os celulares (ver PROXIMOS_PASSOS.md, 1.4).
+	if OS.is_debug_build():
+		_fps_label = _make_label("", 24, Color(0.6, 1.0, 0.6))
+		_fps_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_fps_label.anchor_left = 1.0
+		_fps_label.anchor_right = 1.0
+		_fps_label.anchor_top = 1.0
+		_fps_label.anchor_bottom = 1.0
+		_fps_label.offset_left = -360.0
+		_fps_label.offset_right = -20.0
+		_fps_label.offset_top = -56.0
+		_fps_label.offset_bottom = -20.0
+		root.add_child(_fps_label)
 	hide_center()
 
 
 func _process(delta: float) -> void:
+	if _fps_label != null:
+		_update_fps(delta)
 	if _levelup_timer > 0.0:
 		_levelup_timer -= delta
 		_levelup_label.modulate.a = clampf(_levelup_timer / 0.4, 0.0, 1.0)
@@ -833,3 +852,17 @@ func _make_button(text: String) -> Button:
 		b.add_theme_stylebox_override(state, sb)
 	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	return b
+
+
+## "FPS 58 · mín 41" — o mínimo pega os engasgos (o que a média esconde).
+func _update_fps(delta: float) -> void:
+	_fps_window.append(delta)
+	var total := 0.0
+	for d in _fps_window:
+		total += d
+	while total > 3.0 and _fps_window.size() > 1:
+		total -= _fps_window.pop_front()
+	var worst := 0.0
+	for d in _fps_window:
+		worst = maxf(worst, d)
+	_fps_label.text = "FPS %d · mín %d" % [Engine.get_frames_per_second(), roundi(1.0 / maxf(worst, 0.001))]
