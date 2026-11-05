@@ -128,6 +128,11 @@ at = 144.0
 kind = 7
 text = "hive_queen"
 
+[sub_resource type="Resource" id="Resource_gsbiv"]
+script = ExtResource("1_74apq")
+at = 60.0
+kind = 19
+
 [resource]
 script = ExtResource("2_78muk")
 id = "sector_6"
@@ -136,7 +141,7 @@ title = "SETOR 6"
 subtitle = "Colmeia"
 difficulty_start = 0.6
 difficulty_end = 0.92
-events = Array[ExtResource("1_74apq")]([SubResource("Resource_uxrbk"), SubResource("Resource_iqgmt"), SubResource("Resource_ju4bg"), SubResource("Resource_fe87g"), SubResource("Resource_r1uxf"), SubResource("Resource_n8q1f"), SubResource("Resource_m2olq"), SubResource("Resource_5udwj"), SubResource("Resource_qm0ij"), SubResource("Resource_l0smn"), SubResource("Resource_t1pen"), SubResource("Resource_2ql40"), SubResource("Resource_ikkrn"), SubResource("Resource_6xivy"), SubResource("Resource_6xp0d"), SubResource("Resource_byxsi"), SubResource("Resource_1xkp1"), SubResource("Resource_rkn3u"), SubResource("Resource_5lod8")])
+events = Array[ExtResource("1_74apq")]([SubResource("Resource_uxrbk"), SubResource("Resource_iqgmt"), SubResource("Resource_ju4bg"), SubResource("Resource_fe87g"), SubResource("Resource_r1uxf"), SubResource("Resource_n8q1f"), SubResource("Resource_m2olq"), SubResource("Resource_5udwj"), SubResource("Resource_qm0ij"), SubResource("Resource_l0smn"), SubResource("Resource_t1pen"), SubResource("Resource_2ql40"), SubResource("Resource_ikkrn"), SubResource("Resource_6xivy"), SubResource("Resource_6xp0d"), SubResource("Resource_byxsi"), SubResource("Resource_1xkp1"), SubResource("Resource_rkn3u"), SubResource("Resource_5lod8"), SubResource("Resource_gsbiv")])
 music = "sector6"
 nebula_a = Color(0.1, 0.18, 0.05, 1)
 nebula_b = Color(0.3, 0.2, 0.04, 1)

@@ -706,6 +706,13 @@ func _on_wave_event(e: WaveEvent) -> void:
 			enemies.spawn_swarm(e.count, randf_range(view_size.x * 0.25, view_size.x * 0.75))
 			if e.text != "":
 				hud.show_hint(e.text, 2.5)
+		WaveEvent.Kind.MOTHERSHIP:
+			enemies.spawn_mothership(randf() < 0.5)
+			hud.show_hint("NAVE-MÃE!
+Derrube para ganhar um módulo" if _modules_unlocked()
+					else "NAVE-MÃE!
+Derrube antes que ela fuja", 2.5)
+			Sfx.play("alarm", -10.0, 0.7, 0.0)
 		WaveEvent.Kind.HATCH:
 			# Ovos espalhados pela largura, todos de uma vez: dá para destruir quase todos.
 			for i in e.count:
@@ -1155,6 +1162,19 @@ func _on_enemy_destroyed(e: EnemyLayer.Enemy) -> void:
 			if randf() < Tuning.SWARM_CRYSTAL_CHANCE:
 				pickups.spawn(e.pos, PickupLayer.Kind.CRYSTAL)
 			return
+		EnemyLayer.Kind.MOTHERSHIP:
+			bonus_score += Tuning.MOTHERSHIP_SCORE
+			_shake = maxf(_shake, 14.0)
+			fx.explosion(e.pos, e.radius * 1.8, Palette.BLAST_HDR)
+			Sfx.play("explosion", 0.0, 0.7, 0.0, e.pos)
+			Game.vibrate(120)
+			# Antes do 1º chefe os módulos ainda não existem: vira escudo + cristal.
+			if _modules_unlocked():
+				pickups.spawn(e.pos, PickupLayer.Kind.CARGO)
+			else:
+				pickups.spawn(e.pos, PickupLayer.Kind.SHIELD)
+				pickups.spawn(e.pos + Vector2(40, 0), PickupLayer.Kind.CRYSTAL)
+			return
 		EnemyLayer.Kind.EGG:
 			# Ovo destruído a tempo: na luta contra a Rainha sempre vira orbe de escudo.
 			eggs_destroyed += 1
@@ -1190,6 +1210,11 @@ func _on_pickup(kind: int) -> void:
 # ---------------------------------------------------------------- módulos
 
 ## Contêiner de carga coletado: pausa e oferece 3 módulos (cartas).
+## Os módulos começam depois do chefe do Setor 1 (PLANO_CARTAS.md §9).
+func _modules_unlocked() -> bool:
+	return not (mode == Mode.CAMPAIGN and sector_index == 0)
+
+
 func _open_module_pick() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = randi()

@@ -116,6 +116,11 @@ at = 144.0
 kind = 7
 text = "medusa"
 
+[sub_resource type="Resource" id="Resource_aldgu"]
+script = ExtResource("1_3lsqe")
+at = 60.0
+kind = 19
+
 [resource]
 script = ExtResource("2_xws8b")
 id = "sector_3"
@@ -124,7 +129,7 @@ title = "SETOR 3"
 subtitle = "Nebulosa Iônica"
 difficulty_start = 0.45
 difficulty_end = 0.8
-events = Array[ExtResource("1_3lsqe")]([SubResource("Resource_42xq5"), SubResource("Resource_di6hu"), SubResource("Resource_8qiqs"), SubResource("Resource_ct41w"), SubResource("Resource_dvibj"), SubResource("Resource_pr7pp"), SubResource("Resource_5kbxf"), SubResource("Resource_sdckb"), SubResource("Resource_y6hsl"), SubResource("Resource_ybsg3"), SubResource("Resource_qljlj"), SubResource("Resource_2x513"), SubResource("Resource_plcdf"), SubResource("Resource_hqxb0"), SubResource("Resource_683ea"), SubResource("Resource_sekbv"), SubResource("Resource_o71x5")])
+events = Array[ExtResource("1_3lsqe")]([SubResource("Resource_42xq5"), SubResource("Resource_di6hu"), SubResource("Resource_8qiqs"), SubResource("Resource_ct41w"), SubResource("Resource_dvibj"), SubResource("Resource_pr7pp"), SubResource("Resource_5kbxf"), SubResource("Resource_sdckb"), SubResource("Resource_y6hsl"), SubResource("Resource_ybsg3"), SubResource("Resource_qljlj"), SubResource("Resource_2x513"), SubResource("Resource_plcdf"), SubResource("Resource_hqxb0"), SubResource("Resource_683ea"), SubResource("Resource_sekbv"), SubResource("Resource_o71x5"), SubResource("Resource_aldgu")])
 music = "sector3"
 nebula_a = Color(0.22, 0.06, 0.34, 1)
 nebula_b = Color(0.05, 0.26, 0.12, 1)

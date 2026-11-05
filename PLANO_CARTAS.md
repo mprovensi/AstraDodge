@@ -157,3 +157,10 @@ Raridade: **comum** (aparece mais), **rara**, **épica** (Raio Carregado, Drone 
 - [x] 6 módulos: Ricochete (metal e bordas), Perfurante, Ímã, Médico, Escudo Explosivo, Vidro
 - [x] Campanha: a mão segue para o próximo setor e vai para o checkpoint; morrer recomeça o setor com a mão do começo dele
 - [x] Testes: regras da mão/oferta, contêiner abre a escolha, efeitos, próximo setor e checkpoint
+
+**C3 — Naves-mãe: concluído (05/11/2026)**
+- [x] Nave-mãe (40 de vida) cruza o alto da tela aos 60 s de todos os 8 setores, atirando leques de 5 com aviso (canhão brilha antes)
+- [x] Derrubada: +300 pontos e contêiner de módulo; no Setor 1 (módulos ainda bloqueados) dá escudo + cristal
+- [x] Se cruzar a tela sem cair, foge e não dá nada
+- [x] Casco desenhado dentro do círculo de colisão
+- [x] Testes: está nos 8 setores, morre a tiro, prêmio certo por setor, fuga sem prêmio

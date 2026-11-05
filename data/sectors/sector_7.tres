@@ -122,6 +122,11 @@ at = 144.0
 kind = 7
 text = "sentinel"
 
+[sub_resource type="Resource" id="Resource_vrefi"]
+script = ExtResource("1_rknkx")
+at = 60.0
+kind = 19
+
 [resource]
 script = ExtResource("2_cesfm")
 id = "sector_7"
@@ -130,7 +135,7 @@ title = "SETOR 7"
 subtitle = "Estação Abandonada"
 difficulty_start = 0.65
 difficulty_end = 0.95
-events = Array[ExtResource("1_rknkx")]([SubResource("Resource_v1c04"), SubResource("Resource_yi7e8"), SubResource("Resource_yu3b4"), SubResource("Resource_fdsfx"), SubResource("Resource_bgr7h"), SubResource("Resource_b7uce"), SubResource("Resource_fduol"), SubResource("Resource_j1rpv"), SubResource("Resource_uhs1k"), SubResource("Resource_wt4wm"), SubResource("Resource_xjl08"), SubResource("Resource_k4sau"), SubResource("Resource_d7s8k"), SubResource("Resource_lh6qj"), SubResource("Resource_wkyg8"), SubResource("Resource_lro78"), SubResource("Resource_mbwmq"), SubResource("Resource_0yecc")])
+events = Array[ExtResource("1_rknkx")]([SubResource("Resource_v1c04"), SubResource("Resource_yi7e8"), SubResource("Resource_yu3b4"), SubResource("Resource_fdsfx"), SubResource("Resource_bgr7h"), SubResource("Resource_b7uce"), SubResource("Resource_fduol"), SubResource("Resource_j1rpv"), SubResource("Resource_uhs1k"), SubResource("Resource_wt4wm"), SubResource("Resource_xjl08"), SubResource("Resource_k4sau"), SubResource("Resource_d7s8k"), SubResource("Resource_lh6qj"), SubResource("Resource_wkyg8"), SubResource("Resource_lro78"), SubResource("Resource_mbwmq"), SubResource("Resource_0yecc"), SubResource("Resource_vrefi")])
 music = "sector7"
 nebula_a = Color(0.08, 0.08, 0.1, 1)
 nebula_b = Color(0.3, 0.04, 0.04, 1)

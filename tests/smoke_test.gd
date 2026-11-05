@@ -52,6 +52,7 @@ func _run() -> void:
 	_test_dev_selector()
 	_test_music()
 	_test_enemies()
+	_test_mothership()
 	main.free()
 	quit()
 
@@ -1410,6 +1411,62 @@ func _test_enemies() -> void:
 	assert(main.enemies_destroyed > 0, "tiros do jogador deveriam destruir drones")
 	print("INIMIGOS OK | drones destruidos=%d | tiros inimigos max=%d | golpes recebidos=%d" % [
 		main.enemies_destroyed, max_shots, hits_taken])
+
+
+## Nave-mãe (C3): está em todo setor; derrubada a tiro solta contêiner (escudo+cristal no
+## Setor 1, antes dos módulos); se fugir, não dá nada.
+func _test_mothership() -> void:
+	for i in main.SECTORS.size():
+		var found := false
+		for ev: WaveEvent in main.SECTORS[i].events:
+			found = found or ev.kind == WaveEvent.Kind.MOTHERSHIP
+		assert(found, "setor %d sem nave-mãe" % (i + 1))
+	var results := []
+	for sector in [0, 1]:
+		main.go_to_menu()
+		main.start_mode(main.Mode.CAMPAIGN, sector)
+		_touch(true)
+		main.asteroids.spawn_enabled = false
+		main.asteroids.reset()
+		main.pickups.clear()
+		var e = main.enemies.spawn_mothership(true)
+		e.vel = Vector2.ZERO
+		var killed := false
+		for i in 60 * 30:
+			main.asteroids.spawn_enabled = false
+			main.ship.invuln = 1.0
+			e.pos.x = main.ship.position.x  # fica na mira da nave
+			main._process(DT)
+			if not e.alive:
+				killed = true
+				break
+		assert(killed, "tiros deveriam derrubar a nave-mãe (setor %d)" % (sector + 1))
+		var kinds := []
+		for pk in main.pickups.pickups:
+			kinds.append(pk.kind)
+		if sector == 0:
+			assert(not kinds.has(PickupLayer.Kind.CARGO), "setor 1: sem módulo antes do 1º chefe")
+			assert(kinds.has(PickupLayer.Kind.SHIELD), "setor 1: nave-mãe dá escudo")
+		else:
+			assert(kinds.has(PickupLayer.Kind.CARGO), "nave-mãe derrubada deveria soltar contêiner")
+		results.append(kinds.size())
+	# Fuga: atravessa a tela sem ser derrubada -> nenhum contêiner.
+	main.pickups.clear()
+	var before: int = main.enemies.escaped
+	var f = main.enemies.spawn_mothership(false)
+	f.hp = 1000000
+	f.max_hp = f.hp
+	f.vel.x = -900.0
+	for i in 60 * 5:
+		main.asteroids.spawn_enabled = false
+		main.ship.invuln = 1.0
+		main._process(DT)
+		if not f.alive:
+			break
+	assert(main.enemies.escaped == before + 1, "nave-mãe deveria fugir pela borda")
+	for pk in main.pickups.pickups:
+		assert(pk.kind != PickupLayer.Kind.CARGO, "fuga não dá contêiner")
+	print("NAVE-MAE OK | em 8 setores | derrubada: setor1 sem modulo, setor2 conteiner | fuga sem premio")
 
 
 func _touch(pressed: bool) -> void:

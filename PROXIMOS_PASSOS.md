@@ -39,7 +39,7 @@
 |---|---|---|
 | C1 ✅ | Base dos módulos | catálogo, mão de 3, escolha de 3 cartas no contêiner dos chefes, 6 módulos |
 | C2 | Oficina | carta inicial + cartas na campanha |
-| C3 | Naves-mãe | chefes intermediários no meio dos setores |
+| C3 ✅ | Naves-mãe | nave-mãe aos 60 s de cada setor; derrubada dá contêiner (Setor 1: escudo + cristal) |
 | C4 | Conquistas | tela, progresso e desbloqueios + 12 cartas |
 | C5 | Equilíbrio | testes por carta + Desafio do Dia com cartas |
 

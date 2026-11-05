@@ -111,6 +111,11 @@ at = 144.0
 kind = 7
 text = "miner"
 
+[sub_resource type="Resource" id="Resource_r3314"]
+script = ExtResource("1_ogx7f")
+at = 60.0
+kind = 19
+
 [resource]
 script = ExtResource("2_0blx2")
 id = "sector_2"
@@ -119,7 +124,7 @@ title = "SETOR 2"
 subtitle = "Campo Metálico"
 difficulty_start = 0.3
 difficulty_end = 0.7
-events = Array[ExtResource("1_ogx7f")]([SubResource("Resource_iegmr"), SubResource("Resource_ad3wo"), SubResource("Resource_lixtm"), SubResource("Resource_iykwh"), SubResource("Resource_7n1eu"), SubResource("Resource_quc0j"), SubResource("Resource_dm15n"), SubResource("Resource_s25x4"), SubResource("Resource_ok6lw"), SubResource("Resource_g3p0k"), SubResource("Resource_4lwry"), SubResource("Resource_6nosq"), SubResource("Resource_t52mm"), SubResource("Resource_ppr2o"), SubResource("Resource_otjpj"), SubResource("Resource_7ng5a"), SubResource("Resource_ebebv")])
+events = Array[ExtResource("1_ogx7f")]([SubResource("Resource_iegmr"), SubResource("Resource_ad3wo"), SubResource("Resource_lixtm"), SubResource("Resource_iykwh"), SubResource("Resource_7n1eu"), SubResource("Resource_quc0j"), SubResource("Resource_dm15n"), SubResource("Resource_s25x4"), SubResource("Resource_ok6lw"), SubResource("Resource_g3p0k"), SubResource("Resource_4lwry"), SubResource("Resource_6nosq"), SubResource("Resource_t52mm"), SubResource("Resource_ppr2o"), SubResource("Resource_otjpj"), SubResource("Resource_7ng5a"), SubResource("Resource_ebebv"), SubResource("Resource_r3314")])
 music = "sector2"
 nebula_a = Color(0.08, 0.11, 0.18, 1)
 nebula_b = Color(0.32, 0.17, 0.04, 1)

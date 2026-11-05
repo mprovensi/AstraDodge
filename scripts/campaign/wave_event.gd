@@ -22,6 +22,7 @@ enum Kind {
 	SLIDE,       ## `count` paredes móveis em sequência (a brecha desliza de lado)
 	BLACKOUT,    ## blecaute por `duration` s: só a luz em volta da nave
 	INVERT,      ## inversão: aviso e depois `duration` s de rochas vindo de baixo
+	MOTHERSHIP,  ## nave-mãe cruza o alto da tela; derrubada solta um contêiner de módulo
 }
 
 @export var at := 0.0                ## segundos desde o início do setor

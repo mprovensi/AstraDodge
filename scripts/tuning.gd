@@ -156,6 +156,18 @@ const INVERT_SETTLE := 1.5          # s sem rochas novas depois da inversão
 const ESCAPE_TIME := 4.5            # cena de fuga depois do chefe final
 const ESCAPE_SCROLL := 2600.0       # "motor de dobra": estrelas viram riscos
 
+# --- Nave-mãe (chefe intermediário, PLANO_CARTAS.md C3) ---
+const MOTHERSHIP_HP := 40
+const MOTHERSHIP_RADIUS := 70.0
+const MOTHERSHIP_SPEED := 30.0       # px/s de lado: leva ~35 s para atravessar a tela
+const MOTHERSHIP_Y_RATIO := 0.17     # altura em que voa (acima da área da nave)
+const MOTHERSHIP_FIRE := 2.6         # s entre leques
+const MOTHERSHIP_CHARGE := 0.6       # o canhão brilha antes do leque (aviso)
+const MOTHERSHIP_SHOTS := 5
+const MOTHERSHIP_SPREAD := 56.0      # graus do leque
+const MOTHERSHIP_SHOT_SPEED := 300.0
+const MOTHERSHIP_SCORE := 300
+
 # --- Chefes ---
 const BOSS_ALERT_TIME := 2.6       # tela "ALERTA" + sirene antes do chefe entrar
 const BOSS_ALARM_BEEPS := 3

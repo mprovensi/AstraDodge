@@ -11,8 +11,11 @@ extends Node2D
 ## - SWARM (Setor 6): inseto do enxame — fraco (1 tiro), vem em grupo e segue a nave de leve.
 ## - EGG (Setor 6): ovo que desce com o cenário; se não for destruído a tempo, eclode em
 ##   EGG_LARVAE insetos. O anel em volta mostra quanto falta para eclodir.
+## - MOTHERSHIP (todos os setores): chefe intermediário que atravessa a tela devagar lá em cima,
+##   atirando em leque (o canhão brilha antes). Derrubada solta um contêiner de módulo; se
+##   chegar ao outro lado, foge (sem punição).
 
-enum Kind { DRONE, MINE, TURRET, MISSILE, SWARM, EGG }
+enum Kind { DRONE, MINE, TURRET, MISSILE, SWARM, EGG, MOTHERSHIP }
 
 class Enemy:
 	var id := 0
@@ -40,6 +43,7 @@ var _next_id := 0
 var _blasts: Array[Vector3] = []  # explosões deste passo (x, y, raio) — o Main confere a nave
 var _target := Vector2.ZERO       # posição da nave (o cano das torretas aponta para ela)
 var hatched := 0                  # ovos que eclodiram (testes)
+var escaped := 0                  # naves-mãe que fugiram (testes)
 
 
 func resize(size: Vector2) -> void:
@@ -169,6 +173,19 @@ func update(dt: float, target: Vector2, scroll_speed := 0.0) -> void:
 						hatched += 1
 						hatch_at.append(e.pos)  # as larvas nascem depois do laço
 						Sfx.play("hit", -6.0, 0.6, 0.0, e.pos)
+			Kind.MOTHERSHIP:
+				e.pos.x += e.vel.x * dt
+				e.pos.y = view_size.y * Tuning.MOTHERSHIP_Y_RATIO + sin(e.t * 1.3) * 18.0
+				e.fire_timer -= dt
+				if e.fire_timer <= 0.0 and e.pos.x > 0.0 and e.pos.x < view_size.x:
+					e.fire_timer = Tuning.MOTHERSHIP_FIRE
+					shots.fire_fan(e.pos + Vector2(0, e.radius * 0.6), PI * 0.5, Tuning.MOTHERSHIP_SHOTS,
+							Tuning.MOTHERSHIP_SPREAD, Tuning.MOTHERSHIP_SHOT_SPEED, EnemyBulletLayer.Kind.ORB)
+					Sfx.play("laser", -6.0, 0.5, 0.0, e.pos)
+				# Atravessou a tela: foge.
+				if (e.vel.x > 0.0 and e.pos.x > view_size.x + e.radius * 2.0) or (e.vel.x < 0.0 and e.pos.x < -e.radius * 2.0):
+					e.alive = false
+					escaped += 1
 		if e.pos.y - e.radius > view_size.y:
 			e.alive = false
 	for i in range(enemies.size() - 1, -1, -1):
@@ -237,6 +254,9 @@ func _draw() -> void:
 			continue
 		if e.kind == Kind.SWARM:
 			_draw_swarm(e)
+			continue
+		if e.kind == Kind.MOTHERSHIP:
+			_draw_mothership(e)
 			continue
 		if e.kind == Kind.EGG:
 			_draw_egg(e)
@@ -337,3 +357,40 @@ func _draw_egg(e: Enemy) -> void:
 	if e.armed >= 0.0:
 		var c := Color(0.9, 0.85, 0.3).lerp(Palette.DANGER_HDR, k)
 		draw_arc(e.pos, r * 1.45, -PI * 0.5, -PI * 0.5 + TAU * k, 32, c, 5.0, true)
+
+
+## Nave-mãe: casco largo de facção inimiga (escuro + vermelho), canhão na frente que brilha
+## antes do leque, e uma barrinha de vida em cima.
+func spawn_mothership(from_left: bool) -> Enemy:
+	var x := -Tuning.MOTHERSHIP_RADIUS * 1.5 if from_left else view_size.x + Tuning.MOTHERSHIP_RADIUS * 1.5
+	var e := _new_enemy(Kind.MOTHERSHIP, Vector2(x, view_size.y * Tuning.MOTHERSHIP_Y_RATIO),
+			Tuning.MOTHERSHIP_HP, Tuning.MOTHERSHIP_RADIUS)
+	e.vel = Vector2(Tuning.MOTHERSHIP_SPEED * (1.0 if from_left else -1.0), 0.0)
+	e.fire_timer = 2.0
+	return e
+
+
+func _draw_mothership(e: Enemy) -> void:
+	var r := e.radius
+	# Casco dentro do círculo de colisão (tiro que encosta no desenho acerta).
+	var hull := PackedVector2Array([e.pos + Vector2(-r * 1.05, -r * 0.1), e.pos + Vector2(-r * 0.7, -r * 0.65),
+			e.pos + Vector2(r * 0.7, -r * 0.65), e.pos + Vector2(r * 1.05, -r * 0.1),
+			e.pos + Vector2(r * 0.65, r * 0.7), e.pos + Vector2(-r * 0.65, r * 0.7)])
+	draw_colored_polygon(hull, Palette.WHITE_HDR if e.flash > 0.0 else Color(0.2, 0.16, 0.2))
+	draw_polyline(hull + PackedVector2Array([hull[0]]), Palette.ENEMY_HDR, 4.0, true)
+	# Detalhes: ponte e motores laterais.
+	draw_rect(Rect2(e.pos + Vector2(-r * 0.35, -r * 0.45), Vector2(r * 0.7, r * 0.3)), Color(0.35, 0.12, 0.12))
+	for side: float in [-1.0, 1.0]:
+		var eng := e.pos + Vector2(side * r * 0.8, 0.05 * r)
+		draw_circle(eng, r * 0.18, Color(Palette.FLAME_HDR, 0.8 + 0.2 * sin(e.t * 30.0)))
+	# Canhão: brilha nos instantes antes do leque (aviso).
+	var charge := 1.0 - clampf(e.fire_timer / Tuning.MOTHERSHIP_CHARGE, 0.0, 1.0)
+	var muzzle := e.pos + Vector2(0, r * 0.55)
+	draw_circle(muzzle, 12.0 + 10.0 * charge, Palette.ENEMY.lerp(Palette.ENEMY_HDR, charge))
+	if charge > 0.0:
+		draw_arc(muzzle, 30.0 + 20.0 * (1.0 - charge), 0.0, TAU, 24, Color(Palette.DANGER_HDR, 0.7), 3.0, true)
+	# Vida.
+	var w := r * 2.0
+	var ratio := float(e.hp) / float(e.max_hp)
+	draw_rect(Rect2(e.pos + Vector2(-w * 0.5, -r * 0.95), Vector2(w, 8.0)), Color(0.2, 0.05, 0.05, 0.8))
+	draw_rect(Rect2(e.pos + Vector2(-w * 0.5, -r * 0.95), Vector2(w * ratio, 8.0)), Palette.DANGER_HDR)

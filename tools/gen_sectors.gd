@@ -4,6 +4,7 @@ extends SceneTree
 ## Uso: godot --headless --path . --script res://tools/gen_sectors.gd
 
 const OUT := "res://data/sectors"
+const MOTHERSHIP_AT := 60.0
 
 
 func _initialize() -> void:
@@ -329,6 +330,8 @@ func _sector_1() -> SectorData:
 
 
 func _save(s: SectorData) -> void:
+	# Nave-mãe no meio de todo setor (PLANO_CARTAS.md C3); o diretor ordena por tempo.
+	s.events.append(WaveEvent.make(MOTHERSHIP_AT, WaveEvent.Kind.MOTHERSHIP))
 	var path := "%s/%s.tres" % [OUT, s.id]
 	var err := ResourceSaver.save(s, path)
 	print("%s -> %s" % [path, "OK" if err == OK else "ERRO %d" % err])

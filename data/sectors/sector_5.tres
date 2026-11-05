@@ -128,6 +128,11 @@ at = 144.0
 kind = 7
 text = "ice_colossus"
 
+[sub_resource type="Resource" id="Resource_y0uf0"]
+script = ExtResource("1_4w6ai")
+at = 60.0
+kind = 19
+
 [resource]
 script = ExtResource("2_c6av1")
 id = "sector_5"
@@ -136,7 +141,7 @@ title = "SETOR 5"
 subtitle = "Anel Glacial"
 difficulty_start = 0.55
 difficulty_end = 0.9
-events = Array[ExtResource("1_4w6ai")]([SubResource("Resource_euow4"), SubResource("Resource_01br1"), SubResource("Resource_cqs25"), SubResource("Resource_jked8"), SubResource("Resource_asv7y"), SubResource("Resource_u4dun"), SubResource("Resource_dvhg1"), SubResource("Resource_ers7b"), SubResource("Resource_y88n1"), SubResource("Resource_f2tmv"), SubResource("Resource_j77ua"), SubResource("Resource_7g4s7"), SubResource("Resource_vwi8a"), SubResource("Resource_r7whn"), SubResource("Resource_3twhe"), SubResource("Resource_xgo2g"), SubResource("Resource_tdxiu"), SubResource("Resource_yao4n"), SubResource("Resource_u86ox")])
+events = Array[ExtResource("1_4w6ai")]([SubResource("Resource_euow4"), SubResource("Resource_01br1"), SubResource("Resource_cqs25"), SubResource("Resource_jked8"), SubResource("Resource_asv7y"), SubResource("Resource_u4dun"), SubResource("Resource_dvhg1"), SubResource("Resource_ers7b"), SubResource("Resource_y88n1"), SubResource("Resource_f2tmv"), SubResource("Resource_j77ua"), SubResource("Resource_7g4s7"), SubResource("Resource_vwi8a"), SubResource("Resource_r7whn"), SubResource("Resource_3twhe"), SubResource("Resource_xgo2g"), SubResource("Resource_tdxiu"), SubResource("Resource_yao4n"), SubResource("Resource_u86ox"), SubResource("Resource_y0uf0")])
 music = "sector5"
 nebula_a = Color(0.06, 0.14, 0.3, 1)
 nebula_b = Color(0.2, 0.27, 0.34, 1)
