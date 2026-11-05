@@ -2,7 +2,7 @@ extends Node2D
 ## Orquestra a partida: menu, modos (campanha/infinito), estados, input de arraste,
 ## dificuldade, eventos do setor, colisões e pontuação.
 
-enum State { MENU, READY, PLAYING, SLOWMO, PAUSED, DYING, GAME_OVER, SECTOR_CLEAR }
+enum State { MENU, READY, PLAYING, SLOWMO, PAUSED, DYING, GAME_OVER, SECTOR_CLEAR, CHOOSE }  # CHOOSE: escolhendo módulo
 enum Mode { ENDLESS, CAMPAIGN }
 
 const DYING_TIME := 1.2
@@ -97,6 +97,11 @@ var _no_hit_t := 0.0
 var _last_raw := 0                      # pontos "crus" já somados (o multiplicador vale para os novos)
 var _biomes_seen := {}                  # cenários vistos nesta partida (estatísticas)
 var _best_multiplier := 1.0
+# Módulos (PLANO_CARTAS.md)
+var modules := Modules.new()
+var auto_pick_modules := false        # testes/demo: escolhe a 1ª carta sozinho
+var _offer: Array[String] = []
+var _hand_at_start := {}              # mão no começo do setor (morrer recomeça com ela)
 var _mod := "none"                      # modificador do Infinito nesta partida (Game.MODS)
 var _mod_bonus := 1.0
 var _env: Environment
@@ -153,6 +158,7 @@ func _ready() -> void:
 	hud.continue_pressed.connect(_on_continue)
 	hud.menu_pressed.connect(go_to_menu)
 	hud.next_pressed.connect(_on_next_sector)
+	hud.module_chosen.connect(_on_module_chosen)
 	hud.quit_pressed.connect(_on_quit)
 	asteroids.row_spawned.connect(_on_row_spawned)
 	get_viewport().size_changed.connect(_on_resized)
@@ -266,6 +272,7 @@ func go_to_menu() -> void:
 func start_new_game() -> void:
 	_touch_index = -1
 	Game.clear_checkpoint()
+	_hand_at_start = {}  # novo jogo: sem módulos
 	start_mode(Mode.CAMPAIGN)
 
 
@@ -275,6 +282,7 @@ func start_sector_dev(index: int, at_boss: bool) -> void:
 	if not OS.is_debug_build():
 		return
 	_touch_index = -1
+	_hand_at_start = {}
 	start_mode(Mode.CAMPAIGN, clampi(index, 0, SECTORS.size() - 1))
 	ship.weapon_level = clampi(index + 1, 2, 4)
 	if at_boss:
@@ -332,6 +340,12 @@ func _new_run() -> void:
 	_biomes_seen = {}
 	_best_multiplier = 1.0
 	_daily_official = daily and Game.daily_available()
+	# Módulos: na campanha começa com a mão do começo do setor; no Infinito/Desafio, vazia.
+	if mode == Mode.CAMPAIGN:
+		modules.load_dict(_hand_at_start)
+	else:
+		modules.clear()
+	_apply_modules()
 	enemies_destroyed = 0
 	dust_destroyed = 0
 	scroll_speed = Tuning.SCROLL_SPEED_START
@@ -419,17 +433,22 @@ func resume_checkpoint() -> void:
 	var cp := Game.checkpoint
 	if cp.is_empty():
 		return
+	_hand_at_start = cp.get("modules_start", {})  # morrer recomeça o setor com a mão do começo dele
 	start_mode(Mode.CAMPAIGN, clampi(int(cp.get("sector", 0)), 0, SECTORS.size() - 1))
 	director.seek(float(cp.get("time", 0.0)))
 	elapsed = float(cp.get("elapsed", 0.0))
 	distance = float(cp.get("distance", 0.0))
 	bonus_score = int(cp.get("bonus", 0))
 	score = int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
+	_last_raw = score  # os pontos novos (com módulos) contam a partir daqui
+	score = int(cp.get("score", score))  # a pontuação salva (com os multiplicadores dos módulos)
 	_revive_used = bool(cp.get("revive_used", false))
 	ship.shield = float(cp.get("shield", Tuning.SHIELD_MAX))
 	ship.last_chance = bool(cp.get("last_chance", false))
 	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.WEAPON_MAX_LEVEL)
 	ship.crystals = int(cp.get("crystals", 0))
+	modules.load_dict(cp.get("modules", {}))
+	_apply_modules()
 	ship.invuln = Tuning.REVIVE_INVULN_TIME
 	asteroids.dust_spawned = int(cp.get("dust_spawned", 0))
 	dust_destroyed = int(cp.get("dust_destroyed", 0))
@@ -460,6 +479,9 @@ func _save_checkpoint() -> void:
 		"crystals": ship.crystals,
 		"dust_spawned": asteroids.dust_spawned,
 		"dust_destroyed": dust_destroyed,
+		"score": score,
+		"modules": modules.to_dict(),
+		"modules_start": _hand_at_start,
 	})
 
 
@@ -495,6 +517,7 @@ func _on_next_sector() -> void:
 	var weapon := ship.weapon_level
 	var crystals := ship.crystals
 	_touch_index = -1
+	_hand_at_start = modules.to_dict()  # os módulos continuam no próximo setor
 	start_mode(Mode.CAMPAIGN, sector_index + 1)
 	ship.weapon_level = weapon
 	ship.crystals = crystals
@@ -564,7 +587,8 @@ func _set_state(new_state: State) -> void:
 			# Próximo setor liberado: o "Continuar" do menu já leva para ele, com a arma atual.
 			if _has_next_sector():
 				Game.set_checkpoint({"sector": sector_index + 1, "time": 0.0,
-						"weapon": ship.weapon_level, "crystals": ship.crystals})
+						"weapon": ship.weapon_level, "crystals": ship.crystals,
+						"modules": modules.to_dict(), "modules_start": modules.to_dict()})
 			else:
 				Game.clear_checkpoint()
 			var is_record := Game.submit_sector(director.sector.id, score, true)
@@ -817,7 +841,9 @@ func _update_storm(dt: float) -> void:
 func _update_score(dt: float) -> void:
 	var raw := int(distance * Tuning.SCORE_PER_PIXEL) + bonus_score
 	if mode == Mode.CAMPAIGN:
-		score = raw
+		# Campanha: distância + bônus (o módulo VIDRO multiplica os pontos novos).
+		score += int(round((raw - _last_raw) * modules.score_scale()))
+		_last_raw = raw
 		return
 	_biomes_seen[_biome] = true
 	if ship.alive:
@@ -827,7 +853,7 @@ func _update_score(dt: float) -> void:
 		if multiplier > before:
 			hud.on_multiplier_up(multiplier)
 		_best_multiplier = maxf(_best_multiplier, multiplier)
-	score += int(round((raw - _last_raw) * multiplier * _mod_bonus))
+	score += int(round((raw - _last_raw) * multiplier * _mod_bonus * modules.score_scale()))
 	_last_raw = raw
 
 
@@ -951,8 +977,16 @@ func _bullet_hits_boss(b: BulletLayer.Bullet) -> bool:
 
 func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> void:
 	if a.kind == AsteroidField.Kind.METAL:
-		# Metálicos são indestrutíveis: o tiro ricocheteia.
-		b.alive = false
+		# Metálicos são indestrutíveis: o tiro ricocheteia. Com o módulo RICOCHETE ele
+		# continua voando (espelhado na superfície) e pode acertar outra coisa.
+		if b.bounces_left > 0:
+			b.bounces_left -= 1
+			var normal := (b.pos - a.pos).normalized()
+			b.vel = b.vel.bounce(normal)
+			b.pos = a.pos + normal * (a.radius + 6.0)
+			b.prev = b.pos
+		else:
+			b.alive = false
 		fx.spark(b.pos, Palette.METAL_LINE)
 		asteroids.impact(a, b.vel.normalized())
 		Sfx.play("ricochet", -3.0, 1.0, 0.1, b.pos)
@@ -960,6 +994,10 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 		return
 	if b.pierce:
+		b.hit_ids[a.id] = true
+	elif b.pierce_left > 0:
+		# Módulo PERFURANTE: atravessa esta poeira e segue.
+		b.pierce_left -= 1
 		b.hit_ids[a.id] = true
 	else:
 		b.alive = false
@@ -1059,6 +1097,7 @@ func _check_ship_hits() -> void:
 func _damage_ship(amount: float) -> bool:
 	if _mod == "fragile":
 		amount *= 2.0  # modificador ESCUDO FRÁGIL
+	amount *= modules.damage_scale()  # módulo VIDRO
 	var result := ship.take_hit(amount)
 	if result == Ship.HitResult.IGNORED:
 		return false
@@ -1134,8 +1173,11 @@ func _on_enemy_destroyed(e: EnemyLayer.Enemy) -> void:
 
 
 func _on_pickup(kind: int) -> void:
+	if kind == PickupLayer.Kind.CARGO:
+		_open_module_pick()
+		return
 	if kind == PickupLayer.Kind.SHIELD:
-		if ship.add_shield(Tuning.SHIELD_ORB_VALUE):
+		if ship.add_shield(Tuning.SHIELD_ORB_VALUE * modules.heal_scale()):  # módulo MÉDICO
 			bonus_score += Tuning.SCORE_LAST_CHANCE_SAVE
 		fx.burst(ship.position, Palette.NEON_HDR, 10, 220.0, 0.3, 4.0)
 		Sfx.play("pickup_shield", -6.0)
@@ -1143,6 +1185,56 @@ func _on_pickup(kind: int) -> void:
 		ship.add_crystal()
 		fx.burst(ship.position, Palette.MAGENTA_HDR, 10, 220.0, 0.3, 4.0)
 		Sfx.play("pickup_crystal", -6.0)
+
+
+# ---------------------------------------------------------------- módulos
+
+## Contêiner de carga coletado: pausa e oferece 3 módulos (cartas).
+func _open_module_pick() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = randi()
+	_offer = modules.offer(rng)
+	Sfx.play("level_up", -4.0, 0.8, 0.0)
+	if auto_pick_modules:
+		_on_module_chosen(0)
+		return
+	_touch_index = -1
+	state = State.CHOOSE
+	var cards := []
+	for id in _offer:
+		cards.append(modules.card_text(id))
+	hud.show_module_pick(cards, _hand_text(), not Game.modules_seen)
+
+
+func _hand_text() -> String:
+	if modules.hand.is_empty():
+		return "Na nave: nenhum módulo (até %d)" % Modules.MAX_HAND
+	var parts: Array[String] = []
+	for id: String in modules.hand:
+		parts.append("%s %s" % [Modules.CATALOG[id][0], ["", "I", "II", "III"][modules.hand[id]]])
+	return "Na nave: " + " · ".join(parts)
+
+
+func _on_module_chosen(index: int) -> void:
+	var id: String = _offer[clampi(index, 0, _offer.size() - 1)]
+	if id == Modules.REPAIR:
+		ship.shield = Tuning.SHIELD_MAX
+		ship.last_chance = false
+	else:
+		modules.take(id)
+	Game.modules_seen = true
+	Game.save_data()
+	_apply_modules()
+	hud.hide_module_pick()
+	if state == State.CHOOSE:
+		_set_state(State.READY)  # toque para voltar a pilotar
+
+
+## Valores dos módulos que outras camadas usam direto.
+func _apply_modules() -> void:
+	pickups.magnet_scale = modules.magnet_scale()
+	bullets.bounces = modules.ricochets()
+	bullets.pierces = modules.pierces()
 
 
 func _on_weapon_level_changed(level: int, went_up: bool) -> void:
@@ -1156,6 +1248,14 @@ func _on_shield_depleted() -> void:
 	Game.vibrate(120)
 	_shake = maxf(_shake, 10.0)
 	Sfx.play("alarm", -4.0, 1.0, 0.0)
+	# Módulo ESCUDO EXPLOSIVO: o escudo quebra explodindo e limpa o que está em volta.
+	var radius := modules.blast_radius()
+	if radius > 0.0:
+		asteroids.clear_around(ship.position, radius)
+		enemies.clear_around(ship.position, radius)
+		fx.explosion(ship.position, radius * 0.6, Palette.NEON_HDR)
+		_shake = maxf(_shake, 22.0)
+		Sfx.play("explosion", 0.0, 0.7, 0.0, ship.position)
 
 
 func _on_ship_died() -> void:
@@ -1246,6 +1346,10 @@ func _on_boss_defeated() -> void:
 				at.y + randf_range(-80.0, 120.0)), kind)
 	hud.show_hint("%s DERROTADA!" % boss.display_name, 3.0)
 	var final_boss := mode == Mode.CAMPAIGN and not _has_next_sector()
+	# Contêiner de carga: escolha de um módulo (PLANO_CARTAS.md). O primeiro vem da Rocha-Mãe.
+	# (Não no chefe final: a campanha acabou.)
+	if not final_boss:
+		pickups.spawn(Vector2(at.x, at.y), PickupLayer.Kind.CARGO)
 	_clear_boss()
 	Game.vibrate(200)
 	if final_boss:

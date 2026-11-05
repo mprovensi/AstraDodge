@@ -135,3 +135,25 @@ Raridade: **comum** (aparece mais), **rara**, **épica** (Raio Carregado, Drone 
 3. **Campanha**: cartas continuam entre setores (recomendado) ou zeram a cada setor?
 4. **Naves-mãe** no meio de todo setor, ou só a partir do Setor 2?
 5. Prioridade: fazer as cartas **antes** ou **depois** do resto da Fase 1 (física P/M/G, materiais)?
+
+---
+
+## 9. Decisões (05/11/2026)
+1. **Nome: MÓDULOS** (no formato de cartas). No texto do jogo: "módulo", "contêiner de carga".
+2. **Mão: até 3 módulos.** Pegar um que já tem sobe o nível (I → II → III).
+3. **Campanha: os módulos continuam entre os setores** (e o checkpoint guarda a mão).
+4. **Naves-mãe em todos os setores.**
+5. **O sistema começa ao derrotar o chefe do Setor 1**: a Rocha-Mãe solta o primeiro contêiner
+   (e a tela ensina o que são módulos). Antes disso, nada de módulos/oficina.
+
+---
+
+## Status
+
+**C1 — Base dos módulos: concluído (05/11/2026)**
+- [x] `scripts/modules.gd`: catálogo, mão de 3 com níveis I–III, oferta de 3 cartas (com REPARO quando faltam opções)
+- [x] Contêiner de carga dourado que os chefes derrubam (puxado até a nave); a Rocha-Mãe solta o primeiro (a tela explica o que são módulos); o chefe final não solta
+- [x] Tela de escolha com 3 cartas coloridas pela categoria; o jogo pausa e volta com "toque para pilotar"
+- [x] 6 módulos: Ricochete (metal e bordas), Perfurante, Ímã, Médico, Escudo Explosivo, Vidro
+- [x] Campanha: a mão segue para o próximo setor e vai para o checkpoint; morrer recomeça o setor com a mão do começo dele
+- [x] Testes: regras da mão/oferta, contêiner abre a escolha, efeitos, próximo setor e checkpoint

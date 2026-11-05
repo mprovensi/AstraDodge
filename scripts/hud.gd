@@ -14,6 +14,7 @@ signal quit_pressed
 signal new_game_pressed
 signal next_pressed
 signal dev_sector_pressed(index: int, at_boss: bool)  ## seletor de fases (só build de desenvolvimento)
+signal module_chosen(index: int)  ## escolheu uma das 3 cartas do contêiner de carga
 
 const BAR_WIDTH := 300.0
 const BAR_HEIGHT := 12.0
@@ -96,6 +97,11 @@ var _mod_info: Label
 var _graphics_button: Button
 var _fps_label: Label           # só em build de desenvolvimento
 var _fps_window: Array[float] = []  # duração dos quadros dos últimos 3 s
+var _module_layer: Control       # tela do contêiner de carga (escolha de módulo)
+var _module_title: Label
+var _module_sub: Label
+var _module_hand: Label
+var _module_cards: Array[Button] = []
 var _sensitivity_label: Label
 var _new_game_button: Button
 var _new_game_armed := 0.0  # > 0: aguardando o toque de confirmação
@@ -346,7 +352,8 @@ func set_safe_top(px: float) -> void:
 
 ## True se o toque caiu em algum botão/tela de opções (não deve iniciar a partida).
 func blocks_touch(pos: Vector2) -> bool:
-	if _options_layer.visible or (_dev_layer != null and _dev_layer.visible):
+	if _options_layer.visible or (_dev_layer != null and _dev_layer.visible) \
+			or (_module_layer != null and _module_layer.visible):
 		return true
 	for b: Button in _buttons.values():
 		if b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
@@ -534,6 +541,68 @@ func _add_center_button(id: String, text: String, action: Callable, click := tru
 ## SELETOR DE FASES (modo dev): uma linha por setor — começar do início ou direto no chefe.
 ## Só é montado e mostrado em build de desenvolvimento (APK debug / editor).
 ## `sectors`: [[título, subtítulo], ...] na ordem da campanha.
+## CONTÊINER DE CARGA: escolha 1 de 3 módulos (cartas). `cards`: [[título, categoria, descrição], ...].
+## `hand_text`: o que já está na nave. `first`: primeira vez (explica o que são módulos).
+func show_module_pick(cards: Array, hand_text: String, first: bool) -> void:
+	if _module_layer == null:
+		_build_module_layer()
+	_module_title.text = "CONTÊINER DE CARGA"
+	_module_sub.text = ("MÓDULOS mudam o jeito de jogar e continuam\nnos próximos setores. Escolha um:"
+			if first else "Escolha um módulo:")
+	for i in 3:
+		var c: Array = cards[i]
+		var color: Color = Modules.CATEGORY_COLORS.get(c[1], Color.WHITE)
+		var b: Button = _module_cards[i]
+		b.text = "%s\n%s · %s" % [c[0], c[1], c[2]]
+		for state in ["normal", "hover", "pressed"]:
+			var sb: StyleBoxFlat = b.get_theme_stylebox(state)
+			sb.border_color = color
+		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			b.add_theme_color_override(state, color.lerp(Color.WHITE, 0.35))
+	_module_hand.text = hand_text
+	_center.visible = false
+	_module_layer.visible = true
+
+
+func hide_module_pick() -> void:
+	if _module_layer != null:
+		_module_layer.visible = false
+
+
+func _build_module_layer() -> void:
+	_module_layer = Control.new()
+	_module_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_module_layer.visible = false
+	_options_layer.get_parent().add_child(_module_layer)
+	var backdrop := ColorRect.new()
+	backdrop.color = Color(0.0, 0.0, 0.03, 0.88)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_module_layer.add_child(backdrop)
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 26)
+	_module_layer.add_child(box)
+	_module_title = _make_label("", 64, Color(1.0, 0.82, 0.3))
+	box.add_child(_module_title)
+	_module_sub = _make_label("", 32, Color.WHITE)
+	box.add_child(_module_sub)
+	_module_cards.clear()
+	for i in 3:
+		var b := _make_button("")
+		b.custom_minimum_size = Vector2(920, 190)
+		b.add_theme_font_size_override("font_size", 36)
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		b.pressed.connect(func() -> void:
+			Sfx.play("level_up", -4.0, 1.2, 0.0)
+			module_chosen.emit(i))
+		box.add_child(b)
+		_module_cards.append(b)
+	_module_hand = _make_label("", 28, Palette.TEXT_DIM)
+	box.add_child(_module_hand)
+
+
 func setup_dev_selector(sectors: Array) -> void:
 	if not OS.is_debug_build() or _dev_layer != null:
 		return

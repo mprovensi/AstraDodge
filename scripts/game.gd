@@ -59,6 +59,7 @@ func load_data() -> void:
 	skin = clampi(cfg.get_value("options", "skin", 0), 0, SKINS.size() - 1)
 	mod = clampi(cfg.get_value("options", "mod", 0), 0, MODS.size() - 1)
 	graphics = clampi(cfg.get_value("options", "graphics", 0), 0, 2)
+	modules_seen = cfg.get_value("campaign", "modules_seen", false)
 
 
 func save_data() -> void:
@@ -81,6 +82,7 @@ func save_data() -> void:
 	cfg.set_value("options", "skin", skin)
 	cfg.set_value("options", "mod", mod)
 	cfg.set_value("options", "graphics", graphics)
+	cfg.set_value("campaign", "modules_seen", modules_seen)
 	cfg.save(SAVE_PATH)
 
 
@@ -283,3 +285,7 @@ func graphics_simple() -> bool:
 func next_graphics() -> void:
 	graphics = (graphics + 1) % GRAPHICS_NAMES.size()
 	save_data()
+
+
+## Módulos (PLANO_CARTAS.md): o primeiro contêiner explica o sistema.
+var modules_seen := false

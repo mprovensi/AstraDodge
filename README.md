@@ -125,11 +125,20 @@ Opções depois de `--`: `--velocidade=N`, `--setor=N`, `--inicio=SEGUNDOS`, `--
 No Claude Code, a skill **ver-jogo-rapido** faz isso a pedido ("quero ver o jogo rápido", "ver o chefe do setor 2").
 
 ## Testes
-Teste de fumaça (simula 4 minutos de partidas sem abrir janela):
+
+**Rodam sozinhos a cada envio ao GitHub** (`.github/workflows/testes.yml`): o GitHub baixa o Godot e
+roda a bateria completa (~10 min). O resultado aparece na aba **Actions** do repositório (✅/❌) e o
+log fica guardado em cada execução.
+
+No PC, a mesma bateria com resumo (sai com erro se algo falhar):
 
 ```
-Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/smoke_test.gd
+powershell -ExecutionPolicy Bypass -File tools\rodar_testes.ps1
 ```
+
+O que a bateria cobre (`tests/smoke_test.gd`): o bot joga a campanha inteira (8 setores e chefes) e o
+Infinito; Desafio do Dia; checkpoint/Continuar; rota segura de todos os chefes; colisão × desenho de
+chefes, rochas e todos os quadros do giro 3D; tiro que não atravessa rocha; módulos; gráficos; volume.
 
 `tests/demo_capture.gd` grava frames de uma demo automática (`--write-movie`) para conferir o visual.
 Os testes não alteram o save real.

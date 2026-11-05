@@ -16,6 +16,7 @@ func _initialize() -> void:
 	game.sectors_cleared = {}
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	main.auto_pick_modules = true  # os bots não param na tela de módulos
 	# _ready só roda quando a árvore processa o primeiro frame.
 	process_frame.connect(_run, CONNECT_ONE_SHOT)
 
@@ -40,6 +41,7 @@ func _run() -> void:
 	_test_endless_run()
 	_test_daily()
 	_test_polish()
+	_test_modules()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -1125,6 +1127,66 @@ func _test_polish() -> void:
 	main.daily = false
 	main.go_to_menu()
 	print("POLIMENTO OK | volume por barramento | skins e modificadores por estrelas")
+
+
+## MÓDULOS (PLANO_CARTAS.md): mão de 3 com níveis, oferta sempre com 3 cartas, contêiner do
+## chefe abre a escolha, efeitos (perfurante, ricochete, vidro) e a mão segue para o próximo setor.
+func _test_modules() -> void:
+	var m = load("res://scripts/modules.gd").new()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	assert(m.offer(rng).size() == 3)
+	assert(m.take("ricochete") and m.take("ima") and m.take("vidro"), "cabem 3 módulos")
+	assert(not m.take("medico"), "a mão tem no máximo 3")
+	assert(m.take("ricochete") and m.level("ricochete") == 2, "repetido sobe o nível")
+	for i in 20:
+		for id in m.offer(rng):
+			assert(id == "reparo" or m.hand.has(id), "mão cheia: só oferece subir nível (ou reparo)")
+	m.take("ricochete")
+	m.take("ima")
+	m.take("ima")
+	m.take("vidro")
+	m.take("vidro")
+	var all_repair: Array[String] = ["reparo", "reparo", "reparo"]
+	assert(m.offer(rng) == all_repair, "tudo no máximo: reparo")
+
+	# Contêiner do chefe → escolha → efeitos aplicados.
+	main.go_to_menu()
+	main.start_sector_dev(0, false)
+	_touch(true)
+	main.auto_pick_modules = false
+	main.pickups.spawn(main.ship.position, 2)  # CARGO em cima da nave
+	main._process(DT)
+	assert(main.state == main.State.CHOOSE and main.hud._module_layer.visible, "contêiner abre a escolha")
+	var picked: String = main._offer[0]
+	main._on_module_chosen(0)
+	assert(main.state == main.State.READY and not main.hud._module_layer.visible)
+	assert(picked == "reparo" or main.modules.level(picked) == 1)
+	main.modules.load_dict({"perfurante": 2, "ricochete": 1, "vidro": 1})
+	main._apply_modules()
+	main.bullets.spawn(Vector2(500, 900), 0.0, false)
+	var b = main.bullets.pool[main.bullets.pool.size() - 1]
+	for x in main.bullets.pool:
+		if x.alive and x.pos == Vector2(500, 900):
+			b = x
+	assert(b.pierce_left == 2 and b.bounces_left == 1, "tiro novo leva perfurante e ricochete")
+	var before: float = main.ship.shield
+	main.ship.invuln = 0.0
+	main._damage_ship(10.0)
+	assert(is_equal_approx(before - main.ship.shield, 20.0), "vidro: dano em dobro")
+
+	# A mão continua no próximo setor e vai para o checkpoint.
+	main._set_state(main.State.SECTOR_CLEAR)
+	var game := root.get_node("Game")
+	assert(game.checkpoint.get("modules", {}).has("perfurante"), "checkpoint guarda a mão")
+	main._on_next_sector()
+	assert(main.modules.level("perfurante") == 2, "módulos seguem para o próximo setor")
+	main.auto_pick_modules = true
+	main.modules.clear()
+	main._hand_at_start = {}
+	game.checkpoint = {}
+	main.go_to_menu()
+	print("MODULOS OK | mao de 3, niveis, oferta, contêiner, efeitos e proximo setor")
 
 
 func _test_music() -> void:

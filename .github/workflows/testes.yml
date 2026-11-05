@@ -1,0 +1,48 @@
+# Testes automáticos: a cada envio (push) ou pull request, o GitHub baixa o Godot e roda a
+# bateria completa (tests/smoke_test.gd: campanha inteira com bot, Infinito, Desafio do Dia,
+# rota segura dos chefes, colisão x desenho, módulos...). Falhou = o envio aparece com ❌.
+# Rodar no PC: tools/rodar_testes.ps1 (mesma checagem).
+name: Testes
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  bateria:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GODOT_VERSION: 4.7.2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Baixar o Godot (headless)
+        run: |
+          wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip" -O godot.zip
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          chmod +x godot
+
+      - name: Importar recursos
+        run: ./godot --headless --path . --import || true
+
+      - name: Rodar a bateria de testes
+        run: |
+          ./godot --headless --path . --script res://tests/smoke_test.gd 2>&1 | tee testes.log
+          echo "----- resumo -----"
+          grep -E " OK( \||$)" testes.log | cut -d'|' -f1 || true
+          if grep -qE "SCRIPT ERROR|Assertion failed" testes.log; then
+            echo "::error::Algum teste falhou"
+            grep -A1 -E "SCRIPT ERROR|Assertion failed" testes.log
+            exit 1
+          fi
+          echo "TODOS OS TESTES PASSARAM"
+
+      - name: Guardar o log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-dos-testes
+          path: testes.log

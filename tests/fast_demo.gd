@@ -39,6 +39,7 @@ func _initialize() -> void:
 	root.get_node("Game").persist = false  # a demo nunca mexe no save real
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	main.auto_pick_modules = true  # a demo escolhe o 1º módulo sozinha
 	if not clean:
 		_add_overlay()
 	process_frame.connect(_tick)
