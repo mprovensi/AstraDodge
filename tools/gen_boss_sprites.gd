@@ -39,7 +39,7 @@ const BODIES := [
 		Vector2(-28, 0), [[Vector2(-28, -59), 90.0], [Vector2(-28, 59), 90.0]]],
 	["chefes/miner_02", "miner_body", "", false, Vector2(0.50, 0.42), 573.0, 664.0, 640,
 		Vector2.ZERO, [[Vector2(0, -10), 125.0], [Vector2.ZERO, 52.0], [Vector2(-172, 80), 48.0], [Vector2(172, 80), 48.0]]],
-	["chefes/medusa_01", "medusa_dome", "", false, Vector2(0.50, 0.53), 460.0, 440.0, 512,
+	["chefes2/medusa_cupula_01", "medusa_dome", "", false, Vector2(0.50, 0.52), 460.0, 440.0, 512,
 		Vector2.ZERO, [[Vector2(0, -47), 108.0], [Vector2(-95, 12), 52.0], [Vector2(95, 12), 52.0]]],
 	["chefes/ice_05", "ice_body", "", false, Vector2(0.46, 0.49), 300.0, 300.0, 384,
 		Vector2.ZERO, [[Vector2.ZERO, 128.0]]],

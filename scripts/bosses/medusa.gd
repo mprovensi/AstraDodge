@@ -352,8 +352,15 @@ func _draw() -> void:
 				false, tint)
 
 	# Núcleo: aberto (brilha laranja) ou com escudo (bolha violeta) na fase 2.
+	# Núcleo: bolha âmbar onde as veias da cúpula se encontram (a cúpula não tem coração).
+	if node_tex != null:
+		var dim := Color(0.55, 0.45, 0.55) if not (_core_open() or state == State.ENTERING) else tint
+		_draw_part(node_tex, center, CORE_RADIUS * 1.9 * pulse, 0.0, dim)
 	if _core_open() or state == State.ENTERING:
 		_weak_glow(center, CORE_RADIUS)
+	elif node_tex != null:
+		draw_arc(center, CORE_RADIUS * 1.05, 0.0, TAU, 40, Palette.ION_HDR, 5.0, true)
+		draw_arc(center, CORE_RADIUS * 1.25, _t * 2.0, _t * 2.0 + PI, 24, Color(Palette.ION, 0.6), 3.0, true)
 	else:
 		draw_circle(center, CORE_RADIUS * 0.7, Color(0.5, 0.25, 0.2))
 		draw_arc(center, CORE_RADIUS * 1.05, 0.0, TAU, 40, Palette.ION_HDR, 5.0, true)
