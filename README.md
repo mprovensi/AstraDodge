@@ -133,7 +133,7 @@ log fica guardado em cada execução.
 **Deploy de teste** (roda a bateria e só instala no celular se tudo passar):
 
 ```
-powershell -ExecutionPolicy Bypass -File toolsdeploy_dev.ps1
+powershell -ExecutionPolicy Bypass -File tools\deploy_dev.ps1
 ```
 
 No PC, só a bateria com resumo (sai com erro se algo falhar):
