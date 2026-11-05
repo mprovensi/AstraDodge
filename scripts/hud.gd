@@ -294,6 +294,7 @@ func _ready() -> void:
 	_add_center_button("options", "OPÇÕES", open_options, false)
 	_add_center_button("dev", "FASES (DEV)", open_dev_selector, false)
 	_add_center_button("menu", "MENU PRINCIPAL", menu_pressed.emit)
+	_add_center_button("home", "VOLTAR AO INÍCIO", menu_pressed.emit)  # na pausa
 	_add_center_button("quit", "SAIR DO JOGO", quit_pressed.emit)
 
 	_build_options(root)
@@ -442,7 +443,7 @@ func show_ready(title: String) -> void:
 
 
 func show_paused() -> void:
-	_show("PAUSADO", "Toque na tela para continuar", "", ["options", "quit"])
+	_show("PAUSADO", "Toque na tela para continuar", "", ["options", "home", "quit"])
 	_center.alignment = BoxContainer.ALIGNMENT_BEGIN
 	_center_spacer.visible = true
 	_dim.visible = true

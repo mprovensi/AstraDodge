@@ -1387,9 +1387,15 @@ func _test_background() -> void:
 	main._notification(Node.NOTIFICATION_APPLICATION_PAUSED)
 	assert(main.state == main.State.PAUSED, "ir para segundo plano pausa o jogo")
 	assert(int(game.checkpoint.get("sector", -1)) == 1, "e salva o ponto para Continuar")
+	# Pausa tem VOLTAR AO INÍCIO: vai para o menu e o ponto salvo continua (botão CONTINUAR).
+	assert(main.hud._buttons["home"].visible, "pausa mostra VOLTAR AO INÍCIO")
+	main.hud._buttons["home"].pressed.emit()
+	assert(main.state == main.State.MENU, "VOLTAR AO INÍCIO leva ao menu")
+	assert(int(game.checkpoint.get("sector", -1)) == 1, "voltar ao início não perde o ponto salvo")
+	assert(not main.hud._buttons["home"].visible, "no menu o botão da pausa some")
 	game.checkpoint = {}
 	main.go_to_menu()
-	print("SEGUNDO PLANO OK | pausa e salva o ponto")
+	print("SEGUNDO PLANO OK | pausa e salva o ponto | voltar ao inicio")
 
 
 ## JUSTIÇA DAS FILEIRAS (coração do jogo): em toda fileira aleatória os metálicos deixam a
