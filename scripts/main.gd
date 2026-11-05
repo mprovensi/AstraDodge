@@ -1512,6 +1512,9 @@ func _spawn_boss(boss_id: String) -> void:
 	if director.generator != null:
 		# Infinito: luta mais curta na 1ª aparição; cada repetição volta com mais vida.
 		boss.max_hp = maxi(1, roundi(boss.max_hp * director.generator.boss_hp_scale(boss_id)))
+	elif mode == Mode.CAMPAIGN:
+		boss.max_hp = maxi(1, roundi(boss.max_hp * Tuning.BOSS_HP_BY_SECTOR[clampi(sector_index, 0,
+				Tuning.BOSS_HP_BY_SECTOR.size() - 1)]))
 	world.add_child(boss)
 	world.move_child(boss, asteroids.get_index() + 1)  # atrás de tiros, pickups da frente e nave
 	boss.setup(view_size, enemy_shots, telegraph, asteroids, fx)
