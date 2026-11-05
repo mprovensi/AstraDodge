@@ -33,6 +33,16 @@
 | 3.3 | **Chefes no estilo novo (A6)** | os 8 chefes redesenhados no mesmo estilo da nave e das rochas |
 | 3.4 | **Obstáculos novos 2 (O4)** | rio de destroços, satélite giratório, ricochete, rocha magnética |
 
+## Fase 3B — Cartas (PLANO_CARTAS.md)
+
+| # | Etapa | Entrega |
+|---|---|---|
+| C1 | Base das cartas | catálogo, mão de 5, escolha de 3 cartas no contêiner dos chefes, 6 cartas |
+| C2 | Oficina | carta inicial + cartas na campanha |
+| C3 | Naves-mãe | chefes intermediários no meio dos setores |
+| C4 | Conquistas | tela, progresso e desbloqueios + 12 cartas |
+| C5 | Equilíbrio | testes por carta + Desafio do Dia com cartas |
+
 ## Fase 4 — Publicação (quando você decidir)
 
 | # | Etapa | Depende de você |
