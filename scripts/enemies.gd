@@ -297,7 +297,18 @@ func _draw_mine(e: Enemy) -> void:
 ## O cano brilha nos últimos instantes antes do tiro (aviso).
 func _draw_turret(e: Enemy) -> void:
 	var art := Game.art
-	if not art.metal_textures.is_empty():
+	# Base: pedaço de casco do cruzador (lixo espacial do Setor 4), parado num quadro por torreta.
+	var hull := art.junk_sheets(3)
+	if hull.size() > 1:
+		var sheet := hull[1]
+		var frame := e.id % ArtSet.JUNK_FRAMES
+		var fw := sheet.get_width() / ArtSet.JUNK_COLS
+		var fh := sheet.get_height() / ArtSet.JUNK_ROWS
+		var half := e.radius * 1.3
+		draw_texture_rect_region(sheet, Rect2(e.pos - Vector2(half, half), Vector2(half, half) * 2.0),
+				Rect2((frame % ArtSet.JUNK_COLS) * fw, (frame / ArtSet.JUNK_COLS) * fh, fw, fh),
+				Color(1.6, 1.6, 1.6) if e.flash > 0.0 else Color.WHITE)
+	elif not art.metal_textures.is_empty():
 		var r := e.radius * 1.3
 		draw_set_transform(e.pos, e.id * 1.3)
 		draw_texture_rect(art.metal_textures[e.id % art.metal_textures.size()], Rect2(-r, -r, r * 2.0, r * 2.0),

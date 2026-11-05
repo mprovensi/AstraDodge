@@ -255,6 +255,48 @@ func _make_bolt(x: float) -> PackedVector2Array:
 	return pts
 
 
+## Cometa: cauda de partículas que ondula (curva), cabeleira e núcleo girando.
+func _draw_comet(c: Comet) -> void:
+	var back := (c.from - c.to).normalized()
+	var side := back.orthogonal()
+	var r := Tuning.COMET_RADIUS
+	var tail := PackedVector2Array([c.pos + side * r * 1.1, c.pos - side * r * 1.1, c.pos + back * r * 9.0])
+	draw_colored_polygon(tail, Color(0.45, 0.8, 1.0, 0.1))
+	for i in 16:
+		var k := float(i) / 16.0
+		var wave := sin(c.t * 9.0 + k * 7.0) * r * 0.5 * k
+		var p := c.pos + back * r * (1.0 + k * 8.0) + side * wave
+		draw_circle(p, r * (0.55 - 0.45 * k), Color(0.75, 0.92, 1.0, 0.45 * (1.0 - k)))
+	draw_circle(c.pos, r * 1.6, Color(0.7, 0.9, 1.0, 0.12))   # cabeleira
+	draw_circle(c.pos, r * 1.25, Color(0.85, 0.95, 1.0, 0.18))
+	var sheets := Game.art.dust_sheets(4)  # gelo do Setor 5
+	if sheets.is_empty():
+		draw_circle(c.pos, r, Color(2.2, 2.6, 3.0))
+	else:
+		var sheet := sheets[0]
+		var frame := posmod(int(c.t * 14.0), ArtSet.SHEET_FRAMES)
+		var fw := sheet.get_width() / ArtSet.SHEET_COLS
+		var fh := sheet.get_height() / ArtSet.SHEET_ROWS
+		var half := r / Game.art.dust_fill
+		draw_texture_rect_region(sheet, Rect2(c.pos - Vector2(half, half), Vector2(half, half) * 2.0),
+				Rect2((frame % ArtSet.SHEET_COLS) * fw, (frame / ArtSet.SHEET_COLS) * fh, fw, fh), Color(1.5, 1.7, 1.9))
+	draw_arc(c.pos, r * 1.08, 0.0, TAU, 32, Palette.ENEMY_HDR, 3.0, true)
+
+
+## Emissor do portão: caixa de metal com 3 bobinas que acendem no aviso e ficam vermelhas ligadas.
+func _draw_emitter(x: float, y: float, on: bool, warn: bool) -> void:
+	var body := Rect2(x - 20.0, y - 40.0, 40.0, 80.0)
+	draw_rect(body, Color(0.16, 0.17, 0.21))
+	draw_rect(Rect2(body.position + Vector2(4, 4), Vector2(14, 72)), Color(0.27, 0.29, 0.34))  # luz na face
+	draw_rect(body, Color(0.05, 0.055, 0.07), false, 3.0)
+	for k in 3:
+		var coil := Rect2(x - 23.0, y - 26.0 + k * 20.0, 46.0, 10.0)
+		var hot := Palette.DANGER_HDR if on else (Palette.FLAME_HDR if warn else Color(0.45, 0.32, 0.22))
+		draw_rect(coil, Color(0.3, 0.2, 0.14))
+		draw_rect(coil.grow(-2.0), hot)
+	draw_circle(Vector2(x, y), 7.0, Palette.WHITE_HDR if on else Color(0.3, 0.1, 0.1))
+
+
 func _draw() -> void:
 	# Nuvens: névoa violeta/verde (bem suave: com HDR 2D a mistura é linear) + contorno
 	# tracejado no raio do efeito + faíscas de vez em quando.
@@ -263,6 +305,15 @@ func _draw() -> void:
 			var pp := c.pos + Vector2(puff.x, puff.y) + Vector2(sin(c.t * 0.8 + puff.x), cos(c.t * 0.6 + puff.y)) * 6.0
 			draw_circle(pp, puff.z, Color(0.55, 0.2, 0.95, 0.05))
 			draw_circle(pp, puff.z * 0.6, Color(0.3, 1.0, 0.5, 0.03))
+			# 3ª camada: miolo mais denso que deriva ao contrário (dá volume à nuvem).
+			var core := c.pos + Vector2(puff.x, puff.y) * 0.55 - Vector2(sin(c.t * 0.5 + puff.y), cos(c.t * 0.7 + puff.x)) * 9.0
+			draw_circle(core, puff.z * 0.45, Color(0.75, 0.45, 1.0, 0.04))
+		# Faíscas presas na nuvem (pontinhos que acendem e apagam).
+		for i in 6:
+			var ang := float(i) * 2.4 + c.t * 0.4
+			var sp := c.pos + Vector2.from_angle(ang) * c.radius * (0.25 + 0.1 * i)
+			var flick := maxf(0.0, sin(c.t * 7.0 + i * 1.7))
+			draw_circle(sp, 2.5 + flick * 2.0, Color(Palette.ION_HDR, 0.6 * flick))
 		var r := c.radius * 0.85
 		var dashes := 18
 		for i in dashes:
@@ -278,6 +329,15 @@ func _draw() -> void:
 	for w in wells:
 		var spin := _t * 1.6
 		draw_circle(w, Tuning.WELL_RADIUS * 0.45, Color(0.0, 0.0, 0.0, 0.25))
+		# Estrelas sendo puxadas: pontos em espiral que caem para o centro e somem no olho.
+		for i in 14:
+			var k := fmod(_t * 0.35 + float(i) / 14.0, 1.0)  # 0 = longe, 1 = chegando
+			var rr := lerpf(Tuning.WELL_RADIUS * 0.9, Tuning.WELL_CORE, k * k)
+			var ang := float(i) * 2.399 + k * 5.0
+			var star := w + Vector2.from_angle(ang) * rr
+			var trail := w + Vector2.from_angle(ang - 0.25) * minf(rr + 14.0, Tuning.WELL_RADIUS)
+			draw_line(trail, star, Color(1.0, 0.85, 1.0, 0.25 * k), 2.0, true)
+			draw_circle(star, 1.5 + k * 1.5, Color(1.4, 1.1, 1.6, 0.35 + 0.5 * k))
 		for k in 3:
 			var r := Tuning.WELL_CORE * (1.4 + k * 0.7)
 			draw_arc(w, r, spin * (1.0 + k * 0.3), spin * (1.0 + k * 0.3) + PI * 1.2, 24,
@@ -304,8 +364,21 @@ func _draw() -> void:
 			var col: Color = Palette.NEON_HDR if side == 0 else Palette.MAGENTA_HDR
 			var r := Tuning.PORTAL_RADIUS
 			draw_circle(c, r, Color(col, 0.08 + (0.25 * pt.glow if side == 1 else 0.0)))
-			draw_arc(c, r, _t * 3.0, _t * 3.0 + PI * 1.5, 32, col, 5.0, true)
-			draw_arc(c, r * 0.7, -_t * 4.0, -_t * 4.0 + PI, 24, Color(col, 0.6), 3.0, true)
+			# Miolo em espiral (entrada gira para dentro, saída para fora).
+			var turn := _t * (3.0 if side == 0 else -3.0)
+			for k in 3:
+				draw_arc(c, r * (0.25 + 0.2 * k), turn + k * 1.3, turn + k * 1.3 + PI * 0.9, 16,
+						Color(col, 0.45 - k * 0.1), 3.0, true)
+			# Anel de metal com 4 travas: dá corpo ao portal (lê "máquina", não "mancha").
+			draw_arc(c, r + 4.0, 0.0, TAU, 40, Color(0.12, 0.13, 0.17), 12.0, true)
+			draw_arc(c, r + 4.0, 0.0, TAU, 40, Color(0.42, 0.45, 0.52), 3.0, true)
+			for k in 4:
+				var lock_at := c + Vector2.from_angle(TAU * k / 4.0 + PI * 0.25) * (r + 4.0)
+				draw_set_transform(lock_at, TAU * k / 4.0 + PI * 0.25)
+				draw_rect(Rect2(-9, -7, 18, 14), Color(0.22, 0.24, 0.3))
+				draw_rect(Rect2(-9, -7, 18, 14), Color(col, 0.9), false, 2.0)
+				draw_set_transform(Vector2.ZERO, 0.0)
+			draw_arc(c, r * 0.92, _t * 3.0, _t * 3.0 + PI * 1.5, 32, col, 4.0, true)
 
 	# Portões: pilares nas bordas; feixe vermelho forte ligado, tracejado apagado desligado,
 	# piscando nos instantes antes de ligar.
@@ -313,9 +386,7 @@ func _draw() -> void:
 	var warn := gates_warning() and int(_gate_t * 14.0) % 2 == 0
 	for y in gates:
 		for x: float in [0.0, view_size.x]:
-			draw_rect(Rect2(x - 18.0, y - 34.0, 36.0, 68.0), Color(0.22, 0.22, 0.26))
-			draw_rect(Rect2(x - 18.0, y - 34.0, 36.0, 68.0), Palette.ENEMY_HDR if on or warn else Palette.METAL_LINE,
-					false, 3.0)
+			_draw_emitter(x, y, on, warn)
 		if on:
 			draw_line(Vector2(0, y), Vector2(view_size.x, y), Color(Palette.DANGER, 0.25), Tuning.GATE_HALF * 3.0)
 			draw_line(Vector2(0, y), Vector2(view_size.x, y), Palette.DANGER_HDR, Tuning.GATE_HALF * 1.2)
@@ -327,19 +398,12 @@ func _draw() -> void:
 				draw_line(Vector2(x, y), Vector2(minf(x + 26.0, view_size.x - 20.0), y), c, 3.0)
 				x += 46.0
 
-	# Cometas: cabeça branco-gelo brilhante com cauda azul afinando para trás.
+	# Cometas: núcleo de gelo e rocha girando (folha do Setor 5), cabeleira clara e cauda curva
+	# de partículas; contorno quente = perigo (indestrutível, só desviar).
 	for c in comets:
 		if not c.flying():
 			continue
-		var back := (c.from - c.to).normalized()
-		var r := Tuning.COMET_RADIUS
-		var tail := PackedVector2Array([c.pos + back.orthogonal() * r, c.pos - back.orthogonal() * r,
-				c.pos + back * r * 9.0])
-		draw_colored_polygon(tail, Color(0.45, 0.8, 1.0, 0.18))
-		draw_line(c.pos, c.pos + back * r * 6.0, Color(0.7, 0.9, 1.0, 0.5), r * 0.7, true)
-		draw_circle(c.pos, r * 1.4, Color(Palette.ENEMY, 0.2))
-		draw_circle(c.pos, r, Color(2.2, 2.6, 3.0))
-		draw_arc(c.pos, r, 0.0, TAU, 32, Palette.ENEMY_HDR, 4.0, true)
+		_draw_comet(c)
 
 	# Raios: zigue-zague branco com brilho violeta, logo após cair.
 	for s in strikes:

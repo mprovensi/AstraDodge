@@ -166,3 +166,12 @@ Todas giram devagar (folha de 12 quadros) e têm **uma luz âmbar** piscando (ca
 - [x] Parede móvel (Setor 7): setas âmbar mostram para que lado ela está indo
 - [x] Inversão (Setor 8): rastro magenta fraco embaixo das rochas (lê "vem de baixo")
 - [x] Teste FILEIRAS JUSTAS: todas as peças na mesma parede, luzes nas duas bordas, cabos fora da brecha
+
+**J4 — Perigos do ambiente: concluído (05/11/2026)**
+- [x] Cometa: núcleo de gelo girando (folha do Setor 5), cabeleira e cauda de partículas que ondula; contorno quente
+- [x] Torreta do Setor 4 em cima de um pedaço de casco do cruzador (lixo do Setor 4)
+- [x] Portão de laser: emissores de metal com 3 bobinas (acendem no aviso, vermelhas ligado)
+- [x] Poço: estrelas puxadas em espiral até o olho
+- [x] Portal: anel de metal com 4 travas e miolo em espiral (entrada gira para dentro, saída para fora)
+- [x] Nuvem iônica: 3ª camada de névoa e faíscas presas dentro
+- [x] Áreas e colisões iguais às de antes (contornos tracejados mantidos)

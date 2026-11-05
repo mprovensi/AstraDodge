@@ -21,7 +21,7 @@
 | # | Etapa | Entrega |
 |---|---|---|
 | 2.1 | **O2 — Formações** | V, escada, zigue-zague, anel, tabuleiro, funil, chuva fina (sempre com passagem) |
-| 2.2 (J0–J2 ✅) | **Indestrutíveis novos (J0–J5)** | lixo espacial por setor girando em 3D, paredões encaixados, cometa/portão/poço/portal/nuvem novos — [PLANO_INDESTRUTIVEIS.md](PLANO_INDESTRUTIVEIS.md) |
+| 2.2 (J0–J2, J4 ✅) | **Indestrutíveis novos (J0–J5)** | lixo espacial por setor girando em 3D, paredões encaixados, cometa/portão/poço/portal/nuvem novos — [PLANO_INDESTRUTIVEIS.md](PLANO_INDESTRUTIVEIS.md) |
 | 2.3 | **Obstáculos novos (O3)** | haltere giratório, rocha explosiva, pedregulho que racha, cápsula de suprimento |
 
 ## Fase 3 — Inimigos e chefes
