@@ -10,8 +10,8 @@
 
 | # | Etapa | Entrega | Depende de você |
 |---|---|---|---|
-| 1.1 | **Aprovar o protótipo** | asteroides estilizados girando em 3D no Setor 1 | testar no A5 e aprovar o visual |
-| 1.2 | **Levar aos 8 setores** | folhas de giro para todos (ferroso, cristalino, gelo, carbonáceo, vulcânico, pomes) | — |
+| 1.1 ✅ | **Aprovar o protótipo** | asteroides estilizados girando em 3D no Setor 1 | testar no A5 e aprovar o visual |
+| 1.2 ✅ | **Levar aos 8 setores** | folhas de giro para todos (ferroso, cristalino, gelo, carbonáceo, vulcânico, pomes) | — |
 | 1.3 | **Física nova (P/M/G)** | 3 tamanhos (raio ≥ 34), vida e velocidade por tamanho | aprovar a tabela da ESPEC |
 | 1.4 | **Contador de FPS (dev)** | número de FPS no canto no modo dev, para medir os 2 celulares | anotar o FPS nos 2 celulares |
 | 1.5 | **Comportamento por material** | cristalino solta orbe; vulcânico espirra brasas (avisadas) | — |

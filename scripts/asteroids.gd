@@ -317,7 +317,8 @@ func _add(kind: Kind, pos: Vector2, radius: float, hp: int, vel: Vector2) -> Ast
 	a.look = look
 	a.spin_rate = randf_range(0.25, 0.6) * (-1.0 if randf() < 0.5 else 1.0)
 	a.spin_phase = randf()
-	a.sprite = randi() % maxi(1, _textures(kind, look).size())
+	# Índice "livre": cada desenho/folha usa `sprite % quantidade` (2 imagens, 3 folhas...).
+	a.sprite = randi() % 60
 	a.flip = -1.0 if randf() < 0.5 else 1.0  # espelha metade: mais variedade com 3 desenhos
 	asteroids.append(a)
 	if kind == Kind.DUST:
@@ -348,7 +349,8 @@ func _draw() -> void:
 			var tint := Color.WHITE.darkened(dmg * 0.35)
 			if a.flash > 0.0 and a.shell <= 0:
 				tint = Color(3.0, 3.0, 3.0)
-			var sheets := art.dust_sheets(a.look) if not a.ice else ([] as Array[Texture2D])
+			# Gelo que racha (qualquer setor) usa as rochas de gelo do Setor 5 (as 2 primeiras folhas).
+			var sheets := art.dust_sheets(a.look) if not a.ice else art.dust_sheets(4).slice(0, 2)
 			if sheets.is_empty():
 				draw_texture_rect(tex, rect, false, tint)
 			else:

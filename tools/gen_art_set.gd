@@ -43,6 +43,9 @@ func _initialize() -> void:
 		for k in [1, 2]:
 			look.dust_textures.append(load("res://sprites/dust_s%d_%d.png" % [sector, k]))
 			look.metal_textures.append(load("res://sprites/metal_s%d_%d.png" % [sector, k]))
+		# Giro 3D estilizado (tools/bake_rocks.gd): 3 rochas por setor.
+		for k in [1, 2, 3]:
+			look.dust_sheets.append(load("res://sprites/rock_s%d_%d.png" % [sector, k]))
 		looks.append(look)
 	art.sector_looks.assign(looks)
 	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
