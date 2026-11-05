@@ -353,6 +353,7 @@ func _draw() -> void:
 			var junk := art.junk_sheets(a.look)
 			if junk.is_empty():
 				draw_texture_rect(tex, rect, false, tint)
+				_draw_lamp(a, rect)
 			else:
 				_draw_junk(a, junk, art.junk_lamps(a.look), rect, s, tint)
 		else:
@@ -499,6 +500,20 @@ func _draw_junk(a: Asteroid, sheets: Array[Texture2D], lamps: Array[PackedVector
 			var r := rect.size.x * 0.045
 			draw_circle(at, r * 2.2, Color(Palette.FLAME_HDR, 0.18 * blink * lamp.z))
 			draw_circle(at, r, Color(Palette.FLAME_HDR, blink * lamp.z))
+
+
+## Luz âmbar do lixo desenhado: ponto fixo na peça (gira junto, transformação já aplicada).
+func _draw_lamp(a: Asteroid, rect: Rect2) -> void:
+	var look := Game.art.sector_looks[a.look] if a.look < Game.art.sector_looks.size() else null
+	if look == null or look.metal_lamps.is_empty():
+		return
+	var count := look.metal_textures.size()
+	var p := look.metal_lamps[(a.sprite % count) % look.metal_lamps.size()]
+	var blink := 0.35 + 0.65 * float(fmod(_slide_t * 1.2 + a.spin_phase, 1.0) < 0.5)
+	var at := p * rect.size.x * 0.5
+	var r := rect.size.x * 0.045
+	draw_circle(at, r * 2.2, Color(Palette.FLAME_HDR, 0.18 * blink))
+	draw_circle(at, r, Color(Palette.FLAME_HDR, blink))
 
 
 func _textures(kind: Kind, from_look: int) -> Array[Texture2D]:

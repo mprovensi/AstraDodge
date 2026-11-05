@@ -96,3 +96,15 @@ O lixo 3D atual (J1) **continua** como reserva e no modo Gráficos Simples, se p
    perfeito). Se sim, eu escrevo os prompts no SPRITES.md, incluindo mais variações das rochas
    cinza e vermelhas.
 4. **Lixo 3D atual (J1)**: substituir de vez ou misturar (metade 3D, metade desenho)?
+
+---
+
+## Status
+
+**S1–S3 — Rochas e lixo desenhados: em teste (05/11/2026)** — feitas as recomendações (decisões 1, 2 e 4)
+- [x] `tools/cut_sprites.gd`: recorta as folhas (fundo branco e furos fechados viram transparência, pedrinhas soltas descartadas, 1 px de halo removido) → `sprite_test/cortes/`
+- [x] `tools/gen_ia_sprites.gd`: rocha clareada / lixo escurecido (regra de leitura), furos de engrenagem viram metal escuro, ampliação por peça para cobrir a colisão, ponto da luz âmbar; `--relatorio` mostra a cobertura de cada recorte
+- [x] 4 rochas e 4 peças de lixo por setor, girando no plano; luz âmbar piscando em cada peça
+- [x] Lixo: só 8 das 31 peças servem como obstáculo (as outras são compridas demais); o resto fica para os destroços de fundo (S4) ou para uma nova geração "gorda"
+- [x] Testes: colisão × desenho (pior 3,8%), brilho, sem borda branca, luz em cima da peça
+- [ ] Você testar no celular → S4 (destroços de fundo, mina, bolas de fogo, pedrinhas na explosão)

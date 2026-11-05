@@ -32,30 +32,19 @@ func _initialize() -> void:
 	art.medusa_body = load("res://sprites/boss_medusa.png")
 	art.cruiser_body = load("res://sprites/boss_cruiser.png")
 	art.ice_textures.assign([load("res://sprites/ice_1.png"), load("res://sprites/ice_2.png")])
-	# Visual por setor: Setor 1 = padrão (lista vazia); 2..8 = dust_sN_k / metal_sN_k.
-	var first := AsteroidLook.new()
-	# Protótipo do giro 3D estilizado (ESPEC_ASTEROIDES.md, seção 8): Setor 1.
-	first.dust_sheets.assign([load("res://sprites/rock_s1_1.png"), load("res://sprites/rock_s1_2.png"),
-			load("res://sprites/rock_s1_3.png")])
-	# Lixo espacial girando em 3D (PLANO_INDESTRUTIVEIS.md, J0): Setor 1.
-	var looks: Array[AsteroidLook] = [first]
-	for sector in range(2, 9):
-		var look := AsteroidLook.new()
-		for k in [1, 2]:
-			look.dust_textures.append(load("res://sprites/dust_s%d_%d.png" % [sector, k]))
-			look.metal_textures.append(load("res://sprites/metal_s%d_%d.png" % [sector, k]))
-		# Giro 3D estilizado (tools/bake_rocks.gd): 3 rochas por setor.
-		for k in [1, 2, 3]:
-			look.dust_sheets.append(load("res://sprites/rock_s%d_%d.png" % [sector, k]))
-		looks.append(look)
-	# Lixo espacial girando em 3D (PLANO_INDESTRUTIVEIS.md, J1): 4 peças por setor, carregadas
-	# só no setor em jogo (caminhos); a luz âmbar vem de data/art/junk_lamps.tres.
+	# Visual por setor (PLANO_SPRITES_IA.md): rochas e lixo desenhados (recortes das folhas de IA,
+	# tools/gen_ia_sprites.gd), girando no plano. O lixo tem a luz âmbar num ponto fixo da peça.
+	# (O giro 3D pré-renderizado — rock_s*/junk_s* — continua nos arquivos como reserva.)
 	var lamps: JunkLamps = load("res://data/art/junk_lamps.tres")
+	var looks: Array[AsteroidLook] = []
 	for sector in range(1, 9):
-		var look := looks[sector - 1]
+		var look := AsteroidLook.new()
 		for k in range(1, 5):
-			look.junk_paths.append("res://sprites/junk_s%d_%d.png" % [sector, k])
-			look.junk_lamps.append(lamps.frames["s%d_%d" % [sector, k]])
+			look.dust_textures.append(load("res://sprites/ia/rock_s%d_%d.png" % [sector, k]))
+			look.metal_textures.append(load("res://sprites/ia/junk_s%d_%d.png" % [sector, k]))
+			var p: Vector3 = lamps.frames["ia_s%d_%d" % [sector, k]][0]
+			look.metal_lamps.append(Vector2(p.x, p.y))
+		looks.append(look)
 	art.sector_looks.assign(looks)
 	art.ice_colossus_body = load("res://sprites/boss_ice_colossus.png")
 	art.hive_queen_body = load("res://sprites/boss_hive_queen.png")

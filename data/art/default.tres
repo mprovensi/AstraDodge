@@ -21,124 +21,130 @@
 [ext_resource type="Texture2D" path="res://sprites/boss_rift_core.png" id="15_raho5"]
 [ext_resource type="Texture2D" path="res://sprites/boss_sentinel.png" id="18_u4o7u"]
 [ext_resource type="Script" path="res://scripts/art/asteroid_look.gd" id="19_qf7ya"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s1_1.png" id="20_8leb2"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s2_1.png" id="20_y3bld"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s2_2.png" id="21_17dcm"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s1_2.png" id="21_y73jx"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s1_3.png" id="22_qp0an"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s2_1.png" id="22_ygu4n"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s2_2.png" id="23_7y1fc"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s2_1.png" id="23_df7rf"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s3_1.png" id="24_g38c0"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s2_2.png" id="24_rk5hu"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s2_3.png" id="25_um1ul"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s3_2.png" id="25_wegar"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s3_1.png" id="26_8leb2"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s3_2.png" id="27_y73jx"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s4_1.png" id="28_qp0an"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s4_2.png" id="29_7u776"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s3_1.png" id="30_ddfg0"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s4_1.png" id="30_h5i11"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s3_2.png" id="31_rad2v"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s4_2.png" id="31_refdq"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s3_3.png" id="32_7uuao"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s5_1.png" id="32_evvwi"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s5_2.png" id="33_3wl70"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s5_1.png" id="34_n27dk"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s5_2.png" id="35_47dpc"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s6_1.png" id="36_10j05"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s6_2.png" id="37_l5451"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s4_1.png" id="37_rpg4n"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s6_1.png" id="38_irv5l"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s4_2.png" id="38_jfgc8"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s6_2.png" id="39_g1ip7"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s4_3.png" id="39_rb4r7"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s7_1.png" id="40_wr55g"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s7_2.png" id="41_g0qvi"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s7_1.png" id="42_q8iye"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s7_2.png" id="43_2iakl"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s5_1.png" id="44_16nuw"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s8_1.png" id="44_f7s35"]
-[ext_resource type="Texture2D" path="res://sprites/dust_s8_2.png" id="45_p7stv"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s5_2.png" id="45_vrggo"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s5_3.png" id="46_6sfsf"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s8_1.png" id="46_7h6ei"]
-[ext_resource type="Texture2D" path="res://sprites/metal_s8_2.png" id="47_df7rf"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_1.png" id="20_pc5wu"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_2.png" id="21_qfm8n"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_3.png" id="22_ig5tt"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s1_4.png" id="23_1df5e"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_1.png" id="24_p6qos"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_2.png" id="25_ctvkw"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_3.png" id="26_dkcw6"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s1_4.png" id="27_34l3a"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_1.png" id="28_iuv4d"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_2.png" id="29_r1bfp"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_3.png" id="30_wqaxh"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s2_4.png" id="31_6ajcc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_1.png" id="32_t1acc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_2.png" id="33_utqkh"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_3.png" id="34_8e0a8"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s2_4.png" id="35_syov3"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s3_1.png" id="36_i0evk"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s3_2.png" id="37_50y10"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s3_3.png" id="38_70jpy"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s3_4.png" id="39_t5b1j"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s3_1.png" id="40_h10sp"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s3_2.png" id="41_ae18a"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s3_3.png" id="42_y82fg"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s3_4.png" id="43_0bj7a"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s4_1.png" id="44_lqh6p"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s4_2.png" id="45_m8tmv"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s4_3.png" id="46_alhjc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s4_4.png" id="47_d2qng"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s4_1.png" id="48_omk8w"]
 [ext_resource type="Texture2D" path="res://sprites/ship_roll_l2.png" id="49_7y1fc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s4_2.png" id="49_yq5rm"]
 [ext_resource type="Texture2D" path="res://sprites/ship_roll_l1.png" id="50_g38c0"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s6_1.png" id="51_pc5wu"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s6_2.png" id="52_qfm8n"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s4_3.png" id="50_shynv"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s4_4.png" id="51_okgbg"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s5_1.png" id="52_hfpt5"]
 [ext_resource type="Texture2D" path="res://sprites/ship_roll_r1.png" id="52_wegar"]
 [ext_resource type="Texture2D" path="res://sprites/ship_roll_r2.png" id="53_8leb2"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s6_3.png" id="53_ig5tt"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s7_1.png" id="58_1df5e"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s7_2.png" id="59_p6qos"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s7_3.png" id="60_ctvkw"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s8_1.png" id="65_dkcw6"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s8_2.png" id="66_34l3a"]
-[ext_resource type="Texture2D" path="res://sprites/rock_s8_3.png" id="67_iuv4d"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s5_2.png" id="53_hjq35"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s5_3.png" id="54_he3e5"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s5_4.png" id="55_sa1v6"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s5_1.png" id="56_b25lr"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s5_2.png" id="57_7xcr8"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s5_3.png" id="58_5qsih"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s5_4.png" id="59_xqk1d"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s6_1.png" id="60_cmag4"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s6_2.png" id="61_md5bl"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s6_3.png" id="62_jjrob"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s6_4.png" id="63_ghldl"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s6_1.png" id="64_abdg6"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s6_2.png" id="65_6glqr"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s6_3.png" id="66_xr3hc"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s6_4.png" id="67_hj5rr"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s7_1.png" id="68_y51yj"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s7_2.png" id="69_o6jaf"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s7_3.png" id="70_kprv0"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s7_4.png" id="71_iade4"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s7_1.png" id="72_loupt"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s7_2.png" id="73_h7701"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s7_3.png" id="74_rfmpx"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s7_4.png" id="75_s2hk5"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s8_1.png" id="76_dnh78"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s8_2.png" id="77_ubb3u"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s8_3.png" id="78_s4e4e"]
+[ext_resource type="Texture2D" path="res://sprites/ia/rock_s8_4.png" id="79_xbn8m"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_1.png" id="80_gvmci"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_2.png" id="81_inl40"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_3.png" id="82_pe6eu"]
+[ext_resource type="Texture2D" path="res://sprites/ia/junk_s8_4.png" id="83_o4lik"]
 
-[sub_resource type="Resource" id="Resource_df7rf"]
+[sub_resource type="Resource" id="Resource_fp40q"]
 script = ExtResource("19_qf7ya")
-dust_sheets = Array[Texture2D]([ExtResource("20_8leb2"), ExtResource("21_y73jx"), ExtResource("22_qp0an")])
-junk_paths = PackedStringArray("res://sprites/junk_s1_1.png", "res://sprites/junk_s1_2.png", "res://sprites/junk_s1_3.png", "res://sprites/junk_s1_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(-0.58, -0.38461524, 1, -0.13842165, -0.5712377, 1, 0.3359679, -0.6180866, 1, 0.69411963, -0.48588026, 1, 0.85691345, -0.17498705, 1, 0.82471716, 0.2356233, 0.95698094, 0.6372947, 0.6, 1, 0.33452493, 0.7741842, 1, -0.043086655, 0.6946023, 1, -0.42549556, 0.40549552, 1, -0.7032626, 0.01808662, 1, -0.76784456, -0.35818505, 1, -0.58000004, -0.65461516, 1, -0.2083025, -0.83203775, 0.9617033, 0.2009677, -0.85191345, 1, 0.5032009, -0.67679906, 1, 0.6230866, -0.3099869, 1, 0.56391734, 0.16574198, 1, 0.36729473, 0.6, 1, 0.0737246, 0.8440654, 1, -0.27691334, 0.82960236, 1, -0.61641395, 0.5964148, 0.9548114, -0.83826256, 0.25191367, 1, -0.83772576, -0.097384766, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1), PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1)])
+dust_textures = Array[Texture2D]([ExtResource("20_pc5wu"), ExtResource("21_qfm8n"), ExtResource("22_ig5tt"), ExtResource("23_1df5e")])
+metal_textures = Array[Texture2D]([ExtResource("24_p6qos"), ExtResource("25_ctvkw"), ExtResource("26_dkcw6"), ExtResource("27_34l3a")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_rk5hu"]
+[sub_resource type="Resource" id="Resource_mh4yn"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("20_y3bld"), ExtResource("21_17dcm")])
-metal_textures = Array[Texture2D]([ExtResource("22_ygu4n"), ExtResource("23_7y1fc")])
-dust_sheets = Array[Texture2D]([ExtResource("23_df7rf"), ExtResource("24_rk5hu"), ExtResource("25_um1ul")])
-junk_paths = PackedStringArray("res://sprites/junk_s2_1.png", "res://sprites/junk_s2_2.png", "res://sprites/junk_s2_3.png", "res://sprites/junk_s2_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.55, -0.2547114, 1, 0.686646, -0.14707138, 1, 0.7519791, -0.026956774, 1, 0.75046223, 0.11406626, 1, 0.7002546, 0.27183488, 1, 0.6213971, 0.42668226, 1, 0.5247114, 0.55, 1, 0.40787137, 0.6167648, 1, 0.26078364, 0.6169791, 1, 0.076852605, 0.55954343, 1, -0.13683484, 0.4664278, 1, -0.35680097, 0.36059713, 1, -0.5500001, 0.2547114, 1, -0.68664604, 0.1470714, 1, -0.7519791, 0.026956804, 1, -0.7504623, -0.114066206, 1, -0.70025456, -0.2718349, 1, -0.6213971, -0.42668226, 1, -0.52471143, -0.55, 1, -0.40787143, -0.6167649, 1, -0.26078373, -0.6169791, 1, -0.07685268, -0.55954355, 1, 0.1368347, -0.4664278, 1, 0.35680127, -0.360597, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1), PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1)])
+dust_textures = Array[Texture2D]([ExtResource("28_iuv4d"), ExtResource("29_r1bfp"), ExtResource("30_wqaxh"), ExtResource("31_6ajcc")])
+metal_textures = Array[Texture2D]([ExtResource("32_t1acc"), ExtResource("33_utqkh"), ExtResource("34_8e0a8"), ExtResource("35_syov3")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_um1ul"]
+[sub_resource type="Resource" id="Resource_ninbi"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("24_g38c0"), ExtResource("25_wegar")])
-metal_textures = Array[Texture2D]([ExtResource("26_8leb2"), ExtResource("27_y73jx")])
-dust_sheets = Array[Texture2D]([ExtResource("30_ddfg0"), ExtResource("31_rad2v"), ExtResource("32_7uuao")])
-junk_paths = PackedStringArray("res://sprites/junk_s3_1.png", "res://sprites/junk_s3_2.png", "res://sprites/junk_s3_3.png", "res://sprites/junk_s3_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(-0.42, -0.3080127, 1, -0.22163033, -0.3877142, 1, -0.0101184845, -0.46355122, 1, 0.18474537, -0.5223615, 1, 0.34446156, -0.5436121, 1, 0.46613967, -0.510479, 1, 0.5580127, -0.41999996, 1, 0.62919563, -0.28633514, 0.9380804, 0.6800576, -0.13511848, 0.92741364, 0.6991381, 0.007968642, 1, 0.6686121, 0.12795517, 1, 0.5751838, 0.22465818, 1, 0.41999993, 0.30801272, 1, 0.22163033, 0.3877142, 1, 0.010118518, 0.46355116, 1, -0.1847453, 0.5223614, 1, -0.34446156, 0.5436121, 1, -0.46613973, 0.5104789, 1, -0.5580127, 0.42, 1, -0.62919563, 0.28633514, 0.9380804, -0.68005747, 0.1351185, 0.92741364, -0.69913816, -0.007968567, 1, -0.66861224, -0.12795514, 1, -0.5751836, -0.22465828, 1), PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(-0.58, -0.38461524, 1, -0.13842165, -0.5712377, 1, 0.3359679, -0.6180866, 1, 0.69411963, -0.48588026, 1, 0.85691345, -0.17498705, 1, 0.82471716, 0.2356233, 0.95698094, 0.6372947, 0.6, 1, 0.33452493, 0.7741842, 1, -0.043086655, 0.6946023, 1, -0.42549556, 0.40549552, 1, -0.7032626, 0.01808662, 1, -0.76784456, -0.35818505, 1, -0.58000004, -0.65461516, 1, -0.2083025, -0.83203775, 0.9617033, 0.2009677, -0.85191345, 1, 0.5032009, -0.67679906, 1, 0.6230866, -0.3099869, 1, 0.56391734, 0.16574198, 1, 0.36729473, 0.6, 1, 0.0737246, 0.8440654, 1, -0.27691334, 0.82960236, 1, -0.61641395, 0.5964148, 0.9548114, -0.83826256, 0.25191367, 1, -0.83772576, -0.097384766, 1), PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1)])
+dust_textures = Array[Texture2D]([ExtResource("36_i0evk"), ExtResource("37_50y10"), ExtResource("38_70jpy"), ExtResource("39_t5b1j")])
+metal_textures = Array[Texture2D]([ExtResource("40_h10sp"), ExtResource("41_ae18a"), ExtResource("42_y82fg"), ExtResource("43_0bj7a")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_ddfg0"]
+[sub_resource type="Resource" id="Resource_3t0sr"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("28_qp0an"), ExtResource("29_7u776")])
-metal_textures = Array[Texture2D]([ExtResource("30_h5i11"), ExtResource("31_refdq")])
-dust_sheets = Array[Texture2D]([ExtResource("37_rpg4n"), ExtResource("38_jfgc8"), ExtResource("39_rb4r7")])
-junk_paths = PackedStringArray("res://sprites/junk_s4_1.png", "res://sprites/junk_s4_2.png", "res://sprites/junk_s4_3.png", "res://sprites/junk_s4_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(-0.5, -0.3080127, 1, -0.2975174, -0.40324336, 1, -0.07475951, -0.49551272, 1, 0.13575557, -0.5713513, 1, 0.31250003, -0.6082532, 1, 0.45061052, -0.58636606, 1, 0.5580127, -0.49999997, 1, 0.6447247, -0.3622222, 1, 0.7120191, -0.19975951, 1, 0.74812794, -0.04102116, 1, 0.7332531, 0.095993645, 1, 0.6510709, 0.20912902, 1, 0.49999994, 0.30801272, 1, 0.29751742, 0.40324336, 1, 0.07475954, 0.49551266, 1, -0.1357555, 0.5713512, 1, -0.31250006, 0.6082531, 1, -0.4506106, 0.586366, 1, -0.5580127, 0.5, 1, -0.6447248, 0.36222222, 1, -0.712019, 0.19975953, 1, -0.748128, 0.041021235, 1, -0.73325324, -0.09599359, 1, -0.65107065, -0.20912915, 1), PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(-0.58, -0.38461524, 1, -0.13842165, -0.5712377, 1, 0.3359679, -0.6180866, 1, 0.69411963, -0.48588026, 1, 0.85691345, -0.17498705, 1, 0.82471716, 0.2356233, 0.95698094, 0.6372947, 0.6, 1, 0.33452493, 0.7741842, 1, -0.043086655, 0.6946023, 1, -0.42549556, 0.40549552, 1, -0.7032626, 0.01808662, 1, -0.76784456, -0.35818505, 1, -0.58000004, -0.65461516, 1, -0.2083025, -0.83203775, 0.9617033, 0.2009677, -0.85191345, 1, 0.5032009, -0.67679906, 1, 0.6230866, -0.3099869, 1, 0.56391734, 0.16574198, 1, 0.36729473, 0.6, 1, 0.0737246, 0.8440654, 1, -0.27691334, 0.82960236, 1, -0.61641395, 0.5964148, 0.9548114, -0.83826256, 0.25191367, 1, -0.83772576, -0.097384766, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1)])
+dust_textures = Array[Texture2D]([ExtResource("44_lqh6p"), ExtResource("45_m8tmv"), ExtResource("46_alhjc"), ExtResource("47_d2qng")])
+metal_textures = Array[Texture2D]([ExtResource("48_omk8w"), ExtResource("49_yq5rm"), ExtResource("50_shynv"), ExtResource("51_okgbg")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_rad2v"]
+[sub_resource type="Resource" id="Resource_cn6uo"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("32_evvwi"), ExtResource("33_3wl70")])
-metal_textures = Array[Texture2D]([ExtResource("34_n27dk"), ExtResource("35_47dpc")])
-dust_sheets = Array[Texture2D]([ExtResource("44_16nuw"), ExtResource("45_vrggo"), ExtResource("46_6sfsf")])
-junk_paths = PackedStringArray("res://sprites/junk_s5_1.png", "res://sprites/junk_s5_2.png", "res://sprites/junk_s5_3.png", "res://sprites/junk_s5_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1), PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 0.88576907, 0.6261338, 0.33829385, 0.73926854, 0.5497114, 0.45000002, 0.6505287, 0.45143092, 0.5154355, 0.72266704, 0.3223862, 0.5236778, 0.8722059, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 0.88576907, -0.6261338, -0.3382939, 0.73926854, -0.5497114, -0.45, 0.6505287, -0.45143098, -0.5154355, 0.72266704, -0.32238626, -0.5236779, 0.8722059, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1), PackedVector3Array(-0.42, -0.3080127, 1, -0.22163033, -0.3877142, 1, -0.0101184845, -0.46355122, 1, 0.18474537, -0.5223615, 0.9609548, 0.34446156, -0.5436121, 0.6352022, 0.46613967, -0.510479, 0.23316382, 0.5580127, -0.41999996, 0, 0.62919563, -0.28633514, 0, 0.6800576, -0.13511848, 0, 0.6991381, 0.007968642, 0, 0.6686121, 0.12795517, 0.39885983, 0.5751838, 0.22465818, 0.7748544, 0.41999993, 0.30801272, 1, 0.22163033, 0.3877142, 1, 0.010118518, 0.46355116, 1, -0.1847453, 0.5223614, 0.9609548, -0.34446156, 0.5436121, 0.6352022, -0.46613973, 0.5104789, 0.23316382, -0.5580127, 0.42, 0, -0.62919563, 0.28633514, 0, -0.68005747, 0.1351185, 0, -0.69913816, -0.007968567, 0, -0.66861224, -0.12795514, 0.39885983, -0.5751836, -0.22465828, 0.7748544)])
+dust_textures = Array[Texture2D]([ExtResource("52_hfpt5"), ExtResource("53_hjq35"), ExtResource("54_he3e5"), ExtResource("55_sa1v6")])
+metal_textures = Array[Texture2D]([ExtResource("56_b25lr"), ExtResource("57_7xcr8"), ExtResource("58_5qsih"), ExtResource("59_xqk1d")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_7uuao"]
+[sub_resource type="Resource" id="Resource_caqkf"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("36_10j05"), ExtResource("37_l5451")])
-metal_textures = Array[Texture2D]([ExtResource("38_irv5l"), ExtResource("39_g1ip7")])
-dust_sheets = Array[Texture2D]([ExtResource("51_pc5wu"), ExtResource("52_qfm8n"), ExtResource("53_ig5tt")])
-junk_paths = PackedStringArray("res://sprites/junk_s6_1.png", "res://sprites/junk_s6_2.png", "res://sprites/junk_s6_3.png", "res://sprites/junk_s6_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.52, -0.35569218, 0.61442363, 0.64744234, -0.25095487, 0.16506526, 0.7062435, -0.12813467, 0.04845604, 0.70027125, 0.021448847, 0.31299546, 0.64755756, 0.19408968, 0.7152184, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 0.96278024, -0.52000004, 0.35569215, 0.61442363, -0.6474424, 0.25095487, 0.16506526, -0.7062435, 0.1281347, 0.04845604, -0.7002713, -0.021448791, 0.31299546, -0.6475575, -0.19408971, 0.7152184, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 0.96278024), PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1), PackedVector3Array(-0.58, -0.38461524, 1, -0.13842165, -0.5712377, 1, 0.3359679, -0.6180866, 1, 0.69411963, -0.48588026, 1, 0.85691345, -0.17498705, 1, 0.82471716, 0.2356233, 0.95698094, 0.6372947, 0.6, 1, 0.33452493, 0.7741842, 1, -0.043086655, 0.6946023, 1, -0.42549556, 0.40549552, 1, -0.7032626, 0.01808662, 1, -0.76784456, -0.35818505, 1, -0.58000004, -0.65461516, 1, -0.2083025, -0.83203775, 0.9617033, 0.2009677, -0.85191345, 1, 0.5032009, -0.67679906, 1, 0.6230866, -0.3099869, 1, 0.56391734, 0.16574198, 1, 0.36729473, 0.6, 1, 0.0737246, 0.8440654, 1, -0.27691334, 0.82960236, 1, -0.61641395, 0.5964148, 0.9548114, -0.83826256, 0.25191367, 1, -0.83772576, -0.097384766, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1)])
+dust_textures = Array[Texture2D]([ExtResource("60_cmag4"), ExtResource("61_md5bl"), ExtResource("62_jjrob"), ExtResource("63_ghldl")])
+metal_textures = Array[Texture2D]([ExtResource("64_abdg6"), ExtResource("65_6glqr"), ExtResource("66_xr3hc"), ExtResource("67_hj5rr")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_rpg4n"]
+[sub_resource type="Resource" id="Resource_ars15"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("40_wr55g"), ExtResource("41_g0qvi")])
-metal_textures = Array[Texture2D]([ExtResource("42_q8iye"), ExtResource("43_2iakl")])
-dust_sheets = Array[Texture2D]([ExtResource("58_1df5e"), ExtResource("59_p6qos"), ExtResource("60_ctvkw")])
-junk_paths = PackedStringArray("res://sprites/junk_s7_1.png", "res://sprites/junk_s7_2.png", "res://sprites/junk_s7_3.png", "res://sprites/junk_s7_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1), PackedVector3Array(-0.6, 0.5830127, 1, -0.7283404, 0.28705218, 1, -0.6178203, -0.070096225, 1, -0.3202479, -0.42024794, 1, 0.054903895, -0.6611216, 1, 0.40535346, -0.6966417, 1, 0.66961527, -0.5, 1, 0.81384706, -0.14486474, 1, 0.8049038, 0.22810897, 1, 0.6127647, 0.48723522, 1, 0.24820516, 0.57009625, 1, -0.20382129, 0.48746693, 1, -0.6, 0.28301272, 1, -0.8059862, -0.0027257204, 1, -0.7678204, -0.32990366, 1, -0.53237987, -0.6323801, 1, -0.2049036, -0.81112164, 1, 0.11557551, -0.7742876, 1, 0.36961523, -0.49999997, 1, 0.5240694, -0.06721861, 1, 0.54509616, 0.3781088, 1, 0.40063304, 0.6993669, 1, 0.09820534, 0.82990384, 1, -0.28146678, 0.7772447, 1), PackedVector3Array(-0.42, -0.3080127, 1, -0.22163033, -0.3877142, 1, -0.0101184845, -0.46355122, 1, 0.18474537, -0.5223615, 1, 0.34446156, -0.5436121, 1, 0.46613967, -0.510479, 1, 0.5580127, -0.41999996, 1, 0.62919563, -0.28633514, 0.9380804, 0.6800576, -0.13511848, 0.92741364, 0.6991381, 0.007968642, 1, 0.6686121, 0.12795517, 1, 0.5751838, 0.22465818, 1, 0.41999993, 0.30801272, 1, 0.22163033, 0.3877142, 1, 0.010118518, 0.46355116, 1, -0.1847453, 0.5223614, 1, -0.34446156, 0.5436121, 1, -0.46613973, 0.5104789, 1, -0.5580127, 0.42, 1, -0.62919563, 0.28633514, 0.9380804, -0.68005747, 0.1351185, 0.92741364, -0.69913816, -0.007968567, 1, -0.66861224, -0.12795514, 1, -0.5751836, -0.22465828, 1), PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1)])
+dust_textures = Array[Texture2D]([ExtResource("68_y51yj"), ExtResource("69_o6jaf"), ExtResource("70_kprv0"), ExtResource("71_iade4")])
+metal_textures = Array[Texture2D]([ExtResource("72_loupt"), ExtResource("73_h7701"), ExtResource("74_rfmpx"), ExtResource("75_s2hk5")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
-[sub_resource type="Resource" id="Resource_jfgc8"]
+[sub_resource type="Resource" id="Resource_yat7p"]
 script = ExtResource("19_qf7ya")
-dust_textures = Array[Texture2D]([ExtResource("44_f7s35"), ExtResource("45_p7stv")])
-metal_textures = Array[Texture2D]([ExtResource("46_7h6ei"), ExtResource("47_df7rf")])
-dust_sheets = Array[Texture2D]([ExtResource("65_dkcw6"), ExtResource("66_34l3a"), ExtResource("67_iuv4d")])
-junk_paths = PackedStringArray("res://sprites/junk_s8_1.png", "res://sprites/junk_s8_2.png", "res://sprites/junk_s8_3.png", "res://sprites/junk_s8_4.png")
-junk_lamps = Array[PackedVector3Array]([PackedVector3Array(0.52, -0.35569218, 1, 0.64744234, -0.25095487, 1, 0.7062435, -0.12813467, 1, 0.70027125, 0.021448847, 1, 0.64755756, 0.19408968, 1, 0.56874484, 0.37014765, 1, 0.47569215, 0.52, 1, 0.366866, 0.616384, 1, 0.23205772, 0.6462435, 1, 0.063403994, 0.6154185, 1, -0.13408965, 0.5436345, 1, -0.33908927, 0.45283377, 1, -0.52000004, 0.35569215, 1, -0.6474424, 0.25095487, 1, -0.7062435, 0.1281347, 1, -0.7002713, -0.021448791, 1, -0.6475575, -0.19408971, 1, -0.56874484, -0.37014768, 1, -0.47569218, -0.52, 1, -0.366866, -0.616384, 1, -0.2320578, -0.6462436, 1, -0.06340405, -0.6154185, 1, 0.13408948, -0.54363453, 1, 0.33908954, -0.4528336, 1), PackedVector3Array(-0.58, -0.38461524, 1, -0.13842165, -0.5712377, 1, 0.3359679, -0.6180866, 1, 0.69411963, -0.48588026, 1, 0.85691345, -0.17498705, 1, 0.82471716, 0.2356233, 0.95698094, 0.6372947, 0.6, 1, 0.33452493, 0.7741842, 1, -0.043086655, 0.6946023, 1, -0.42549556, 0.40549552, 1, -0.7032626, 0.01808662, 1, -0.76784456, -0.35818505, 1, -0.58000004, -0.65461516, 1, -0.2083025, -0.83203775, 0.9617033, 0.2009677, -0.85191345, 1, 0.5032009, -0.67679906, 1, 0.6230866, -0.3099869, 1, 0.56391734, 0.16574198, 1, 0.36729473, 0.6, 1, 0.0737246, 0.8440654, 1, -0.27691334, 0.82960236, 1, -0.61641395, 0.5964148, 0.9548114, -0.83826256, 0.25191367, 1, -0.83772576, -0.097384766, 1), PackedVector3Array(0.48, -0.12569219, 1, 0.6690272, -0.036556512, 1, 0.788923, 0.0550704, 1, 0.8384109, 0.15958852, 0.94185406, 0.8307626, 0.27676916, 0.8932672, 0.78314316, 0.39173254, 0.8860805, 0.7056922, 0.48000002, 0.9462975, 0.5967935, 0.51891214, 1, 0.44722432, 0.49892303, 1, 0.25053343, 0.42828906, 1, 0.01323086, 0.32846788, 1, -0.24161738, 0.22290629, 1, -0.48000008, 0.12569216, 1, -0.6690272, 0.036556542, 1, -0.788923, -0.05507037, 1, -0.838411, -0.15958847, 0.9413838, -0.8307625, -0.27676916, 0.8932672, -0.78314316, -0.39173254, 0.8860805, -0.7056922, -0.48, 0.9462975, -0.59679353, -0.5189122, 1, -0.44722438, -0.49892306, 1, -0.25053352, -0.4282891, 1, -0.013231039, -0.32846802, 1, 0.24161772, -0.22290614, 1), PackedVector3Array(0.45, -0.22971141, 1, 0.5982576, -0.14233468, 1, 0.6836778, -0.04525806, 1, 0.7069026, 0.07050665, 1, 0.6819533, 0.20353356, 1, 0.6261338, 0.33829385, 1, 0.5497114, 0.45000002, 1, 0.45143092, 0.5154355, 1, 0.3223862, 0.5236778, 1, 0.15576755, 0.48062855, 1, -0.04353354, 0.40482527, 1, -0.25547168, 0.31703758, 1, -0.45000002, 0.22971138, 1, -0.59825766, 0.14233468, 1, -0.68367785, 0.04525809, 1, -0.7069027, -0.070506595, 1, -0.68195325, -0.20353359, 1, -0.6261338, -0.3382939, 1, -0.5497114, -0.45, 1, -0.45143098, -0.5154355, 1, -0.32238626, -0.5236779, 1, -0.15576762, -0.48062855, 1, 0.043533385, -0.40482527, 1, 0.25547197, -0.31703743, 1)])
+dust_textures = Array[Texture2D]([ExtResource("76_dnh78"), ExtResource("77_ubb3u"), ExtResource("78_s4e4e"), ExtResource("79_xbn8m")])
+metal_textures = Array[Texture2D]([ExtResource("80_gvmci"), ExtResource("81_inl40"), ExtResource("82_pe6eu"), ExtResource("83_o4lik")])
+junk_paths = PackedStringArray()
+metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.4375)
 
 [resource]
 script = ExtResource("7_5u5ty")
@@ -150,7 +156,7 @@ ship_roll_textures = Array[Texture2D]([ExtResource("49_7y1fc"), ExtResource("50_
 dust_textures = Array[Texture2D]([ExtResource("1_0djt3"), ExtResource("2_7ck5r"), ExtResource("3_pucd1")])
 metal_textures = Array[Texture2D]([ExtResource("4_tff5p"), ExtResource("5_5hgmi"), ExtResource("6_ik4b2")])
 dust_shell_texture = ExtResource("1_5hgmi")
-sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_df7rf"), SubResource("Resource_rk5hu"), SubResource("Resource_um1ul"), SubResource("Resource_ddfg0"), SubResource("Resource_rad2v"), SubResource("Resource_7uuao"), SubResource("Resource_rpg4n"), SubResource("Resource_jfgc8")])
+sector_looks = Array[ExtResource("19_qf7ya")]([SubResource("Resource_fp40q"), SubResource("Resource_mh4yn"), SubResource("Resource_ninbi"), SubResource("Resource_3t0sr"), SubResource("Resource_cn6uo"), SubResource("Resource_caqkf"), SubResource("Resource_ars15"), SubResource("Resource_yat7p")])
 ice_textures = Array[Texture2D]([ExtResource("7_4jbvx"), ExtResource("8_u4o7u")])
 rock_mother_body = ExtResource("7_pucd1")
 rock_mother_half = ExtResource("8_tff5p")

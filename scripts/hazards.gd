@@ -271,7 +271,12 @@ func _draw_comet(c: Comet) -> void:
 	draw_circle(c.pos, r * 1.25, Color(0.85, 0.95, 1.0, 0.18))
 	var sheets := Game.art.dust_sheets(4)  # gelo do Setor 5
 	if sheets.is_empty():
-		draw_circle(c.pos, r, Color(2.2, 2.6, 3.0))
+		# Rochas desenhadas: a 1ª rocha do Setor 5, girando, clareada (gelo).
+		var tex: Texture2D = Game.art.rock_textures(false, 4)[0]
+		var half := r / Game.art.dust_fill
+		draw_set_transform(c.pos, c.t * 4.0)
+		draw_texture_rect(tex, Rect2(-half, -half, half * 2.0, half * 2.0), false, Color(1.4, 1.6, 1.9))
+		draw_set_transform(Vector2.ZERO, 0.0)
 	else:
 		var sheet := sheets[0]
 		var frame := posmod(int(c.t * 14.0), ArtSet.SHEET_FRAMES)

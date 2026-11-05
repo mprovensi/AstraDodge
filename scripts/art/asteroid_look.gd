@@ -14,4 +14,7 @@ extends Resource
 ## celular antigo). `junk_lamps[i]` = luz âmbar da peça i, um Vector3 por quadro (ver JunkLamps).
 ## Grade: ArtSet.JUNK_COLS x ArtSet.JUNK_ROWS quadros.
 @export var junk_paths: PackedStringArray = []
+## Luz âmbar de cada metal_textures[i] (sprites desenhados, PLANO_SPRITES_IA.md): ponto em
+## -1..1 da imagem. Vazio = sem luz.
+@export var metal_lamps: PackedVector2Array = []
 @export var junk_lamps: Array[PackedVector3Array] = []

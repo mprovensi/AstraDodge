@@ -623,6 +623,7 @@ func _test_boss_safety() -> void:
 				var out := _circle_outside_pct(tex, (art.metal_fill if metal else art.dust_fill) * 0.85)
 				worst_rock = maxf(worst_rock, out)
 				assert(out <= 5.0, "rocha %s: %.0f%% da colisão fora do desenho" % [tex.resource_path, out])
+				assert(_white_fringe_pct(tex) < 2.0, "rocha %s: borda branca (fundo mal recortado)" % tex.resource_path)
 				var lum := _mean_luminance(tex)
 				if metal:
 					assert(lum < 0.36, "metal tem que ser escuro: %s (%.2f)" % [tex.resource_path, lum])
@@ -675,9 +676,25 @@ func _test_boss_safety() -> void:
 				assert(out <= 5.0, "%s quadro %d: %.0f%% da colisão fora do desenho" % [sheet.resource_path, f, out])
 			var lum := _mean_luminance(sheet)
 			assert(lum < 0.36, "lixo tem que ser escuro: %s (%.2f)" % [sheet.resource_path, lum])
-	assert(junk_count >= 8 * 4, "lixo espacial: 4 peças em cada um dos 8 setores")
-	print("LIXO ESPACIAL OK | %d pecas x %d quadros | pior colisao fora do desenho=%.1f%%" % [
-			junk_count, ArtSet.JUNK_FRAMES, worst_junk])
+	# Lixo desenhado (PLANO_SPRITES_IA.md): cada peça com a sua luz âmbar, em cima da peça.
+	var drawn_lamps := 0
+	for look in art.sector_looks.size():
+		var lk = art.sector_looks[look]
+		if lk.metal_lamps.is_empty():
+			continue
+		assert(lk.metal_lamps.size() == lk.metal_textures.size(), "setor %d: uma luz por peça" % (look + 1))
+		for i in lk.metal_textures.size():
+			var img: Image = lk.metal_textures[i].get_image()
+			if img.is_compressed():
+				img.decompress()
+			var p: Vector2 = lk.metal_lamps[i]
+			var px := Vector2i(((p + Vector2.ONE) * 0.5 * Vector2(img.get_size())).floor())
+			assert(img.get_pixelv(px.clamp(Vector2i.ZERO, img.get_size() - Vector2i.ONE)).a > 0.5,
+					"setor %d peça %d: luz âmbar fora da peça" % [look + 1, i + 1])
+			drawn_lamps += 1
+	assert(junk_count >= 8 * 4 or drawn_lamps >= 8 * 4, "lixo espacial: 4 peças em cada um dos 8 setores")
+	print("LIXO ESPACIAL OK | giro 3D: %d pecas (pior %.1f%% fora) | desenhadas: %d pecas com luz ambar" % [
+			junk_count, worst_junk, drawn_lamps])
 	print("ROCHAS POR SETOR OK | %d setores | pior colisao fora do desenho=%.1f%%" % [art.sector_looks.size(), worst_rock])
 
 	# Setor 8 / Núcleo da Fenda: brecha do anel, leque do eco da Rocha-Mãe na altura da nave,
@@ -717,6 +734,29 @@ func _circle_outside_pct(tex: Texture2D, fill: float) -> float:
 			if img.get_pixel(int(half + x), int(half + y)).a <= 0.5:
 				outside += 1
 	return 100.0 * outside / maxf(1.0, hits)
+
+
+## % dos pixels da borda (opaco encostado em transparente) que são quase brancos — sobra do
+## fundo branco de uma imagem recortada.
+func _white_fringe_pct(tex: Texture2D) -> float:
+	var img := tex.get_image()
+	if img.is_compressed():
+		img.decompress()
+	var w := img.get_width()
+	var h := img.get_height()
+	var edge := 0
+	var white := 0
+	for y in range(1, h - 1, 2):
+		for x in range(1, w - 1, 2):
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.5:
+				continue
+			if img.get_pixel(x - 1, y).a > 0.5 and img.get_pixel(x + 1, y).a > 0.5 					and img.get_pixel(x, y - 1).a > 0.5 and img.get_pixel(x, y + 1).a > 0.5:
+				continue
+			edge += 1
+			if minf(c.r, minf(c.g, c.b)) > 0.85:
+				white += 1
+	return 100.0 * white / maxf(1.0, edge)
 
 
 ## Brilho médio (0–1) dos pixels opacos.
