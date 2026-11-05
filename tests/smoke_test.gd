@@ -42,6 +42,10 @@ func _run() -> void:
 	_test_daily()
 	_test_polish()
 	_test_modules()
+	_test_save()
+	_test_background()
+	_test_rows_fair()
+	_test_ship_rules()
 	_test_boss_safety()
 	_test_checkpoint()
 	_test_boss_resume()
@@ -1187,6 +1191,183 @@ func _test_modules() -> void:
 	game.checkpoint = {}
 	main.go_to_menu()
 	print("MODULOS OK | mao de 3, niveis, oferta, contêiner, efeitos e proximo setor")
+
+
+## SAVE (parte sensível: perder progresso é o pior bug): grava e lê de volta tudo, saves antigos
+## migram (som ligado/desligado → volume), arquivo ausente/corrompido não quebra. Usa um
+## arquivo de teste — o save real nunca é tocado.
+func _test_save() -> void:
+	var game := root.get_node("Game")
+	var real_path: String = game.save_path
+	var test_path := "user://teste_save.cfg"
+	game.save_path = test_path
+	game.persist = true
+	var snap := {}
+	var keys := ["high_score", "sensitivity", "vibration_enabled", "music_volume", "sfx_volume", "sector_best",
+			"sectors_cleared", "checkpoint", "sector_stars", "endless_best_time", "daily_date", "daily_score",
+			"daily_best", "skin", "mod", "graphics", "modules_seen"]
+	for k in keys:
+		snap[k] = game.get(k)
+	# 1) Ida e volta.
+	game.high_score = 4321
+	game.sensitivity = 1.4
+	game.vibration_enabled = false
+	game.music_volume = 0.3
+	game.sfx_volume = 0.7
+	game.sector_best = {"sector_3": 999}
+	game.sectors_cleared = {"sector_1": true, "sector_2": true}
+	game.checkpoint = {"sector": 2, "time": 33.5, "weapon": 3, "score": 1500, "modules": {"ima": 2}}
+	game.sector_stars = {"sector_1": 3}
+	game.endless_best_time = 321.0
+	game.daily_date = "2026-11-05"
+	game.daily_score = 777
+	game.daily_best = 888
+	game.skin = 2
+	game.mod = 1
+	game.graphics = 2
+	game.modules_seen = true
+	game.save_data()
+	var expected := {}
+	for k in keys:
+		expected[k] = game.get(k)
+	for k in keys:  # bagunça tudo e relê do disco
+		game.set(k, snap[k])
+	game.load_data()
+	for k in keys:
+		var same: bool = game.get(k) == expected[k] if expected[k] is Dictionary else str(game.get(k)) == str(expected[k])
+		assert(same, "save: '%s' não voltou igual (%s ≠ %s)" % [k, str(game.get(k)), str(expected[k])])
+	# 2) Save antigo (só "music"/"sfx" ligado/desligado) vira volume 0%/100%.
+	var old := ConfigFile.new()
+	old.set_value("score", "high", 10)  # todo save real tem o recorde
+	old.set_value("options", "music", false)
+	old.set_value("options", "sfx", true)
+	old.save(test_path)
+	game.load_data()
+	assert(game.music_volume == 0.0 and game.sfx_volume == 1.0, "save antigo: som vira volume")
+	# 3) Arquivo ausente: não quebra e mantém os valores.
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_path + ".bak"))
+	game.high_score = 55
+	game.load_data()
+	assert(game.high_score == 55, "sem arquivo: mantém o que tinha")
+	# 4) Save estragado (ex.: celular desligou gravando): volta a cópia de reserva.
+	game.high_score = 77
+	game.save_data()
+	game.high_score = 88
+	game.save_data()  # a versão com 77 vira a reserva (.bak)
+	var bad := FileAccess.open(test_path, FileAccess.WRITE)
+	bad.store_string("isto não é um save [[[")
+	bad.close()
+	game.high_score = 1
+	game.load_data()
+	assert(game.high_score == 77, "save estragado: usa a reserva (veio %d)" % game.high_score)
+	# 5) Os dois estragados: mantém o que tem (nunca zera o progresso).
+	var bad2 := FileAccess.open(test_path + ".bak", FileAccess.WRITE)
+	bad2.store_string("[[[ lixo")
+	bad2.close()
+	game.high_score = 55
+	game.load_data()
+	assert(game.high_score == 55, "tudo estragado: não zera o progresso")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_path + ".bak"))
+	for k in keys:
+		game.set(k, snap[k])
+	game.save_path = real_path
+	game.persist = false
+	print("SAVE OK | %d campos ida e volta | save antigo migra | save estragado usa a reserva | nunca zera" % keys.size())
+
+
+## App para segundo plano (ligação, trocar de app) no meio da fase: pausa e salva o ponto.
+func _test_background() -> void:
+	var game := root.get_node("Game")
+	game.checkpoint = {}
+	main.go_to_menu()
+	main.start_sector_dev(1, false)
+	_touch(true)
+	for i in 60 * 3:
+		main.ship.invuln = 1.0
+		main._process(DT)
+	assert(main.state == main.State.PLAYING)
+	main._notification(Node.NOTIFICATION_APPLICATION_PAUSED)
+	assert(main.state == main.State.PAUSED, "ir para segundo plano pausa o jogo")
+	assert(int(game.checkpoint.get("sector", -1)) == 1, "e salva o ponto para Continuar")
+	game.checkpoint = {}
+	main.go_to_menu()
+	print("SEGUNDO PLANO OK | pausa e salva o ponto")
+
+
+## JUSTIÇA DAS FILEIRAS (coração do jogo): em toda fileira aleatória os metálicos deixam a
+## brecha livre (≥ largura da nave com folga), em qualquer dificuldade e com metais móveis;
+## paredões e corredores também deixam a brecha dentro da tela.
+func _test_rows_fair() -> void:
+	var field = main.asteroids
+	var w: float = main.view_size.x
+	var half_gap: float = Tuning.SAFE_GAP_WIDTH * 0.5
+	var rows := 0
+	var gap_ref := [0.0]
+	var on_row := func(gx: float) -> void: gap_ref[0] = gx
+	field.row_spawned.connect(on_row)
+	for difficulty in [0.0, 0.5, 1.0]:
+		for moving in [0.0, 1.0]:
+			field.reset()
+			field.moving_metals = moving
+			for i in 300:
+				var before: int = field.asteroids.size()
+				field._spawn_row(difficulty)
+				rows += 1
+				var gap: float = gap_ref[0]
+				assert(gap - half_gap >= 0.0 and gap + half_gap <= w, "brecha fora da tela (%.0f)" % gap)
+				for k in range(before, field.asteroids.size()):
+					var a = field.asteroids[k]
+					if a.kind != 1 or a.drift != 0.0:
+						continue  # poeira (dá para quebrar) e metal móvel (atravessa sozinho a fileira)
+					assert(absf(a.pos.x - gap) >= half_gap + a.radius - 0.5,
+							"metálico em cima da brecha (dif %.1f): x=%.0f brecha=%.0f r=%.0f" % [difficulty, a.pos.x, gap, a.radius])
+	field.row_spawned.disconnect(on_row)
+	# Paredão: a brecha (vão entre os blocos) é sempre maior que a nave.
+	field.reset()
+	field.spawn_wall(false)
+	var xs: Array[float] = []
+	for a in field.asteroids:
+		xs.append(a.pos.x)
+	xs.sort()
+	var widest := 0.0
+	for i in range(1, xs.size()):
+		widest = maxf(widest, xs[i] - xs[i - 1] - 2.0 * Tuning.WALL_METAL_RADIUS)
+	assert(widest >= 2.0 * Tuning.SHIP_HITBOX_RADIUS + 60.0, "paredão sem brecha (%.0f px)" % widest)
+	field.reset()
+	print("FILEIRAS JUSTAS OK | %d fileiras sem metal na brecha | paredao com brecha de %.0f px" % [rows, widest])
+
+
+## REGRAS DA NAVE: escudo, invencibilidade, "última chance", orbe que salva, morte, limites da tela.
+func _test_ship_rules() -> void:
+	var ship = main.ship
+	main.go_to_menu()
+	main.start_sector_dev(0, false)
+	_touch(true)
+	ship.invuln = 0.0
+	var full: float = ship.shield
+	assert(ship.take_hit(15.0) == 1 and is_equal_approx(ship.shield, full - 15.0), "golpe tira escudo")  # ABSORBED
+	assert(ship.take_hit(15.0) == 0, "logo depois do golpe: invencível")  # IGNORED
+	ship.invuln = 0.0
+	var level: int = ship.weapon_level
+	ship.shield = 5.0
+	assert(ship.take_hit(30.0) == 2 and ship.last_chance, "escudo zerado: última chance")  # LAST_CHANCE
+	assert(ship.weapon_level == maxi(1, level - 1), "última chance perde 1 nível da arma")
+	assert(ship.add_shield(10.0) and not ship.last_chance, "orbe tira da última chance")
+	ship.shield = 5.0
+	ship.invuln = 0.0
+	ship.take_hit(30.0)
+	ship.invuln = 0.0
+	assert(ship.take_hit(1.0) == 3 and not ship.alive, "golpe na última chance: morte")  # DEAD
+	# Limites: o dedo não leva a nave para fora da área permitida.
+	ship.alive = true
+	ship.move_by(Vector2(-99999, -99999))
+	assert(ship.target.x >= Tuning.SHIP_MARGIN - 0.5 and ship.target.y >= main.view_size.y * Tuning.SHIP_MIN_Y_RATIO - 0.5)
+	ship.move_by(Vector2(99999, 99999))
+	assert(ship.target.x <= main.view_size.x - Tuning.SHIP_MARGIN + 0.5 and ship.target.y <= main.view_size.y - Tuning.SHIP_MARGIN + 0.5)
+	main.go_to_menu()
+	print("NAVE OK | escudo, invencibilidade, ultima chance, orbe salva, morte, limites")
 
 
 func _test_music() -> void:

@@ -130,7 +130,13 @@ No Claude Code, a skill **ver-jogo-rapido** faz isso a pedido ("quero ver o jogo
 roda a bateria completa (~10 min). O resultado aparece na aba **Actions** do repositório (✅/❌) e o
 log fica guardado em cada execução.
 
-No PC, a mesma bateria com resumo (sai com erro se algo falhar):
+**Deploy de teste** (roda a bateria e só instala no celular se tudo passar):
+
+```
+powershell -ExecutionPolicy Bypass -File toolsdeploy_dev.ps1
+```
+
+No PC, só a bateria com resumo (sai com erro se algo falhar):
 
 ```
 powershell -ExecutionPolicy Bypass -File tools\rodar_testes.ps1
@@ -138,7 +144,9 @@ powershell -ExecutionPolicy Bypass -File tools\rodar_testes.ps1
 
 O que a bateria cobre (`tests/smoke_test.gd`): o bot joga a campanha inteira (8 setores e chefes) e o
 Infinito; Desafio do Dia; checkpoint/Continuar; rota segura de todos os chefes; colisão × desenho de
-chefes, rochas e todos os quadros do giro 3D; tiro que não atravessa rocha; módulos; gráficos; volume.
+chefes, rochas e todos os quadros do giro 3D; tiro que não atravessa rocha; módulos; gráficos; volume;
+**save** (ida e volta de todos os campos, save antigo, arquivo estragado usa a reserva); app indo para
+segundo plano; **justiça das fileiras** (nenhum metal na brecha); regras da nave.
 
 `tests/demo_capture.gd` grava frames de uma demo automática (`--write-movie`) para conferir o visual.
 Os testes não alteram o save real.

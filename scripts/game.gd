@@ -2,6 +2,7 @@ extends Node
 ## Autoload "Game": recorde e opções salvos no aparelho.
 
 const SAVE_PATH := "user://save.cfg"
+var save_path := SAVE_PATH  # os testes usam outro arquivo (nunca mexem no save real)
 ## Conjunto de arte ativo. Para outra arte/skin: crie outro .tres de ArtSet e aponte aqui.
 const ART_SET_PATH := "res://data/art/default.tres"
 
@@ -35,10 +36,18 @@ func _ready() -> void:
 	load_data()
 
 
+## Carrega o save. Se o arquivo principal estiver ausente ou estragado (ex.: o celular desligou
+## no meio da gravação), tenta a cópia de reserva (.bak). Se nenhum servir, mantém o que tem
+## — nunca "zera" o progresso por causa de um arquivo ruim.
 func load_data() -> void:
-	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) != OK:
-		return
+	for path in [save_path, save_path + ".bak"]:
+		var cfg := ConfigFile.new()
+		if cfg.load(path) == OK and cfg.has_section_key("score", "high"):
+			_read(cfg)
+			return
+
+
+func _read(cfg: ConfigFile) -> void:
 	high_score = cfg.get_value("score", "high", 0)
 	sensitivity = cfg.get_value("options", "sensitivity", Tuning.DRAG_SENSITIVITY_DEFAULT)
 	vibration_enabled = cfg.get_value("options", "vibration", true)
@@ -65,6 +74,12 @@ func load_data() -> void:
 func save_data() -> void:
 	if not persist:
 		return
+	# A versão anterior (que estava boa) vira a reserva antes de gravar a nova.
+	if FileAccess.file_exists(save_path):
+		var current := ConfigFile.new()
+		if current.load(save_path) == OK and current.has_section_key("score", "high"):
+			DirAccess.copy_absolute(ProjectSettings.globalize_path(save_path),
+					ProjectSettings.globalize_path(save_path + ".bak"))
 	var cfg := ConfigFile.new()
 	cfg.set_value("score", "high", high_score)
 	cfg.set_value("options", "sensitivity", sensitivity)
@@ -83,7 +98,7 @@ func save_data() -> void:
 	cfg.set_value("options", "mod", mod)
 	cfg.set_value("options", "graphics", graphics)
 	cfg.set_value("campaign", "modules_seen", modules_seen)
-	cfg.save(SAVE_PATH)
+	cfg.save(save_path)
 
 
 func endless_unlocked() -> bool:
