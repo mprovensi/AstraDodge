@@ -155,7 +155,7 @@ func _on_damaged() -> void:
 
 
 ## Fase 2: tiro num nódulo tira vida do nódulo, não do chefe.
-func damage(amount: int) -> void:
+func damage(amount: float) -> void:
 	if _last_node >= 0:
 		var idx := _last_node
 		var n := _nodes[idx]

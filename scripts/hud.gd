@@ -62,7 +62,6 @@ var _shield_danger := false
 var _blink_t := 0.0
 var _weapon_label: Label
 var _weapon_fill: ColorRect
-var _weapon_cap_seen := Tuning.WEAPON_MAX_LEVEL  # teto atual (para "MÁXIMO DO SETOR!")
 var _levelup_label: Label
 var _levelup_timer := 0.0
 var _hint_panel: PanelContainer
@@ -365,7 +364,7 @@ func blocks_touch(pos: Vector2) -> bool:
 
 
 func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
-		weapon_level: int, weapon_progress: float, weapon_cap := Tuning.WEAPON_MAX_LEVEL,
+		weapon_level: int, weapon_progress: float, weapon_name := "PULSO",
 		overcharge := false) -> void:
 	_score_label.text = str(score)
 	_best_label.text = "RECORDE %d" % best
@@ -378,18 +377,17 @@ func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
 	_shield_danger = last_chance or shield_ratio < Tuning.SHIELD_LOW_RATIO
 	_shield_fill.size = Vector2(BAR_WIDTH * shield_ratio, BAR_HEIGHT)
 
-	# No teto a barra vira SOBRECARGA (dourada): enche com cristais e esvazia enquanto dura.
-	var gold := weapon_level >= weapon_cap
+	# No padrão máximo a barra vira SOBRECARGA (dourada): enche com cristais e esvazia enquanto dura.
+	var gold := weapon_level >= Tuning.PATTERN_MAX
 	if overcharge:
 		_weapon_label.text = "SOBRECARGA!"
 	elif gold:
-		_weapon_label.text = "ARMA %d MÁX" % weapon_level
+		_weapon_label.text = "%s MÁX" % weapon_name
 	else:
-		_weapon_label.text = "ARMA %d/%d" % [weapon_level, weapon_cap]
+		_weapon_label.text = "%s %d/%d" % [weapon_name, weapon_level, Tuning.PATTERN_MAX]
 	var col := Palette.GOLD if gold else Palette.MAGENTA
 	_weapon_label.add_theme_color_override("font_color", col)
 	_weapon_fill.color = col
-	_weapon_cap_seen = weapon_cap
 	_weapon_fill.size = Vector2(BAR_WIDTH * clampf(weapon_progress, 0.0, 1.0), BAR_HEIGHT)
 
 
@@ -408,10 +406,8 @@ func clear_hint() -> void:
 func on_weapon_level(level: int, went_up: bool) -> void:
 	if not went_up:
 		_levelup_label.text = "ARMA -1"
-	elif level >= Tuning.WEAPON_MAX_LEVEL:
+	elif level >= Tuning.PATTERN_MAX:
 		_levelup_label.text = "ARMA MÁXIMA!"
-	elif level >= _weapon_cap_seen:
-		_levelup_label.text = "MÁXIMO DO SETOR!"
 	else:
 		_levelup_label.text = "LEVEL UP!"
 	_levelup_label.add_theme_color_override("font_color", Palette.MAGENTA if went_up else Palette.DANGER)
@@ -573,14 +569,23 @@ func _add_center_button(id: String, text: String, action: Callable, click := tru
 ## CONTÊINER DE CARGA: escolha 1 de 3 módulos (cartas). `cards`: [[título, categoria, descrição], ...].
 ## `hand_text`: o que já está na nave. `first`: primeira vez (explica o que são módulos).
 func show_module_pick(cards: Array, hand_text: String, first: bool) -> void:
+	var colored := []
+	for c: Array in cards:
+		colored.append([c[0], c[1], c[2], Modules.CATEGORY_COLORS.get(c[1], Color.WHITE)])
+	show_card_pick("CONTÊINER DE CARGA",
+			"MÓDULOS mudam o jeito de jogar e continuam\nnos próximos setores. Escolha um:"
+			if first else "Escolha um módulo:", colored, hand_text)
+
+
+## 3 cartas [nome, etiqueta, texto, cor]; a escolha sai em `module_chosen(índice)`.
+func show_card_pick(title: String, subtitle: String, cards: Array, footer: String) -> void:
 	if _module_layer == null:
 		_build_module_layer()
-	_module_title.text = "CONTÊINER DE CARGA"
-	_module_sub.text = ("MÓDULOS mudam o jeito de jogar e continuam\nnos próximos setores. Escolha um:"
-			if first else "Escolha um módulo:")
+	_module_title.text = title
+	_module_sub.text = subtitle
 	for i in 3:
 		var c: Array = cards[i]
-		var color: Color = Modules.CATEGORY_COLORS.get(c[1], Color.WHITE)
+		var color: Color = c[3]
 		var b: Button = _module_cards[i]
 		b.text = "%s\n%s · %s" % [c[0], c[1], c[2]]
 		for state in ["normal", "hover", "pressed"]:
@@ -588,7 +593,7 @@ func show_module_pick(cards: Array, hand_text: String, first: bool) -> void:
 			sb.border_color = color
 		for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			b.add_theme_color_override(state, color.lerp(Color.WHITE, 0.35))
-	_module_hand.text = hand_text
+	_module_hand.text = footer
 	_center.visible = false
 	_module_layer.visible = true
 

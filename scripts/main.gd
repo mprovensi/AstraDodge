@@ -82,7 +82,7 @@ var _invert_duration := 0.0
 var _escape_t := -1.0           # >= 0: cena de fuga depois do chefe final
 var ice_shards := 0             # lascas criadas por gelo rachado (testes)
 var eggs_destroyed := 0         # ovos destruídos antes de eclodir (testes)
-var _boss_core_hits := 0        # acertos no núcleo desde o último orbe que o chefe soltou
+var _boss_core_hits := 0.0      # dano no núcleo desde o último orbe que o chefe soltou
 var boss_orbs_dropped := 0      # orbes soltos por acertos no chefe (testes)
 var _biome := 0                # setor cujo cenário está na tela (no Infinito, troca sozinho)
 # Modo Infinito
@@ -99,6 +99,7 @@ var _biomes_seen := {}                  # cenários vistos nesta partida (estat�
 var _best_multiplier := 1.0
 # Módulos (PLANO_CARTAS.md)
 var modules := Modules.new()
+var _weapon_offer: Array = []          # carta de tipo de arma aberta (vazia: carta de módulo)
 var auto_pick_modules := false        # testes/demo: escolhe a 1ª carta sozinho
 ## JOGO AUTOMÁTICO (seletor de fases, só build de desenvolvimento): o piloto joga a fase com
 ## escudo infinito; nada é salvo enquanto ele joga. Tocar na tela devolve o controle.
@@ -151,6 +152,7 @@ func _ready() -> void:
 	ship.shield_depleted.connect(_on_shield_depleted)
 	ship.overcharge_started.connect(_on_overcharge_started)
 	ship.crystals_lost.connect(hud.on_crystals_lost)
+	bullets.seek_x = _missile_target_x
 	ship.fired.connect(func() -> void: Sfx.play("laser", -12.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
@@ -261,7 +263,7 @@ func _process(delta: float) -> void:
 	Sfx.set_music_intensity(time_scale, quiet)
 	_update_engine_sound(delta)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
-			ship.weapon_level, ship.weapon_progress(), ship.weapon_cap, ship.overcharged())
+			ship.weapon_level, ship.weapon_progress(), Weapons.info(ship.weapon_type).name, ship.overcharged())
 	hud.set_alert(_alert_timer)
 	hud.set_multiplier(multiplier if mode == Mode.ENDLESS else 1.0)
 	if boss != null:
@@ -301,7 +303,7 @@ func start_sector_dev(index: int, at_boss: bool) -> void:
 	_touch_index = -1
 	_hand_at_start = {}
 	start_mode(Mode.CAMPAIGN, clampi(index, 0, SECTORS.size() - 1))
-	ship.weapon_level = ship.weapon_cap  # teste: já começa com a arma do teto do setor
+	ship.weapon_level = 3  # teste: já começa com o padrão 3 (a potência é a do setor)
 	if at_boss:
 		for e in director.sector.events:
 			if e.kind == WaveEvent.Kind.BOSS:
@@ -347,9 +349,7 @@ func _drive_autopilot(delta: float) -> void:
 			if _auto_wait > 2.5:
 				_auto_wait = 0.0
 				if _has_next_sector():
-					var lvl := ship.weapon_level
 					_on_next_sector()
-					ship.weapon_level = lvl
 					_bot_touch()
 				else:
 					stop_autopilot()  # campanha acabou: fica na tela de vitória
@@ -406,7 +406,9 @@ func start_mode(new_mode: Mode, index := 0) -> void:
 
 func _new_run() -> void:
 	elapsed = 0.0
-	_update_weapon_cap()  # modo e setor já definidos por quem chamou
+	_weapon_offer = []  # carta aberta numa partida que acabou não vale mais
+	hud.hide_module_pick()
+	_update_weapon_power()  # modo e setor já definidos por quem chamou
 	distance = 0.0
 	bonus_score = 0
 	score = 0
@@ -453,6 +455,7 @@ func _new_run() -> void:
 	fx.clear()
 	hud.clear_hint()
 	ship.reset(Vector2(view_size.x * 0.5, view_size.y * 0.8))
+	ship.weapon_type = Weapons.PULSE  # quem continua uma partida (próximo setor, ponto salvo) repõe o tipo
 	if mode == Mode.CAMPAIGN:
 		director = SectorDirector.new(SECTORS[sector_index])
 		_biome = sector_index
@@ -521,7 +524,8 @@ func resume_checkpoint() -> void:
 	_revive_used = bool(cp.get("revive_used", false))
 	ship.shield = float(cp.get("shield", Tuning.SHIELD_MAX))
 	ship.last_chance = bool(cp.get("last_chance", false))
-	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, ship.weapon_cap)
+	ship.weapon_level = clampi(int(cp.get("weapon", 1)), 1, Tuning.PATTERN_MAX)
+	ship.weapon_type = Weapons.valid(str(cp.get("weapon_type", Weapons.PULSE)))
 	ship.crystals = int(cp.get("crystals", 0))
 	modules.load_dict(cp.get("modules", {}))
 	_apply_modules()
@@ -552,6 +556,7 @@ func _save_checkpoint() -> void:
 		"shield": ship.shield,
 		"last_chance": ship.last_chance,
 		"weapon": ship.weapon_level,
+		"weapon_type": ship.weapon_type,
 		"crystals": ship.crystals,
 		"dust_spawned": asteroids.dust_spawned,
 		"dust_destroyed": dust_destroyed,
@@ -586,28 +591,34 @@ func _run_stats() -> String:
 		SECTORS[_biome].subtitle.to_upper(), _best_multiplier]
 
 
-## Teto da arma (PLANO_ARMA.md): na campanha, sobe 1 degrau por setor; no Infinito e no
-## Desafio do Dia, com o tempo de partida.
-func _update_weapon_cap() -> void:
-	var cap := Tuning.WEAPON_CAP_FIRST + sector_index
-	if mode != Mode.CAMPAIGN:
-		cap = Tuning.WEAPON_CAP_FIRST + int(elapsed / Tuning.WEAPON_CAP_ENDLESS_EVERY)
-	ship.weapon_cap = clampi(cap, Tuning.WEAPON_CAP_FIRST, Tuning.WEAPON_MAX_LEVEL)
+## Potência da arma (PLANO_ARMA.md v2): na campanha, sobe a cada setor; no Infinito e no
+## Desafio do Dia, com o tempo de partida. Nunca se perde.
+func _power_step() -> int:
+	if mode == Mode.CAMPAIGN:
+		return sector_index
+	return int(elapsed / Tuning.WEAPON_POWER_ENDLESS_EVERY)
 
 
-## Vai para o próximo setor levando a arma (nível e cristais): recompensa por jogar bem.
+func _update_weapon_power() -> void:
+	ship.power = Weapons.power(_power_step())
+
+
+## Vai para o próximo setor: o tipo de arma e a potência continuam (a potência sobe); o padrão
+## volta ao degrau 1 (os cristais do setor novo o reconstroem). Abre a carta de tipo de arma.
 func _on_next_sector() -> void:
 	if sector_index + 1 >= SECTORS.size():
 		return
-	var weapon := ship.weapon_level
-	var crystals := ship.crystals
+	var type := ship.weapon_type
 	_touch_index = -1
 	_hand_at_start = modules.to_dict()  # os módulos continuam no próximo setor
 	start_mode(Mode.CAMPAIGN, sector_index + 1)
-	ship.weapon_level = weapon
-	ship.crystals = crystals
-	if ship.weapon_cap > weapon:
-		hud.show_hint("ARMA: novo máximo %d" % ship.weapon_cap, 3.0)
+	ship.weapon_type = type
+	hud.show_hint("ARMA: potência ×%s" % _fmt_power(ship.power), 3.0)
+	_open_weapon_pick()
+
+
+func _fmt_power(p: float) -> String:
+	return ("%.2f" % p).rstrip("0").rstrip(".").replace(".", ",")
 
 
 func _has_next_sector() -> bool:
@@ -674,7 +685,7 @@ func _set_state(new_state: State) -> void:
 			# Próximo setor liberado: o "Continuar" do menu já leva para ele, com a arma atual.
 			if _has_next_sector():
 				Game.set_checkpoint({"sector": sector_index + 1, "time": 0.0,
-						"weapon": ship.weapon_level, "crystals": ship.crystals,
+						"weapon": 1, "weapon_type": ship.weapon_type, "crystals": 0,
 						"modules": modules.to_dict(), "modules_start": modules.to_dict()})
 			else:
 				Game.clear_checkpoint()
@@ -694,7 +705,7 @@ func _step(dt: float) -> void:
 	if ship.alive:
 		elapsed += dt
 		if mode != Mode.CAMPAIGN:
-			_update_weapon_cap()  # Infinito/Desafio: o teto sobe com o tempo
+			_update_weapon_power()  # Infinito/Desafio: a potência sobe com o tempo
 
 	var difficulty: float
 	if director != null:
@@ -1027,6 +1038,27 @@ func _update_corridor(dt: float) -> void:
 		_corridor_walls = 0
 
 
+## Míssil: X do alvo mais próximo à frente (ponto fraco do chefe, inimigo ou poeira).
+func _missile_target_x(p: Vector2) -> float:
+	if boss != null and boss.is_vulnerable():
+		return boss.aim_x()
+	var best := NAN
+	var best_d := INF
+	for e in enemies.enemies:
+		if e.alive and e.pos.y < p.y:
+			var d := e.pos.distance_squared_to(p)
+			if d < best_d:
+				best_d = d
+				best = e.pos.x
+	for a in asteroids.asteroids:
+		if a.alive and a.kind == AsteroidField.Kind.DUST and a.pos.y < p.y and a.pos.y > -40.0:
+			var d := a.pos.distance_squared_to(p)
+			if d < best_d:
+				best_d = d
+				best = a.pos.x
+	return best
+
+
 func _check_bullet_hits() -> void:
 	for b in bullets.pool:
 		if not b.alive:
@@ -1043,7 +1075,7 @@ func _check_bullet_hits() -> void:
 				b.hit_ids[-e.id] = true
 			else:
 				b.alive = false
-			if enemies.damage(e, Tuning.BULLET_DAMAGE):
+			if enemies.damage(e, b.damage):
 				_on_enemy_destroyed(e)
 			else:
 				fx.spark(b.pos, Palette.ENEMY)
@@ -1057,13 +1089,13 @@ func _bullet_hits_boss(b: BulletLayer.Bullet) -> bool:
 		return false
 	b.alive = false
 	if hit == Boss.Hit.CORE:
-		boss.damage(Tuning.BULLET_DAMAGE)
+		boss.damage(b.base_damage)  # a vida do chefe já conta com a potência do setor
 		fx.spark(b.pos, Palette.BLAST_HDR)
 		Sfx.play("hit", -12.0, 1.5, 0.1, b.pos)
 		# Acertar o ponto fraco recompensa com escudo: a luta não depende só da poeira.
-		_boss_core_hits += 1
-		if _boss_core_hits >= maxi(1, roundi(boss.max_hp * Tuning.BOSS_ORB_EVERY_HP)):
-			_boss_core_hits = 0
+		_boss_core_hits += b.base_damage
+		if _boss_core_hits >= maxf(1.0, boss.max_hp * Tuning.BOSS_ORB_EVERY_HP):
+			_boss_core_hits = 0.0
 			boss_orbs_dropped += 1
 			pickups.spawn(b.pos, PickupLayer.Kind.SHIELD)
 	else:
@@ -1087,7 +1119,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 		fx.spark(b.pos, Palette.METAL_LINE)
 		asteroids.impact(a, b.vel.normalized())
 		Sfx.play("ricochet", -3.0, 1.0, 0.1, b.pos)
-		if ship.weapon_level >= Tuning.WEAPON_MAX_LEVEL:
+		if ship.at_cap():  # padrão no máximo: o tiro empurra o metal
 			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 		return
 	if b.pierce:
@@ -1108,7 +1140,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 			fx.spark(b.pos, Palette.METAL_LINE)
 			Sfx.play("ricochet", -8.0, 1.1, 0.1, b.pos)
 		return
-	if asteroids.damage(a, Tuning.BULLET_DAMAGE):
+	if asteroids.damage(a, b.damage):
 		_on_dust_destroyed(a)
 	else:
 		asteroids.impact(a, b.vel.normalized())
@@ -1330,7 +1362,40 @@ func _hand_text() -> String:
 	return "Na nave: " + " · ".join(parts)
 
 
+## Carta de TIPO DE ARMA (PLANO_ARMA.md v2): manter a atual ou trocar por uma de duas outras.
+## Aparece no começo de cada setor depois do 1º e, no Infinito, depois de cada chefe.
+func _open_weapon_pick() -> void:
+	var others: Array = Weapons.ALL.filter(func(t: String) -> bool: return t != ship.weapon_type)
+	others.shuffle()
+	_weapon_offer = [ship.weapon_type, others[0], others[1]]
+	if auto_pick_modules:
+		_on_weapon_chosen(0)
+		return
+	_touch_index = -1
+	state = State.CHOOSE
+	var cards := []
+	for i in 3:
+		var w := Weapons.info(_weapon_offer[i])
+		cards.append([w.name, "MANTER" if i == 0 else w.tag, w.desc, w.color])
+	hud.show_card_pick("TIPO DE ARMA", "A potência continua. Escolha a arma:", cards,
+			"Agora: %s · potência ×%s" % [Weapons.info(ship.weapon_type).name, _fmt_power(ship.power)])
+
+
+func _on_weapon_chosen(index: int) -> void:
+	var type: String = _weapon_offer[clampi(index, 0, _weapon_offer.size() - 1)]
+	_weapon_offer = []
+	if type != ship.weapon_type:
+		ship.weapon_type = type
+		hud.show_hint("ARMA: %s" % Weapons.info(type).name, 2.5)
+	hud.hide_module_pick()
+	if state == State.CHOOSE:
+		_set_state(State.READY)
+
+
 func _on_module_chosen(index: int) -> void:
+	if not _weapon_offer.is_empty():
+		_on_weapon_chosen(index)
+		return
 	var id: String = _offer[clampi(index, 0, _offer.size() - 1)]
 	if id == Modules.REPAIR:
 		ship.shield = Tuning.SHIELD_MAX
@@ -1454,7 +1519,7 @@ func _spawn_boss(boss_id: String) -> void:
 	boss.defeated.connect(_on_boss_defeated)
 	_boss_fought = true
 	_boss_last_chance = ship.last_chance
-	_boss_core_hits = 0
+	_boss_core_hits = 0.0
 	hud.show_boss_bar(boss.display_name)
 
 
@@ -1484,6 +1549,7 @@ func _on_boss_defeated() -> void:
 		director.finished = true  # o setor acaba quando a tela esvaziar
 	else:
 		bosses_defeated += 1      # o Infinito segue: a linha do tempo volta a andar
+		_open_weapon_pick()
 
 
 ## Cena de fuga (depois do chefe final): a nave sobe, as estrelas viram riscos e, no fim,

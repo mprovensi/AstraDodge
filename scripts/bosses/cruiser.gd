@@ -157,7 +157,7 @@ func _on_damaged() -> void:
 
 
 ## Tiro numa parte tira vida da parte; na ponte, do chefe (se o escudo caiu).
-func damage(amount: int) -> void:
+func damage(amount: float) -> void:
 	if _last_part >= 0:
 		var idx := _last_part
 		_last_part = -1

@@ -183,7 +183,7 @@ func _on_damaged() -> void:
 
 
 ## Tiro num guarda tira vida do guarda, não da Rainha.
-func damage(amount: int) -> void:
+func damage(amount: float) -> void:
 	if _last_guard >= 0:
 		var g := _guards[_last_guard]
 		var p := _guard_pos(_last_guard)

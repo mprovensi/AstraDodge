@@ -92,11 +92,10 @@ func _test_endless() -> void:
 		main._process(DT)
 	assert(main.state == main.State.PAUSED, "soltar o dedo deveria pausar")
 
-	# Arma sobe até o máximo coletando cristais (sem teto).
-	main.ship.weapon_cap = Tuning.WEAPON_MAX_LEVEL
+	# Padrão da arma sobe até o máximo coletando cristais.
 	for i in 400:
 		main.ship.add_crystal()
-	assert(main.ship.weapon_level == Tuning.WEAPON_MAX_LEVEL, "arma deveria chegar ao nível máximo")
+	assert(main.ship.weapon_level == Tuning.PATTERN_MAX, "arma deveria chegar ao padrão máximo")
 
 	print("INFINITO OK | mortes=%d nivel_arma_max=%d asteroides_max=%d pontos_max=%d recorde=%d" % [
 		deaths, max_level, max_asteroids, max_score, root.get_node("Game").high_score])
@@ -159,10 +158,11 @@ func _test_sector2() -> void:
 	var sfx := root.get_node("Sfx")
 	assert(main.hud._buttons["next"].visible, "Setor 1 completo mostra PRÓXIMO SETOR")
 	assert(int(game.checkpoint.get("sector", -1)) == 1, "o Continuar já aponta para o Setor 2")
-	var weapon_before: int = main.ship.weapon_level
+	var type_before: String = main.ship.weapon_type
 	main._on_next_sector()
 	assert(main.state == main.State.READY and main.director.sector.id == "sector_2")
-	assert(main.ship.weapon_level == weapon_before, "a arma continua de um setor para o outro")
+	assert(main.ship.weapon_type == type_before and main.ship.weapon_level == 1,
+			"o tipo de arma continua; o padrão recomeça no setor novo")
 	assert(sfx.current_track() == "sector2", "Setor 2 tem trilha própria")
 	_touch(true)
 	var corridor_walls := 0
@@ -1597,30 +1597,83 @@ func _test_mothership() -> void:
 	print("NAVE-MAE OK | em 8 setores | derrubada: setor1 sem modulo, setor2 conteiner | fuga sem premio")
 
 
-## ARMA (PLANO_ARMA.md): curva de dano sem saltos, teto por setor e por tempo, e o ritmo —
-## com o piloto, o teto do Setor 1 chega depois de boa parte do setor, mas antes do chefe.
+## ARMA (PLANO_ARMA.md v2): potência por setor, padrão por cristais (volta no setor novo),
+## tipo por carta, Sobrecarga, perda da barra, dano nos chefes sem a potência e o ritmo do Setor 1.
 func _test_weapon() -> void:
-	var prev := 0.0
-	for lvl in range(1, Tuning.WEAPON_MAX_LEVEL + 1):
-		var dps: float = Tuning.WEAPON_SHOTS[lvl] / Tuning.WEAPON_FIRE_INTERVAL[lvl]
-		assert(dps > prev, "degrau %d tem que ter mais dano/s que o anterior" % lvl)
-		if prev > 0.0:
-			assert(dps / prev <= 1.61, "degrau %d: salto de %.0f%%" % [lvl, (dps / prev - 1.0) * 100.0])
-		prev = dps
-	# Teto na campanha: 1 degrau por setor.
+	# Curva: cada degrau de cada tipo bate mais forte; nenhum tipo passa do Pulso no chefe.
+	var pulse_max := Weapons.dps(Weapons.PULSE, Tuning.PATTERN_MAX)
+	for type: String in Weapons.ALL:
+		var prev := 0.0
+		for lvl in range(1, Tuning.PATTERN_MAX + 1):
+			var dps := Weapons.dps(type, lvl)
+			assert(dps > prev, "%s: degrau %d tem que bater mais forte" % [type, lvl])
+			prev = dps
+		assert(prev >= pulse_max * 0.4 and prev <= pulse_max + 0.01, "%s: dano no chefe %.1f" % [type, prev])
+	for i in range(1, Tuning.WEAPON_POWER.size()):
+		assert(Tuning.WEAPON_POWER[i] > Tuning.WEAPON_POWER[i - 1], "potência sobe a cada setor")
+	# Potência por setor; o padrão volta ao 1 e o tipo continua.
 	main.go_to_menu()
 	main.start_mode(main.Mode.CAMPAIGN, 0)
-	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST, "Setor 1: teto %d" % main.ship.weapon_cap)
 	var ship = main.ship
+	assert(ship.power == 1.0 and ship.weapon_type == Weapons.PULSE and ship.weapon_level == 1)
 	while not ship.at_cap():
 		ship.add_crystal()
-	assert(ship.weapon_level == ship.weapon_cap, "cristais param no teto do setor")
-	# Sobrecarga (W2): no teto o cristal enche a barra dourada; cheia → tiro turbinado.
+	ship.weapon_type = Weapons.LASER
+	main._set_state(main.State.SECTOR_CLEAR)
+	main._on_next_sector()
+	assert(is_equal_approx(ship.power, Tuning.WEAPON_POWER[1]), "Setor 2: potência sobe")
+	assert(ship.weapon_level == 1 and ship.weapon_type == Weapons.LASER, "padrão recomeça, tipo continua")
+	# Dano: poeira e inimigos levam base × potência; o chefe leva só a base.
+	main.bullets.clear()
+	ship._fire()
+	var shot = null
+	for x in main.bullets.pool:
+		if x.alive and x.type == Weapons.LASER:
+			shot = x
+	assert(shot != null and is_equal_approx(shot.damage, 0.8 * Tuning.WEAPON_POWER[1])
+			and is_equal_approx(shot.base_damage, 0.8) and shot.pierce, "laser: dano com potência, perfura")
+	main.bullets.clear()
+	# Carta de tipo de arma: manter a atual ou trocar por uma de duas outras.
+	main.auto_pick_modules = false
+	main._open_weapon_pick()
+	assert(main.state == main.State.CHOOSE and main.hud._module_layer.visible, "carta de arma abre")
+	var offer: Array = main._weapon_offer.duplicate()
+	assert(offer[0] == Weapons.LASER and offer[1] != offer[2] and not Weapons.LASER in offer.slice(1),
+			"carta: manter + 2 outras")
+	main._on_module_chosen(1)
+	assert(ship.weapon_type == offer[1] and main.state == main.State.READY and not main.hud._module_layer.visible,
+			"escolheu outra arma")
+	main.auto_pick_modules = true
+	main.start_mode(main.Mode.CAMPAIGN, main.SECTORS.size() - 1)
+	assert(is_equal_approx(ship.power, Tuning.WEAPON_POWER[main.SECTORS.size() - 1]), "último setor: maior potência")
+	# Infinito: a potência sobe com o tempo.
+	main.go_to_menu()
+	main.start_mode(main.Mode.ENDLESS)
+	assert(ship.power == 1.0)
+	main.elapsed = Tuning.WEAPON_POWER_ENDLESS_EVERY * 2.5
+	main._update_weapon_power()
+	assert(is_equal_approx(ship.power, Tuning.WEAPON_POWER[2]), "Infinito: potência sobe com o tempo")
+	# Míssil: corrige o rumo para o alvo.
+	main.bullets.seek_x = func(p: Vector2) -> float: return p.x + 400.0
+	main.bullets.spawn(Vector2(400, 1500), 0.0, false, 2.0, 2.0, Weapons.MISSILE)
+	main.bullets.update(0.1)
+	var m = null
+	for x in main.bullets.pool:
+		if x.alive and x.type == Weapons.MISSILE:
+			m = x
+	assert(m != null and m.vel.x > 0.0 and m.vel.y < 0.0, "míssil vira para o alvo")
+	main.bullets.seek_x = main._missile_target_x
+	main.bullets.clear()
+	# Sobrecarga (W2): no padrão máximo o cristal enche a barra dourada; cheia → tiro turbinado.
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN, 0)
+	while not ship.at_cap():
+		ship.add_crystal()
 	for i in Tuning.OVERCHARGE_CRYSTALS - 1:
 		ship.add_crystal()
-	assert(not ship.overcharged() and ship.weapon_level == ship.weapon_cap, "no teto o degrau não passa")
+	assert(not ship.overcharged() and ship.weapon_level == Tuning.PATTERN_MAX, "no máximo o padrão não passa")
 	assert(is_equal_approx(ship.weapon_progress(), (Tuning.OVERCHARGE_CRYSTALS - 1.0) / Tuning.OVERCHARGE_CRYSTALS),
-			"no teto a barra mostra a Sobrecarga")
+			"no máximo a barra mostra a Sobrecarga")
 	ship.add_crystal()
 	assert(ship.overcharged() and ship.weapon_progress() == 1.0, "barra cheia: Sobrecarga")
 	var shots := [0]  # lambdas capturam por valor: contador num array
@@ -1629,13 +1682,14 @@ func _test_weapon() -> void:
 	ship._fire_timer = 0.0
 	for i in 60:  # 1 s
 		ship.update(DT)
-	var normal_rate: float = 1.0 / Tuning.WEAPON_FIRE_INTERVAL[ship.weapon_level]
+	var normal_rate: float = 1.0 / Weapons.interval(ship.weapon_type, ship.weapon_level)
 	assert(shots[0] >= int(normal_rate * Tuning.OVERCHARGE_RATE) - 1 and shots[0] > int(normal_rate) + 1,
 			"Sobrecarga: cadência %d tiros/s (normal %.1f)" % [shots[0], normal_rate])
 	ship.fired.disconnect(count_shot)
 	ship.shield = Tuning.SHIELD_MAX
 	ship.update(Tuning.OVERCHARGE_TIME)
 	assert(not ship.overcharged(), "Sobrecarga dura %.0f s" % Tuning.OVERCHARGE_TIME)
+	main.bullets.clear()
 	# Dano (W2): escudo zerado leva primeiro a barra; com ela vazia, cai 1 degrau.
 	var lvl: int = ship.weapon_level
 	ship.add_crystal()
@@ -1653,22 +1707,8 @@ func _test_weapon() -> void:
 	ship.invuln = 0.0
 	ship.shield = 1.0
 	ship.take_hit(10.0)
-	assert(ship.weapon_level == lvl - 1 and ship.crystals == 0, "abaixo do teto: perde os cristais, fica o degrau")
+	assert(ship.weapon_level == lvl - 1 and ship.crystals == 0, "abaixo do máximo: perde os cristais, fica o degrau")
 	ship.add_shield(Tuning.SHIELD_MAX)
-	while not ship.at_cap():
-		ship.add_crystal()
-	main._on_next_sector()
-	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST + 1, "próximo setor sobe o teto")
-	assert(main.ship.weapon_level == Tuning.WEAPON_CAP_FIRST, "e a arma continua")
-	main.start_mode(main.Mode.CAMPAIGN, main.SECTORS.size() - 1)
-	assert(main.ship.weapon_cap == Tuning.WEAPON_MAX_LEVEL, "último setor: teto máximo")
-	# Teto no Infinito: sobe com o tempo.
-	main.go_to_menu()
-	main.start_mode(main.Mode.ENDLESS)
-	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST)
-	main.elapsed = Tuning.WEAPON_CAP_ENDLESS_EVERY * 2.5
-	main._update_weapon_cap()
-	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST + 2, "Infinito: teto sobe com o tempo")
 	# Ritmo: piloto automático no Setor 1 (semente fixa: sempre a mesma partida).
 	seed(20261105)
 	main.go_to_menu()
@@ -1678,22 +1718,22 @@ func _test_weapon() -> void:
 	for e: WaveEvent in main.director.sector.events:
 		if e.kind == WaveEvent.Kind.BOSS:
 			boss_at = e.at
-	var reached := -1.0
+	var reached := [0.0, 0.0, -1.0, -1.0, -1.0]  # segundo em que chegou a cada degrau
 	_touch(true)
 	while main.director.time < boss_at and main.state != main.State.GAME_OVER:
 		if main.state in [main.State.READY, main.State.PAUSED]:
 			_touch(true)
 		pilot.step(true)
 		main._process(DT)
-		if main.ship.weapon_level >= main.ship.weapon_cap:
-			reached = main.director.time
-			break
-	assert(reached > 0.0, "piloto não chegou ao teto do Setor 1 antes do chefe")
-	var ratio := reached / boss_at
-	assert(ratio >= 0.4, "teto do Setor 1 cedo demais: %.0f%% do setor" % (ratio * 100.0))
+		var l: int = ship.weapon_level
+		if reached[l] < 0.0:
+			reached[l] = main.director.time
+	assert(reached[3] > 0.0, "piloto chega ao padrão 3 antes do chefe do Setor 1")
+	assert(reached[Tuning.PATTERN_MAX] < 0.0 or reached[Tuning.PATTERN_MAX] / boss_at >= 0.4,
+			"padrão máximo cedo demais: %.0fs" % reached[Tuning.PATTERN_MAX])
 	main.go_to_menu()
-	print("ARMA OK | 8 degraus sem saltos | teto por setor e por tempo | Sobrecarga e perda da barra | Setor 1: teto aos %.0fs (%.0f%% ate o chefe)" % [
-			reached, ratio * 100.0])
+	print("ARMA OK | 4 tipos x 4 degraus | potencia x%.2f..x%.2f | carta de arma | Sobrecarga | Setor 1: padrao 2/3/4 aos %.0f/%.0f/%.0fs (chefe %.0fs)" % [
+			Tuning.WEAPON_POWER[0], Tuning.WEAPON_POWER[-1], reached[2], reached[3], reached[4], boss_at])
 
 
 func _touch(pressed: bool) -> void:

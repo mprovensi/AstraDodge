@@ -226,7 +226,7 @@ func _on_damaged() -> void:
 
 
 ## Tiro num braço ou num drone tira vida dele, não do olho.
-func damage(amount: int) -> void:
+func damage(amount: float) -> void:
 	var target := _last_target
 	_last_target = -1
 	if target >= 10:

@@ -22,7 +22,7 @@ class Enemy:
 	var kind := 0
 	var pos := Vector2.ZERO
 	var vel := Vector2.ZERO
-	var hp := 1
+	var hp := 1.0
 	var max_hp := 1
 	var radius := 36.0
 	var fire_timer := 0.0
@@ -220,7 +220,7 @@ func hit_test(p: Vector2, exclude: Dictionary = {}, from: Variant = null) -> Ene
 
 
 ## Retorna true se o inimigo foi destruído.
-func damage(e: Enemy, amount: int) -> bool:
+func damage(e: Enemy, amount: float) -> bool:
 	e.hp -= amount
 	e.flash = 0.08
 	if e.hp <= 0:

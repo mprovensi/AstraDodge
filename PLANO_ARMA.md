@@ -1,5 +1,41 @@
 # Astra Dodge — Plano: progressão da arma
 
+> **Versão 2 (05/11/2026, em vigor)** — a versão 1 (8 degraus com teto por setor, abaixo)
+> deixou a nave fraca demais no 1º chefe. O jogo passou a usar a seção "Versão 2".
+
+## Versão 2: potência + padrão + tipo de arma
+
+Três eixos, cada um com um papel:
+
+| Eixo | Como sobe | Perde? | Papel |
+|---|---|---|---|
+| **Potência** (dano por tiro) | sozinha, a cada setor vencido (Infinito: a cada 2 min) | nunca | a nave fica mais forte ao longo da campanha |
+| **Padrão** (forma do tiro, 4 degraus) | cristais, **dentro do setor**; volta ao degrau 1 no setor seguinte | escudo zerado: perde a barra, depois 1 degrau | sempre algo a ganhar em cada setor |
+| **Tipo** (Pulso, Laser, Dispersão, Míssil) | carta escolhida depois de cada chefe | nunca | jeito de jogar |
+
+- Potência por setor: ×1,0 · 1,15 · 1,3 · 1,5 · 1,7 · 1,95 · 2,2 · 2,5.
+- No teto do padrão (degrau 4), os cristais enchem a **Sobrecarga** (W2): 6 s de tiro ×1,5 e perfurante.
+- **Chefes (ideia 3):** a vida dos chefes acompanha a potência esperada do setor — o chefe recebe o dano
+  base do tiro, sem a potência. Assim a luta dura o mesmo em todo setor (~35–50 s com o padrão 3)
+  e quem chega com o padrão 4 termina mais rápido.
+- Tipos (cada um muda o desenho do tiro e o padrão de cada degrau):
+  - **Pulso** (padrão): tiros retos que viram leque; equilibrado.
+  - **Laser**: feixes finos que perfuram, rápidos; ótimo em fileiras e no chefe.
+  - **Dispersão**: leque largo de tiros menores; limpa a tela, fraco no chefe.
+  - **Míssil**: lento e forte, persegue o alvo mais próximo.
+- A carta aparece no começo de cada setor depois do 1º (e depois de cada chefe no Infinito):
+  manter a arma atual ou trocar por uma de duas outras.
+- Custos do padrão: 5, 9 e 13 cristais (medido com o piloto no Setor 1: padrão 3 por volta da
+  metade do setor, padrão 4 perto do chefe).
+
+**Status v2 (05/11/2026):** implementado — `scripts/weapons.gd` (tipos e padrões), potência em
+`Tuning.WEAPON_POWER`, carta de arma no começo do setor, míssil teleguiado, vida fracionada
+(dano por tiro depende do tipo), teste ARMA reescrito. Falta: testar no celular e ajustar números.
+
+---
+
+# Versão 1 (histórico)
+
 > Problema: a arma chega ao máximo cedo demais e, depois disso, a campanha não dá mais nada
 > para conquistar. Objetivo: **um degrau de arma por setor**, sempre algo a ganhar, sem deixar o
 > jogo fácil nem punir demais quem leva dano.

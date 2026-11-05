@@ -16,7 +16,7 @@ class Asteroid:
 	var pos := Vector2.ZERO
 	var vel := Vector2.ZERO  # velocidade própria, somada à rolagem do mundo
 	var radius := 50.0
-	var hp := 1
+	var hp := 1.0
 	var max_hp := 1
 	var rot := 0.0
 	var rot_speed := 0.0
@@ -135,7 +135,7 @@ func hit_shell(a: Asteroid) -> bool:
 
 
 ## Retorna true se o asteroide foi destruído.
-func damage(a: Asteroid, amount: int) -> bool:
+func damage(a: Asteroid, amount: float) -> bool:
 	a.hp -= amount
 	a.flash = 0.08
 	if a.hp <= 0:

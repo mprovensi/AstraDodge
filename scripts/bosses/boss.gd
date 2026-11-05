@@ -16,7 +16,7 @@ enum Hit { NONE, ARMOR, CORE }
 
 var display_name := "CHEFE"
 var max_hp := 100
-var hp := 100
+var hp := 100.0  # aceita frações: o dano do tiro depende do tipo de arma
 var phase := 1
 var state := State.ENTERING
 var view_size := Vector2.ZERO
@@ -61,12 +61,12 @@ func update(dt: float, ship_pos: Vector2) -> void:
 
 
 ## Dano num núcleo. O Main só chama quando hit_bullet() devolveu Hit.CORE.
-func damage(amount: int) -> void:
+func damage(amount: float) -> void:
 	if not is_vulnerable():
 		return
-	hp = maxi(0, hp - amount)
+	hp = maxf(0.0, hp - amount)
 	_flash = 0.06
-	if hp == 0:
+	if hp <= 0.0:
 		_set_state(State.DYING)
 	else:
 		_on_damaged()

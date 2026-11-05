@@ -10,7 +10,8 @@ extends SceneTree
 ##   --inicio=0         segundo do setor onde começar (ex.: 120)
 ##   --chefe            começa direto no ALERTA do chefe do setor
 ##   --mortal           sem escudo infinito (a nave pode morrer; recomeça sozinha)
-##   --arma=2           nível inicial da arma (1–5)
+##   --arma=2           degrau inicial do padrão da arma (1–4)
+##   --tipo=pulse       tipo de arma: pulse, laser, spread, missile
 ##   --infinito         Modo Infinito procedural (todos os biomas e chefes liberados)
 ##   --limpo            sem o letreiro "DEMO" (para capturas de tela)
 ##
@@ -24,6 +25,7 @@ var sector := 1
 var start_time := 0.0
 var mortal := false
 var weapon := 2
+var weapon_type := "pulse"
 var endless := false
 var clean := false  # --limpo: sem o letreiro da demo (capturas para a loja)
 var _frame := 0
@@ -63,7 +65,9 @@ func _parse_args() -> void:
 			"limpo":
 				clean = true
 			"arma":
-				weapon = clampi(int(kv[1]), 1, 8)
+				weapon = clampi(int(kv[1]), 1, 4)
+			"tipo":
+				weapon_type = str(kv[1])
 
 
 func _add_overlay() -> void:
@@ -104,9 +108,7 @@ func _tick() -> void:
 			if _clear_wait > 2.5:
 				_clear_wait = 0.0
 				if main._has_next_sector():
-					var lvl: int = main.ship.weapon_level
 					main._on_next_sector()
-					main.ship.weapon_level = lvl
 				else:
 					main.start_mode(main.Mode.CAMPAIGN, 0)
 				_touch()
@@ -123,6 +125,7 @@ func _start_sector(number: int) -> void:
 		main.endless_bosses.assign(["rock_mother", "miner", "medusa", "cruiser", "ice_colossus", "hive_queen", "sentinel", "rift_core"])
 		main.start_endless()
 		main.ship.weapon_level = weapon
+		main.ship.weapon_type = Weapons.valid(weapon_type)
 		_touch()
 		return
 	var index := clampi(number - 1, 0, main.SECTORS.size() - 1)
@@ -130,7 +133,7 @@ func _start_sector(number: int) -> void:
 	if t < 0.0:
 		t = _boss_time(index)
 	var game := root.get_node("Game")
-	game.checkpoint = {"sector": index, "time": t, "weapon": weapon}
+	game.checkpoint = {"sector": index, "time": t, "weapon": weapon, "weapon_type": weapon_type}
 	main.go_to_menu()
 	main.resume_checkpoint()
 	_touch()

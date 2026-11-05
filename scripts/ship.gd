@@ -21,10 +21,11 @@ var target := Vector2.ZERO
 var bounds := Rect2()
 var shield := Tuning.SHIELD_MAX
 var last_chance := false
-var weapon_level := Tuning.WEAPON_START_LEVEL
+var weapon_type := Weapons.PULSE   # tipo de arma (carta depois de cada chefe)
+var weapon_level := 1              # degrau do padrão (1..PATTERN_MAX), sobe com cristais
 var crystals := 0
-var weapon_cap := Tuning.WEAPON_MAX_LEVEL  # teto do setor (o Main define); cristais não passam dele
-var overcharge := 0          # cristais na barra dourada (só no teto)
+var power := 1.0                   # potência do setor (o Main define): multiplica o dano
+var overcharge := 0          # cristais na barra dourada (só no teto do padrão)
 var overcharge_time := 0.0   # > 0: Sobrecarga ativa
 var invuln := 0.0
 var alive := true
@@ -47,7 +48,7 @@ func reset(start_pos: Vector2) -> void:
 	target = position
 	shield = Tuning.SHIELD_MAX
 	last_chance = false
-	weapon_level = Tuning.WEAPON_START_LEVEL
+	weapon_level = 1
 	crystals = 0
 	overcharge = 0
 	overcharge_time = 0.0
@@ -96,7 +97,7 @@ func update(dt: float) -> void:
 	_fire_timer -= dt
 	if _fire_timer <= 0.0:
 		_fire()
-		var interval: float = Tuning.WEAPON_FIRE_INTERVAL[weapon_level]
+		var interval := Weapons.interval(weapon_type, weapon_level)
 		if overcharged():
 			interval /= Tuning.OVERCHARGE_RATE
 		_fire_timer = interval
@@ -138,13 +139,13 @@ func add_crystal() -> void:
 			overcharge_started.emit()
 		return
 	crystals += 1
-	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
+	var needed: int = Tuning.PATTERN_COSTS[weapon_level]
 	if crystals >= needed:
 		_set_weapon_level(weapon_level + 1)
 
 
 func at_cap() -> bool:
-	return weapon_level >= weapon_cap
+	return weapon_level >= Tuning.PATTERN_MAX
 
 
 func overcharged() -> bool:
@@ -157,7 +158,7 @@ func weapon_progress() -> float:
 		return overcharge_time / Tuning.OVERCHARGE_TIME
 	if at_cap():
 		return float(overcharge) / float(Tuning.OVERCHARGE_CRYSTALS)
-	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
+	var needed: int = Tuning.PATTERN_COSTS[weapon_level]
 	return float(crystals) / float(needed)
 
 
@@ -195,7 +196,7 @@ func _enter_last_chance() -> void:
 
 
 func _set_weapon_level(level: int) -> void:
-	level = clampi(level, 1, Tuning.WEAPON_MAX_LEVEL)
+	level = clampi(level, 1, Tuning.PATTERN_MAX)
 	crystals = 0
 	overcharge = 0
 	if level == weapon_level:
@@ -207,30 +208,14 @@ func _set_weapon_level(level: int) -> void:
 
 func _fire() -> void:
 	var muzzle := position + Game.art.ship_point(Game.art.ship_muzzle_px)
-	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
-	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
-	var p := overcharged()  # Sobrecarga: todos os tiros perfuram
+	var w := Weapons.info(weapon_type)
+	var base: float = w.damage
+	var boost := overcharged()  # Sobrecarga: todos os tiros perfuram
 	fired.emit()
-	# Cada degrau muda algo visível (PLANO_ARMA.md); a cadência fica em WEAPON_FIRE_INTERVAL.
-	match weapon_level:
-		1, 2:  # 1 reto (o 2 é mais rápido)
-			bullets.spawn(muzzle, 0.0, p)
-		3, 4:  # 2 retos (o 4 é mais rápido)
-			bullets.spawn(muzzle - off, 0.0, p)
-			bullets.spawn(muzzle + off, 0.0, p)
-		5, 6:  # leque de 3 (o 6 é mais rápido)
-			bullets.spawn(muzzle, -fan, p)
-			bullets.spawn(muzzle, 0.0, p)
-			bullets.spawn(muzzle, fan, p)
-		7:  # leque de 3, o do meio perfura
-			bullets.spawn(muzzle, -fan, p)
-			bullets.spawn(muzzle, fan, p)
-			bullets.spawn(muzzle, 0.0, true)
-		_:  # 2 retos que perfuram + leque de 2
-			bullets.spawn(muzzle - off, 0.0, true)
-			bullets.spawn(muzzle + off, 0.0, true)
-			bullets.spawn(muzzle, -fan, p)
-			bullets.spawn(muzzle, fan, p)
+	# Tipo × degrau do padrão (Weapons.DATA): cada tiro é [x, ângulo, perfura].
+	for shot: Array in Weapons.shots(weapon_type, weapon_level):
+		bullets.spawn(muzzle + Vector2(float(shot[0]), 0.0), deg_to_rad(float(shot[1])),
+				bool(shot[2]) or boost, base, base * power, weapon_type)
 
 
 func _clamp(p: Vector2) -> Vector2:
