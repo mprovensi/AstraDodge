@@ -1482,7 +1482,7 @@ func _test_ship_rules() -> void:
 	var level: int = ship.weapon_level
 	ship.shield = 5.0
 	assert(ship.take_hit(30.0) == 2 and ship.last_chance, "escudo zerado: última chance")  # LAST_CHANCE
-	assert(ship.weapon_level == maxi(1, level - 1), "última chance perde 1 nível da arma")
+	assert(ship.weapon_level == maxi(1, level - 1), "última chance com a barra vazia perde 1 degrau")
 	assert(ship.add_shield(10.0) and not ship.last_chance, "orbe tira da última chance")
 	ship.shield = 5.0
 	ship.invuln = 0.0
@@ -1611,10 +1611,52 @@ func _test_weapon() -> void:
 	main.go_to_menu()
 	main.start_mode(main.Mode.CAMPAIGN, 0)
 	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST, "Setor 1: teto %d" % main.ship.weapon_cap)
-	for i in 300:
-		main.ship.add_crystal()
-	assert(main.ship.weapon_level == main.ship.weapon_cap, "cristais param no teto do setor")
-	assert(main.ship.weapon_progress() == 1.0, "no teto a barra fica cheia")
+	var ship = main.ship
+	while not ship.at_cap():
+		ship.add_crystal()
+	assert(ship.weapon_level == ship.weapon_cap, "cristais param no teto do setor")
+	# Sobrecarga (W2): no teto o cristal enche a barra dourada; cheia → tiro turbinado.
+	for i in Tuning.OVERCHARGE_CRYSTALS - 1:
+		ship.add_crystal()
+	assert(not ship.overcharged() and ship.weapon_level == ship.weapon_cap, "no teto o degrau não passa")
+	assert(is_equal_approx(ship.weapon_progress(), (Tuning.OVERCHARGE_CRYSTALS - 1.0) / Tuning.OVERCHARGE_CRYSTALS),
+			"no teto a barra mostra a Sobrecarga")
+	ship.add_crystal()
+	assert(ship.overcharged() and ship.weapon_progress() == 1.0, "barra cheia: Sobrecarga")
+	var shots := [0]  # lambdas capturam por valor: contador num array
+	var count_shot := func() -> void: shots[0] += 1
+	ship.fired.connect(count_shot)
+	ship._fire_timer = 0.0
+	for i in 60:  # 1 s
+		ship.update(DT)
+	var normal_rate: float = 1.0 / Tuning.WEAPON_FIRE_INTERVAL[ship.weapon_level]
+	assert(shots[0] >= int(normal_rate * Tuning.OVERCHARGE_RATE) - 1 and shots[0] > int(normal_rate) + 1,
+			"Sobrecarga: cadência %d tiros/s (normal %.1f)" % [shots[0], normal_rate])
+	ship.fired.disconnect(count_shot)
+	ship.shield = Tuning.SHIELD_MAX
+	ship.update(Tuning.OVERCHARGE_TIME)
+	assert(not ship.overcharged(), "Sobrecarga dura %.0f s" % Tuning.OVERCHARGE_TIME)
+	# Dano (W2): escudo zerado leva primeiro a barra; com ela vazia, cai 1 degrau.
+	var lvl: int = ship.weapon_level
+	ship.add_crystal()
+	ship.invuln = 0.0
+	ship.shield = 1.0
+	ship.take_hit(10.0)
+	assert(ship.weapon_level == lvl and ship.overcharge == 0, "escudo zerado: perde a barra, fica o degrau")
+	ship.add_shield(Tuning.SHIELD_MAX)
+	ship.invuln = 0.0
+	ship.shield = 1.0
+	ship.take_hit(10.0)
+	assert(ship.weapon_level == lvl - 1, "barra vazia: cai 1 degrau")
+	ship.add_shield(Tuning.SHIELD_MAX)
+	ship.add_crystal()
+	ship.invuln = 0.0
+	ship.shield = 1.0
+	ship.take_hit(10.0)
+	assert(ship.weapon_level == lvl - 1 and ship.crystals == 0, "abaixo do teto: perde os cristais, fica o degrau")
+	ship.add_shield(Tuning.SHIELD_MAX)
+	while not ship.at_cap():
+		ship.add_crystal()
 	main._on_next_sector()
 	assert(main.ship.weapon_cap == Tuning.WEAPON_CAP_FIRST + 1, "próximo setor sobe o teto")
 	assert(main.ship.weapon_level == Tuning.WEAPON_CAP_FIRST, "e a arma continua")
@@ -1650,7 +1692,7 @@ func _test_weapon() -> void:
 	var ratio := reached / boss_at
 	assert(ratio >= 0.4, "teto do Setor 1 cedo demais: %.0f%% do setor" % (ratio * 100.0))
 	main.go_to_menu()
-	print("ARMA OK | 8 degraus sem saltos | teto por setor e por tempo | Setor 1: teto aos %.0fs (%.0f%% ate o chefe)" % [
+	print("ARMA OK | 8 degraus sem saltos | teto por setor e por tempo | Sobrecarga e perda da barra | Setor 1: teto aos %.0fs (%.0f%% ate o chefe)" % [
 			reached, ratio * 100.0])
 
 

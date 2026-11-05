@@ -365,7 +365,8 @@ func blocks_touch(pos: Vector2) -> bool:
 
 
 func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
-		weapon_level: int, weapon_progress: float, weapon_cap := Tuning.WEAPON_MAX_LEVEL) -> void:
+		weapon_level: int, weapon_progress: float, weapon_cap := Tuning.WEAPON_MAX_LEVEL,
+		overcharge := false) -> void:
 	_score_label.text = str(score)
 	_best_label.text = "RECORDE %d" % best
 
@@ -377,7 +378,17 @@ func set_values(score: int, best: int, shield_ratio: float, last_chance: bool,
 	_shield_danger = last_chance or shield_ratio < Tuning.SHIELD_LOW_RATIO
 	_shield_fill.size = Vector2(BAR_WIDTH * shield_ratio, BAR_HEIGHT)
 
-	_weapon_label.text = "ARMA %d/%d" % [weapon_level, weapon_cap]
+	# No teto a barra vira SOBRECARGA (dourada): enche com cristais e esvazia enquanto dura.
+	var gold := weapon_level >= weapon_cap
+	if overcharge:
+		_weapon_label.text = "SOBRECARGA!"
+	elif gold:
+		_weapon_label.text = "ARMA %d MÁX" % weapon_level
+	else:
+		_weapon_label.text = "ARMA %d/%d" % [weapon_level, weapon_cap]
+	var col := Palette.GOLD if gold else Palette.MAGENTA
+	_weapon_label.add_theme_color_override("font_color", col)
+	_weapon_fill.color = col
 	_weapon_cap_seen = weapon_cap
 	_weapon_fill.size = Vector2(BAR_WIDTH * clampf(weapon_progress, 0.0, 1.0), BAR_HEIGHT)
 
@@ -415,6 +426,18 @@ func on_weapon_level(level: int, went_up: bool) -> void:
 func set_multiplier(m: float) -> void:
 	_mult_label.visible = m > 1.0
 	_mult_label.text = "x%.1f" % m
+
+
+func on_overcharge() -> void:
+	_levelup_label.text = "SOBRECARGA!"
+	_levelup_label.add_theme_color_override("font_color", Palette.GOLD)
+	_levelup_timer = 1.2
+
+
+func on_crystals_lost() -> void:
+	_levelup_label.text = "CRISTAIS PERDIDOS"
+	_levelup_label.add_theme_color_override("font_color", Palette.DANGER)
+	_levelup_timer = 1.0
 
 
 func on_multiplier_up(m: float) -> void:

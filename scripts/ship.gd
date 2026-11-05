@@ -3,6 +3,8 @@ extends Node2D
 ## Nave do jogador: segue o arraste, escudo que se desgasta e arma automática evolutiva.
 
 signal weapon_level_changed(level: int, went_up: bool)
+signal overcharge_started
+signal crystals_lost  # escudo zerou e levou só a barra (o degrau ficou)
 signal shield_depleted
 signal fired
 
@@ -22,6 +24,8 @@ var last_chance := false
 var weapon_level := Tuning.WEAPON_START_LEVEL
 var crystals := 0
 var weapon_cap := Tuning.WEAPON_MAX_LEVEL  # teto do setor (o Main define); cristais não passam dele
+var overcharge := 0          # cristais na barra dourada (só no teto)
+var overcharge_time := 0.0   # > 0: Sobrecarga ativa
 var invuln := 0.0
 var alive := true
 var drain_scale := 1.0  # o Main reduz durante as lutas contra chefes
@@ -45,6 +49,8 @@ func reset(start_pos: Vector2) -> void:
 	last_chance = false
 	weapon_level = Tuning.WEAPON_START_LEVEL
 	crystals = 0
+	overcharge = 0
+	overcharge_time = 0.0
 	invuln = 0.0
 	alive = true
 	visible = true
@@ -86,10 +92,13 @@ func update(dt: float) -> void:
 		if shield <= 0.0:
 			_enter_last_chance()
 
+	overcharge_time = maxf(0.0, overcharge_time - dt)
 	_fire_timer -= dt
 	if _fire_timer <= 0.0:
 		_fire()
 		var interval: float = Tuning.WEAPON_FIRE_INTERVAL[weapon_level]
+		if overcharged():
+			interval /= Tuning.OVERCHARGE_RATE
 		_fire_timer = interval
 
 	queue_redraw()
@@ -118,7 +127,15 @@ func add_shield(amount: float) -> bool:
 
 
 func add_crystal() -> void:
-	if weapon_level >= weapon_cap:
+	if at_cap():
+		# No teto o cristal enche a Sobrecarga (durante ela, o cristal não acumula).
+		if overcharged():
+			return
+		overcharge += 1
+		if overcharge >= Tuning.OVERCHARGE_CRYSTALS:
+			overcharge = 0
+			overcharge_time = Tuning.OVERCHARGE_TIME
+			overcharge_started.emit()
 		return
 	crystals += 1
 	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
@@ -126,9 +143,20 @@ func add_crystal() -> void:
 		_set_weapon_level(weapon_level + 1)
 
 
+func at_cap() -> bool:
+	return weapon_level >= weapon_cap
+
+
+func overcharged() -> bool:
+	return overcharge_time > 0.0
+
+
+## Barra da arma: cristais até o próximo degrau; no teto, a Sobrecarga (enchendo ou o tempo restante).
 func weapon_progress() -> float:
-	if weapon_level >= weapon_cap:
-		return 1.0
+	if overcharged():
+		return overcharge_time / Tuning.OVERCHARGE_TIME
+	if at_cap():
+		return float(overcharge) / float(Tuning.OVERCHARGE_CRYSTALS)
 	var needed: int = Tuning.WEAPON_CRYSTALS_TO_NEXT[weapon_level]
 	return float(crystals) / float(needed)
 
@@ -154,13 +182,22 @@ func die() -> void:
 func _enter_last_chance() -> void:
 	shield = 0.0
 	last_chance = true
-	_set_weapon_level(weapon_level - 1)
+	overcharge_time = 0.0
+	# Perde primeiro a barra (cristais ou Sobrecarga); só com a barra vazia cai 1 degrau.
+	var bar := overcharge if at_cap() else crystals
+	if bar > 0:
+		crystals = 0
+		overcharge = 0
+		crystals_lost.emit()
+	else:
+		_set_weapon_level(weapon_level - 1)
 	shield_depleted.emit()
 
 
 func _set_weapon_level(level: int) -> void:
 	level = clampi(level, 1, Tuning.WEAPON_MAX_LEVEL)
 	crystals = 0
+	overcharge = 0
 	if level == weapon_level:
 		return
 	var went_up := level > weapon_level
@@ -172,27 +209,28 @@ func _fire() -> void:
 	var muzzle := position + Game.art.ship_point(Game.art.ship_muzzle_px)
 	var off := Vector2(Tuning.DOUBLE_SHOT_OFFSET, 0)
 	var fan := deg_to_rad(Tuning.FAN_ANGLE_DEG)
+	var p := overcharged()  # Sobrecarga: todos os tiros perfuram
 	fired.emit()
 	# Cada degrau muda algo visível (PLANO_ARMA.md); a cadência fica em WEAPON_FIRE_INTERVAL.
 	match weapon_level:
 		1, 2:  # 1 reto (o 2 é mais rápido)
-			bullets.spawn(muzzle, 0.0, false)
+			bullets.spawn(muzzle, 0.0, p)
 		3, 4:  # 2 retos (o 4 é mais rápido)
-			bullets.spawn(muzzle - off, 0.0, false)
-			bullets.spawn(muzzle + off, 0.0, false)
+			bullets.spawn(muzzle - off, 0.0, p)
+			bullets.spawn(muzzle + off, 0.0, p)
 		5, 6:  # leque de 3 (o 6 é mais rápido)
-			bullets.spawn(muzzle, -fan, false)
-			bullets.spawn(muzzle, 0.0, false)
-			bullets.spawn(muzzle, fan, false)
+			bullets.spawn(muzzle, -fan, p)
+			bullets.spawn(muzzle, 0.0, p)
+			bullets.spawn(muzzle, fan, p)
 		7:  # leque de 3, o do meio perfura
-			bullets.spawn(muzzle, -fan, false)
-			bullets.spawn(muzzle, fan, false)
+			bullets.spawn(muzzle, -fan, p)
+			bullets.spawn(muzzle, fan, p)
 			bullets.spawn(muzzle, 0.0, true)
 		_:  # 2 retos que perfuram + leque de 2
 			bullets.spawn(muzzle - off, 0.0, true)
 			bullets.spawn(muzzle + off, 0.0, true)
-			bullets.spawn(muzzle, -fan, false)
-			bullets.spawn(muzzle, fan, false)
+			bullets.spawn(muzzle, -fan, p)
+			bullets.spawn(muzzle, fan, p)
 
 
 func _clamp(p: Vector2) -> Vector2:
@@ -344,6 +382,11 @@ func _draw() -> void:
 		for j in 3:
 			var off := dir.orthogonal() * (j - 1) * 26.0
 			draw_line(off + dir * 70.0, off + dir * (70.0 + 50.0 * k), Color(0.8, 0.95, 1.0, 0.35 * k), 2.0, true)
+
+	# Sobrecarga: aura dourada pulsando em volta da nave.
+	if overcharged():
+		var pulse := 0.5 + 0.5 * sin(_t * 18.0)
+		draw_arc(Vector2.ZERO, SHIELD_RING_RADIUS + 8.0, 0.0, TAU, 48, Color(Palette.GOLD_HDR, 0.35 + 0.3 * pulse), 3.0, true)
 
 	# Anel do escudo: espessura e brilho proporcionais à energia
 	if last_chance:

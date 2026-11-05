@@ -149,6 +149,8 @@ func _ready() -> void:
 
 	ship.weapon_level_changed.connect(_on_weapon_level_changed)
 	ship.shield_depleted.connect(_on_shield_depleted)
+	ship.overcharge_started.connect(_on_overcharge_started)
+	ship.crystals_lost.connect(hud.on_crystals_lost)
 	ship.fired.connect(func() -> void: Sfx.play("laser", -12.0, 1.0, 0.08, ship.position))
 	hud.resume_pressed.connect(resume_checkpoint)
 	hud.campaign_pressed.connect(start_new_game)
@@ -259,7 +261,7 @@ func _process(delta: float) -> void:
 	Sfx.set_music_intensity(time_scale, quiet)
 	_update_engine_sound(delta)
 	hud.set_values(score, maxi(score, _best_for_mode()), ship.shield_ratio(), ship.last_chance,
-			ship.weapon_level, ship.weapon_progress(), ship.weapon_cap)
+			ship.weapon_level, ship.weapon_progress(), ship.weapon_cap, ship.overcharged())
 	hud.set_alert(_alert_timer)
 	hud.set_multiplier(multiplier if mode == Mode.ENDLESS else 1.0)
 	if boss != null:
@@ -1355,6 +1357,12 @@ func _on_weapon_level_changed(level: int, went_up: bool) -> void:
 	if went_up:
 		fx.burst(ship.position, Palette.MAGENTA_HDR, 28, 520.0, 0.5, 5.0)
 	Sfx.play("level_up" if went_up else "level_down", -4.0, 1.0, 0.0)
+
+
+func _on_overcharge_started() -> void:
+	hud.on_overcharge()
+	fx.burst(ship.position, Palette.GOLD_HDR, 32, 560.0, 0.5, 5.0)
+	Sfx.play("level_up", -3.0, 1.3, 0.0)
 
 
 func _on_shield_depleted() -> void:

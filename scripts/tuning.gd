@@ -34,6 +34,10 @@ const WEAPON_CRYSTALS_TO_NEXT := [0, 15, 22, 28, 32, 36, 40, 44]
 const WEAPON_CAP_FIRST := 2
 ## Infinito / Desafio do Dia: o teto sobe 1 degrau a cada tantos segundos de partida.
 const WEAPON_CAP_ENDLESS_EVERY := 120.0
+# Sobrecarga (PLANO_ARMA §2.3): no teto, cristais enchem a barra dourada; cheia → tiro turbinado.
+const OVERCHARGE_CRYSTALS := 8
+const OVERCHARGE_TIME := 6.0
+const OVERCHARGE_RATE := 1.5   # cadência ×1,5 (e todos os tiros perfuram)
 const BULLET_SPEED := 2200.0
 const BULLET_DAMAGE := 1
 const DOUBLE_SHOT_OFFSET := 16.0

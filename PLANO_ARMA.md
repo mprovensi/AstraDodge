@@ -116,4 +116,10 @@ Os módulos continuam sendo o "tipo" da arma (ricochete, perfurante, ímã...); 
 - [x] HUD "ARMA n/teto", "MÁXIMO DO SETOR!" e aviso "ARMA: novo máximo N" ao entrar no setor
 - [x] Seletor de fases (dev) começa com a arma do teto do setor
 - [x] Teste ARMA: curva sem saltos (≤ +60%), teto por setor e por tempo, ritmo do Setor 1 com o piloto
-- [ ] W2: Sobrecarga e perder a barra antes do degrau · W3: vida dos chefes com a arma do teto
+
+**W2 — Sobrecarga e dano: concluído (05/11/2026)**
+- [x] No teto, cristais enchem a barra dourada (8); cheia → 6 s de cadência ×1,5 e todos os tiros perfurantes
+- [x] HUD: "ARMA n MÁX" com barra dourada; "SOBRECARGA!" enquanto dura (a barra mostra o tempo); aura dourada na nave
+- [x] Escudo zerou → perde a barra (cristais ou Sobrecarga), aviso "CRISTAIS PERDIDOS"; barra vazia → cai 1 degrau
+- [x] Teste ARMA: Sobrecarga enche, acelera o tiro e acaba; perda da barra antes do degrau
+- [ ] W3: vida dos chefes com a arma do teto
