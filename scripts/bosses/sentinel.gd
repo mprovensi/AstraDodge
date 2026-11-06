@@ -23,6 +23,8 @@ const SWAY := 0.08
 
 const ARMS := [Vector2(-250, 60), Vector2(250, 60)]
 const ARM_RADIUS := 46.0
+const CABLE_SKIP := 0.008   # onde os cabos começam na arte (fração do sprite, do topo)
+const CABLE_BAND := 0.02   # altura da faixa de cabos esticada até o teto
 const ARM_ART_AXIS := 0.88  # rad: na arte, o braço vai do suporte (em cima, à esquerda) ao cano (embaixo, à direita)
 const ARM_HP := 28
 const ARM_FIRE := [0.0, 2.2, 1.8]
@@ -423,7 +425,15 @@ func _draw() -> void:
 		tint = Color(1.8, 0.8, 0.8)
 	if art.sentinel_body != null:
 		var half := SPRITE_SIZE * 0.5
-		draw_texture_rect(art.sentinel_body, Rect2(center - Vector2(half, half), Vector2(SPRITE_SIZE, SPRITE_SIZE)),
+		var tex := art.sentinel_body
+		# Cabos até o teto: na arte eles acabam na borda de cima; uma faixa fina do topo (cabos
+		# verticais) é esticada da borda da tela até o sprite.
+		var top := center.y - half + CABLE_SKIP * SPRITE_SIZE
+		if top > 0.0:
+			var k := tex.get_height() / SPRITE_SIZE
+			var src := Rect2(0.0, CABLE_SKIP * SPRITE_SIZE * k, tex.get_width(), CABLE_BAND * SPRITE_SIZE * k)
+			draw_texture_rect_region(tex, Rect2(center.x - half, 0.0, SPRITE_SIZE, top + 2.0), src, tint)
+		draw_texture_rect(tex, Rect2(center - Vector2(half, half), Vector2(SPRITE_SIZE, SPRITE_SIZE)),
 				false, tint)
 
 	# Olho (o da arte), com a pupila clara seguindo a nave.

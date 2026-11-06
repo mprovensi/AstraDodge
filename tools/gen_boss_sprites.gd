@@ -33,9 +33,9 @@ const PIECES := [
 ##  quadrado, tamanho do recorte na tela (px), lado do quadrado na tela (px), px da textura,
 ##  ponto `at` (px na tela, relativo ao centro do quadrado), colisões [[centro, raio], ...] para conferir]
 const BODIES := [
-	["chefes2/rock_inteira_01", "rock_body", "rock", false, Vector2(0.48, 0.47), 488.0, 494.0, 512,
+	["chefes2/rock_inteira_01", "rock_body", "rock", false, Vector2(0.48, 0.47), 488.0, 560.0, 576,
 		Vector2.ZERO, [[Vector2.ZERO, 210.0]]],
-	["chefes2/rock_metades_01", "rock_half_l", "", false, Vector2(0.50, 0.50), 360.0, 365.0, 384,
+	["chefes2/rock_metades_01", "rock_half_l", "", false, Vector2(0.50, 0.50), 405.0, 413.0, 448,
 		Vector2(-28, 0), [[Vector2(-28, -59), 90.0], [Vector2(-28, 59), 90.0]]],
 	["chefes/miner_02", "miner_body", "", false, Vector2(0.50, 0.42), 573.0, 664.0, 640,
 		Vector2.ZERO, [[Vector2(0, -10), 125.0], [Vector2.ZERO, 52.0], [Vector2(-172, 80), 48.0], [Vector2(172, 80), 48.0]]],
@@ -43,8 +43,8 @@ const BODIES := [
 		Vector2.ZERO, [[Vector2(0, -47), 108.0], [Vector2(-95, 12), 52.0], [Vector2(95, 12), 52.0]]],
 	["chefes/ice_05", "ice_body", "", false, Vector2(0.46, 0.49), 300.0, 300.0, 384,
 		Vector2.ZERO, [[Vector2.ZERO, 128.0]]],
-	["chefes/wasp_01", "queen_body", "", true, Vector2(0.485, 0.375), 520.0, 520.0, 512,
-		Vector2.ZERO, [[Vector2(0, -88), 78.0], [Vector2.ZERO, 86.0], [Vector2(0, 100), 46.0]]],
+	["chefes/wasp_01", "queen_body", "", false, Vector2(0.485, 0.375), 520.0, 680.0, 640,
+		Vector2.ZERO, [[Vector2(0, 88), 78.0], [Vector2.ZERO, 86.0], [Vector2(0, -100), 46.0]]],
 	["chefes/sent_01", "sentinel_body", "octagon", false, Vector2(0.485, 0.578), 480.0, 560.0, 512,
 		Vector2.ZERO, [[Vector2.ZERO, 140.0]]],
 	["chefes/cruiser_01", "cruiser_hull", "", false, Vector2(0.50, 0.43), 660.0, 780.0, 1024,

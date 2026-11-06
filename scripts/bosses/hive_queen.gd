@@ -2,7 +2,7 @@ class_name HiveQueen
 extends Boss
 ## RAINHA DA COLMEIA — chefe do Setor 6 (PLANO_V3.md, Setor 6).
 ##
-## Ponto fraco: o CORAÇÃO no centro do tórax (tiros que sobem pela cabeça, na faixa dele,
+## Ponto fraco: o CORAÇÃO no centro do tórax (tiros que sobem pelo abdômen, na faixa dele,
 ## o alcançam). O resto do corpo é carapaça (ricochete).
 ## Fase 1:
 ##   - Chuva de ácido: 2 colunas avisadas; depois cai uma cortina de gotas em cada uma.
@@ -15,11 +15,11 @@ extends Boss
 const NAME := "RAINHA DA COLMEIA"
 const MAX_HP := 190
 
-const SPRITE_SIZE := 520.0
+const SPRITE_SIZE := 680.0
 const CORE_RADIUS := 40.0
-## Colisão do corpo: abdômen (em cima), tórax (centro) e cabeça (embaixo). Conferido nos pixels.
-const BODIES := [[Vector2(0, -88), 78.0], [Vector2(0, 0), 86.0], [Vector2(0, 100), 46.0]]
-const LANE_DEPTH := 150.0          # faixa do coração: da cabeça até o tórax
+## Colisão do corpo: cabeça (em cima), tórax (centro) e abdômen (embaixo). Conferido nos pixels.
+const BODIES := [[Vector2(0, -100), 46.0], [Vector2(0, 0), 86.0], [Vector2(0, 88), 78.0]]
+const LANE_DEPTH := 170.0          # faixa do coração: do abdômen (embaixo) até o tórax
 const ENTER_TIME := 3.0
 const REST_Y_RATIO := 0.32  # escudo vivo da fase 2 fica abaixo da barra de vida
 const SWAY := 0.18
@@ -156,7 +156,7 @@ func _update_eggs(dt: float) -> void:
 		return
 	_egg_timer = EGG_INTERVAL[phase]
 	for side: float in [-1.0, 1.0]:
-		var p := center + Vector2(side * 120.0, 40.0)
+		var p := center + Vector2(side * 70.0, 130.0)  # das bolsas de ovos do abdômen
 		enemies.spawn_egg(p, EGG_FALL)
 	Sfx.play("hit", -6.0, 0.5, 0.0, center)
 

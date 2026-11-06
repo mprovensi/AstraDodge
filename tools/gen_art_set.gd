@@ -28,7 +28,7 @@ func _initialize() -> void:
 	# corpos já vêm montados no quadrado que cada chefe desenha; os antigos boss_*.png ficam de reserva.
 	art.rock_mother_body = load("res://sprites/ia/boss/rock_body.png")
 	art.rock_mother_half = load("res://sprites/ia/boss/rock_half_l.png")
-	art.boss_fill = 0.85
+	art.boss_fill = 0.75
 	art.dust_shell_texture = load("res://sprites/dust_shell.png")
 	art.miner_body = load("res://sprites/ia/boss/miner_body.png")
 	art.medusa_body = load("res://sprites/ia/boss/medusa_dome.png")

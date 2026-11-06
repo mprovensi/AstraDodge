@@ -60,7 +60,7 @@ extends Resource
 @export var cruiser_body: Texture2D
 ## Colosso de Gelo (Setor 5): bloco de gelo redondo. Núcleo e placas são desenhados pelo código.
 @export var ice_colossus_body: Texture2D
-## Rainha da Colmeia (Setor 6): inseto visto de cima, cabeça para BAIXO. Coração e guardas pelo código.
+## Rainha da Colmeia (Setor 6): vespa vista de cima, cabeça para CIMA, coração no tórax (centro da imagem).
 @export var hive_queen_body: Texture2D
 ## Sentinela (Setor 7): núcleo de IA blindado, preso ao teto. Olho, braços e drones pelo código.
 @export var sentinel_body: Texture2D
