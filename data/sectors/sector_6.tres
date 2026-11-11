@@ -63,6 +63,7 @@ moving = 0.2
 ice = 0.2
 swarm = 0.2
 eggs = 0.2
+formations = 0.22
 
 [sub_resource type="Resource" id="Resource_l0smn"]
 script = ExtResource("1_74apq")
@@ -98,6 +99,7 @@ turrets = 0.15
 comets = 0.06
 swarm = 0.22
 eggs = 0.25
+formations = 0.22
 
 [sub_resource type="Resource" id="Resource_6xp0d"]
 script = ExtResource("1_74apq")
@@ -133,6 +135,12 @@ script = ExtResource("1_74apq")
 at = 60.0
 kind = 19
 
+[sub_resource type="Resource" id="Formation_funnel_0"]
+script = ExtResource("1_74apq")
+at = 24.0
+kind = 20
+text = "funnel"
+
 [resource]
 script = ExtResource("2_78muk")
 id = "sector_6"
@@ -141,7 +149,7 @@ title = "SETOR 6"
 subtitle = "Colmeia"
 difficulty_start = 0.6
 difficulty_end = 0.92
-events = Array[ExtResource("1_74apq")]([SubResource("Resource_uxrbk"), SubResource("Resource_iqgmt"), SubResource("Resource_ju4bg"), SubResource("Resource_fe87g"), SubResource("Resource_r1uxf"), SubResource("Resource_n8q1f"), SubResource("Resource_m2olq"), SubResource("Resource_5udwj"), SubResource("Resource_qm0ij"), SubResource("Resource_l0smn"), SubResource("Resource_t1pen"), SubResource("Resource_2ql40"), SubResource("Resource_ikkrn"), SubResource("Resource_6xivy"), SubResource("Resource_6xp0d"), SubResource("Resource_byxsi"), SubResource("Resource_1xkp1"), SubResource("Resource_rkn3u"), SubResource("Resource_5lod8"), SubResource("Resource_gsbiv")])
+events = Array[ExtResource("1_74apq")]([SubResource("Resource_uxrbk"), SubResource("Resource_iqgmt"), SubResource("Resource_ju4bg"), SubResource("Resource_fe87g"), SubResource("Resource_r1uxf"), SubResource("Resource_n8q1f"), SubResource("Resource_m2olq"), SubResource("Resource_5udwj"), SubResource("Resource_qm0ij"), SubResource("Resource_l0smn"), SubResource("Resource_t1pen"), SubResource("Resource_2ql40"), SubResource("Resource_ikkrn"), SubResource("Resource_6xivy"), SubResource("Resource_6xp0d"), SubResource("Resource_byxsi"), SubResource("Resource_1xkp1"), SubResource("Resource_rkn3u"), SubResource("Resource_5lod8"), SubResource("Resource_gsbiv"), SubResource("Formation_funnel_0")])
 music = "sector6"
 nebula_a = Color(0.1, 0.18, 0.05, 1)
 nebula_b = Color(0.3, 0.2, 0.04, 1)

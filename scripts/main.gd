@@ -56,6 +56,7 @@ var _kick := Vector2.ZERO
 var _kick_vel := Vector2.ZERO
 var _revive_used := false
 var _pending_wall := -1.0  # segundos até o paredão avisado aparecer (-1 = nenhum)
+var _pending_formation := ""  # aplicada depois do clima/bioma dos eventos deste quadro
 var _last_ship_pos := Vector2.ZERO
 var _engine_level := 0.0
 # Chefe
@@ -171,6 +172,8 @@ func _ready() -> void:
 	hud.module_chosen.connect(_on_module_chosen)
 	hud.quit_pressed.connect(_on_quit)
 	asteroids.row_spawned.connect(_on_row_spawned)
+	asteroids.formation_spawned.connect(func(id: String) -> void:
+		hud.show_hint("FORMAÇÃO: %s\nSiga a passagem" % Formations.NAMES[id], 2.5))
 	get_viewport().size_changed.connect(_on_resized)
 
 	_on_resized()
@@ -429,6 +432,7 @@ func _new_run() -> void:
 	scroll_speed = Tuning.SCROLL_SPEED_START
 	_revive_used = false
 	_pending_wall = -1.0
+	_pending_formation = ""
 	_corridor_left = 0.0
 	_corridor_walls = 0
 	_clear_boss()
@@ -749,6 +753,18 @@ func _step(dt: float) -> void:
 		if _pending_wall < 0.0:
 			asteroids.spawn_wall()
 
+	# Só inicia padrões onde há tempo para atravessá-los antes do próximo encontro.
+	var formation_window := asteroids.spawn_enabled and boss == null and _alert_timer < 0.0 \
+			and _storm_left <= 0.0 and _comets_left <= 0 and _invert_left <= 0.0 and not blackout.active()
+	var flow_speed := scroll_speed * (Tuning.INVERT_SPEED_K if asteroids.inverted else 1.0)
+	var travel_time := (view_size.y + Formations.MAX_DEPTH + Formations.LEAD + Tuning.WALL_METAL_RADIUS) / maxf(flow_speed, 1.0)
+	if director != null:
+		formation_window = formation_window and director.can_start_formation(travel_time)
+		asteroids.formations = director.formations if formation_window else 0.0
+	if _pending_formation != "":
+		if formation_window:
+			asteroids.spawn_formation(_pending_formation, difficulty)
+		_pending_formation = ""
 	asteroids.update(dt, scroll_speed, difficulty)
 	enemies.update(dt, ship.position, scroll_speed)
 	hazards.update(dt, scroll_speed)
@@ -792,6 +808,9 @@ func _on_wave_event(e: WaveEvent) -> void:
 				Sfx.play_music(SECTORS[_biome].music)
 		WaveEvent.Kind.BOSS:
 			_begin_boss_alert(e.text)
+		WaveEvent.Kind.FORMATION:
+			if e.text in Formations.IDS:
+				_pending_formation = e.text
 		WaveEvent.Kind.METAL_WALL:
 			_pending_wall = Tuning.WALL_TELEGRAPH_TIME
 			for span in asteroids.wall_spans():
@@ -993,7 +1012,7 @@ func _apply_rift(dt: float) -> void:
 				b.vel = (b.vel + hazards.well_bend(b.pos) * dt).normalized() * speed
 	if not hazards.portals.is_empty():
 		for a in asteroids.asteroids:
-			if a.ported or not a.alive:
+			if a.ported or not a.alive or a.formation:
 				continue
 			var jump := hazards.portal_jump(a.pos)
 			if jump != Vector2.ZERO:
@@ -1119,7 +1138,7 @@ func _bullet_hits_asteroid(b: BulletLayer.Bullet, a: AsteroidField.Asteroid) -> 
 		fx.spark(b.pos, Palette.METAL_LINE)
 		asteroids.impact(a, b.vel.normalized())
 		Sfx.play("ricochet", -3.0, 1.0, 0.1, b.pos)
-		if ship.at_cap():  # padrão no máximo: o tiro empurra o metal
+		if ship.at_cap() and not a.formation:  # não deforma a passagem das formações
 			a.vel.x += signf(a.pos.x - b.pos.x) * Tuning.METAL_PUSH
 		return
 	if b.pierce:
@@ -1260,6 +1279,13 @@ func _on_dust_destroyed(a: AsteroidField.Asteroid) -> void:
 		fx.burst(a.pos, Color(1.6, 2.0, 2.4), 14, 420.0, 0.4, 5.0)
 		Sfx.play("pickup_crystal", -10.0, 0.6, 0.1, a.pos)
 		ice_shards += asteroids.split_ice(a)
+	elif a.material == AsteroidLook.CRYSTAL:
+		fx.burst(a.pos, Palette.NEON_HDR, 10, 250.0, 0.35, 4.0)
+		pickups.spawn(a.pos, PickupLayer.Kind.SHIELD)
+		return  # substitui o sorteio comum: exatamente um orbe garantido
+	elif a.material == AsteroidLook.VOLCANIC:
+		enemy_shots.fire_embers(a.pos, telegraph)
+		Sfx.play("alarm", -14.0, 1.6, 0.1, a.pos)
 
 	var shield_chance := Tuning.DROP_SHIELD_CHANCE
 	if boss != null:

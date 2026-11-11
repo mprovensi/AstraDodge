@@ -54,6 +54,9 @@ func _run() -> void:
 	_test_enemies()
 	_test_mothership()
 	_test_weapon()
+	_test_dust_sizes()
+	_test_dust_materials()
+	_test_formations()
 	main.free()
 	quit()
 
@@ -968,6 +971,7 @@ func _test_endless_generator() -> void:
 	assert(a != _endless_timeline(43, biomes, bosses, horizon), "sementes diferentes, partidas diferentes")
 
 	var boss_count := {}
+	var formation_count := {}
 	var heavy_total := 0
 	for seed_value in 100:
 		var gen := EndlessGenerator.new(seed_value, main.SECTORS, biomes, bosses)
@@ -985,6 +989,9 @@ func _test_endless_generator() -> void:
 				heavy_total += 1
 			if e.kind == K.BIOME:
 				assert(e.count in biomes, "bioma não liberado")
+			if e.kind == K.FORMATION:
+				assert(e.text in Formations.IDS, "formação válida no Infinito")
+				formation_count[e.text] = formation_count.get(e.text, 0) + 1
 			if e.kind == K.BOSS:
 				assert(e.text in bosses)
 				assert(e.text != last_boss, "o mesmo chefe duas vezes seguidas")
@@ -995,11 +1002,13 @@ func _test_endless_generator() -> void:
 		# Antes do chefe: calmaria (nenhum bloco começa na janela de limpeza da tela).
 		for t in boss_times:
 			for e in events:
-				if e.kind in [K.METAL_WALL, K.CORRIDOR, K.STORM, K.DRONES, K.DUST_RAIN]:
+				if e.kind in [K.METAL_WALL, K.CORRIDOR, K.STORM, K.DRONES, K.DUST_RAIN, K.FORMATION]:
 					assert(e.at < t - EndlessGenerator.BOSS_CALM - 0.5 or e.at > t,
 							"semente %d: bloco em %.1fs atrapalha a entrada do chefe" % [seed_value, e.at])
 	for id in bosses:
 		assert(boss_count.get(id, 0) > 0, "o chefe %s deveria aparecer" % id)
+	for id in Formations.IDS:
+		assert(formation_count.get(id, 0) > 0, "a formação %s deveria aparecer" % id)
 	# Sem chefes liberados (só o bioma 1): nenhum chefe, nenhuma troca de cenário.
 	var only_first: Array[int] = [0]
 	var no_bosses: Array[String] = []
@@ -1734,6 +1743,260 @@ func _test_weapon() -> void:
 	main.go_to_menu()
 	print("ARMA OK | 4 tipos x 4 degraus | potencia x%.2f..x%.2f | carta de arma | Sobrecarga | Setor 1: padrao 2/3/4 aos %.0f/%.0f/%.0fs (chefe %.0fs)" % [
 			Tuning.WEAPON_POWER[0], Tuning.WEAPON_POWER[-1], reached[2], reached[3], reached[4], boss_at])
+
+
+## P/M/G: propriedades das rochas realmente geradas, inclusive na inversão, e acerto do tiro
+## nos limites de tamanho com quadros longos. Ataques de chefe/lascas mantêm tamanhos próprios.
+func _test_dust_sizes() -> void:
+	# Carrega após os autoloads: AsteroidField usa Game na renderização.
+	var field = load("res://scripts/asteroids.gd").new()
+	field.resize(Vector2(1080, 1920))
+	seed(20261111)
+	var counts := [0, 0, 0]
+	for reversed in [false, true]:
+		for difficulty in [0.0, 0.5, 1.0]:
+			var seen := [false, false, false]
+			for row in 200:
+				field.reset()
+				field.inverted = reversed
+				field._spawn_row(difficulty)
+				for a in field.asteroids:
+					if a.kind != field.Kind.DUST:
+						continue
+					var size := 0 if a.radius <= 44.0 else (1 if a.radius <= 75.0 else 2)
+					seen[size] = true
+					counts[size] += 1
+					var forward_speed: float = a.vel.y * (-1.0 if reversed else 1.0)
+					assert(a.radius >= 34.0 and a.radius <= 95.0, "raio das fileiras em 34..95")
+					match size:
+						0:
+							assert(a.hp == 1.0 and is_equal_approx(forward_speed, 60.0), "P: frágil e rápida")
+						1:
+							assert(a.radius >= 45.0 and a.hp >= 2.0 and a.hp <= 3.0, "M: raio e vida")
+							assert(forward_speed >= 0.0 and forward_speed <= 80.0, "M: velocidade")
+						2:
+							assert(a.radius >= 76.0 and a.hp >= 4.0 and a.hp <= 6.0, "G: raio e vida")
+							assert(is_equal_approx(forward_speed, -40.0), "G: mais lenta que a rolagem")
+					if difficulty == 0.0:
+						assert(a.hp == [1.0, 2.0, 4.0][size], "início usa a vida mínima da classe")
+			assert(seen.all(func(value: bool) -> bool: return value), "todos os tamanhos nas duas direções e dificuldades")
+	# Um projétil real atravessa o centro da rocha: mesmo quando os dois extremos ficam
+	# fora do círculo, o trajeto precisa acertar. Um tiro ao lado deve continuar errando.
+	var shots = load("res://scripts/bullets.gd").new()
+	shots.resize(Vector2(1080, 1920))
+	for radius in [34.0, 44.0, 45.0, 75.0, 76.0, 95.0]:
+		for dt in [1.0 / 60.0, 1.0 / 30.0, 1.0 / 20.0]:
+			field.reset()
+			field.spawn_dust(Vector2(300, 500), radius, 1, Vector2.ZERO)
+			var rock = field.asteroids[0]
+			shots.clear()
+			shots.spawn(rock.pos + Vector2(0, Tuning.BULLET_SPEED * dt * 0.5), 0.0, false)
+			shots.update(dt)
+			var shot = shots.pool[0]
+			assert(field.hit_test(shot.pos, {}, shot.prev) == rock, "tiro acerta P/M/G a 60, 30 e 20 FPS")
+			var offset := Vector2(radius + 1.0, 0)
+			assert(field.hit_test(shot.pos + offset, {}, shot.prev + offset) == null, "tiro fora da rocha erra")
+	field.reset()
+	field.spawn_dust(Vector2(300, 500), 26.0, 1, Vector2.ZERO)
+	assert(field.asteroids[0].radius == 26.0, "ataque de chefe mantém o raio explícito")
+	field.spawn_dust(Vector2(500, 500), 80.0, 4, Vector2.ZERO, true)
+	assert(field.split_ice(field.asteroids[1]) == Tuning.ICE_SHARDS, "gelo continua rachando")
+	assert(field.asteroids[-1].radius == 40.0 and field.split_ice(field.asteroids[-1]) == 0, "lascas não racham de novo")
+	shots.free()
+	field.free()
+	print("ASTEROIDES P/M/G OK | 1200 fileiras | quantidades=%s | tiros a 60/30/20 FPS | inversao e lascas" % [counts])
+
+
+## Materiais: arte antiga continua comum; material acompanha o sprite e o bioma de origem;
+## recompensa só uma vez; brasas só machucam após o aviso e deixam passagem central.
+func _test_dust_materials() -> void:
+	var art = root.get_node("Game").art
+	assert(art.dust_material(-1, 0) == AsteroidLook.ROCK, "arte sem material usa rocha comum")
+	assert(art.dust_material(0, 59) == AsteroidLook.ROCK, "Setor 1 mantém rochas comuns")
+	assert(art.dust_material(2, 7) == AsteroidLook.CRYSTAL, "material usa o mesmo módulo do sprite")
+	assert(art.dust_material(7, 6) == AsteroidLook.VOLCANIC, "rochas vermelhas do Setor 8 são vulcânicas")
+	var field = main.asteroids
+	seed(20261112)
+	for look in [2, 7]:
+		field.reset()
+		field.look = look
+		var special := 0
+		for row in 100:
+			field.asteroids.clear()
+			field._spawn_row(0.5)
+			for a in field.asteroids:
+				if a.kind == field.Kind.METAL:
+					assert(a.material == AsteroidLook.ROCK, "metal não recebe comportamento de poeira")
+				else:
+					assert(a.material == art.dust_material(look, a.sprite), "material da rocha gerada acompanha a arte")
+					if a.material != AsteroidLook.ROCK:
+						special += 1
+		assert(special > 0, "material especial aparece nas fileiras")
+		var born_material: String = field.asteroids[-1].material
+		field.look = 0
+		assert(field.asteroids[-1].material == born_material, "trocar bioma preserva rochas antigas")
+	# Gelo e ataques com tamanho explícito continuam tendo só seu comportamento original.
+	field.reset()
+	field.look = 2
+	field.ice = 1.0
+	field._spawn_row(0.0)
+	for a in field.asteroids:
+		assert(a.material == AsteroidLook.ROCK, "gelo não recebe recompensa cristalina")
+	main.go_to_menu()
+	main.start_mode(main.Mode.CAMPAIGN, 2)
+	field.asteroids.clear()
+	field.spawn_dust(Vector2(500, 500), 50.0, 1, Vector2.ZERO)
+	var crystal = field.asteroids[0]
+	crystal.material = AsteroidLook.CRYSTAL
+	main.bullets.spawn(crystal.pos, 0.0, false)
+	main._check_bullet_hits()
+	assert(not crystal.alive and main.pickups.pickups.size() == 1, "destruir cristalino dá exatamente um prêmio")
+	assert(main.pickups.pickups[0].kind == PickupLayer.Kind.SHIELD, "prêmio cristalino é escudo")
+	main._check_bullet_hits()
+	assert(main.pickups.pickups.size() == 1, "rocha destruída não duplica o prêmio")
+	assert(main.enemy_shots.active_count() == 0, "cristalino não solta brasas")
+	main._on_restart()
+	field.spawn_dust(Vector2(500, 500), 50.0, 1, Vector2.ZERO)
+	field.asteroids[0].material = AsteroidLook.VOLCANIC
+	main.bullets.spawn(field.asteroids[0].pos, 0.0, false)
+	main._check_bullet_hits()
+	assert(main.enemy_shots.active_count() == 2 and main.telegraph._warnings.size() == 2, "vulcânico agenda duas brasas e dois avisos")
+	var shots = main.enemy_shots
+	var warnings = main.telegraph
+	var origin := Vector2(500, 500)
+	for w in warnings._warnings:
+		assert(w.a == origin and is_equal_approx(w.total, Tuning.EMBER_TELEGRAPH), "aviso parte da explosão e dura 0,9 s")
+		assert(is_equal_approx(w.size, 2.0 * (Tuning.EMBER_RADIUS + Tuning.SHIP_HITBOX_RADIUS)), "faixa cobre brasa e corpo da nave")
+		assert(Geometry2D.get_closest_point_to_segment(origin + Vector2(0, 200), w.a, w.b).distance_to(origin + Vector2(0, 200)) > w.size * 0.5,
+				"corredor central fora das duas faixas avisadas")
+	main._set_state(main.State.PAUSED)
+	main._process(1.0)
+	assert(shots.pool[0].t == 0.0, "pausa não consome aviso")
+	shots.update(Tuning.EMBER_TELEGRAPH - 0.01)
+	assert(not shots.hit_ship(origin, Tuning.SHIP_HITBOX_RADIUS), "nenhum dano durante o aviso")
+	for shot in shots.pool:
+		if shot.alive:
+			assert(shot.pos == origin, "brasa não se move antes do aviso")
+	shots.update(0.02)
+	var ember = shots.pool[0]
+	assert(is_equal_approx(ember.pos.distance_to(origin), Tuning.EMBER_SPEED * 0.01), "quadro de transição só move o tempo após o aviso")
+	shots.update(0.3)
+	assert(not shots.hit_ship(origin + Vector2(0, 200), Tuning.SHIP_HITBOX_RADIUS), "passagem central continua segura em voo")
+	assert(shots.hit_ship((ember.prev + ember.pos) * 0.5, 1.0), "trajeto da brasa acerta mesmo com quadro longo")
+	shots.update(Tuning.EMBER_LIFETIME)
+	assert(shots.active_count() == 0, "brasas acabam após o alcance curto")
+	shots.fire_embers(origin, warnings)
+	shots.clear()
+	shots.update(Tuning.EMBER_TELEGRAPH + 0.1)
+	assert(shots.active_count() == 0, "limpar tiros também cancela brasas pendentes")
+	shots.fire(origin, Vector2.DOWN * 100.0)
+	assert(shots.hit_ship(origin, 1.0), "reutilizar pool não atrasa projéteis comuns")
+	main.go_to_menu()
+	print("MATERIAIS OK | cristalino: escudo unico | vulcanico: aviso, passagem central, alcance, pausa e limpeza")
+
+
+## Prova de travessia: nave segue a passagem com o campo realmente se movendo, sem atirar,
+## nas duas direções e em três larguras. Também cobre integração, reserva e save antigo.
+func _test_formations() -> void:
+	var field = load("res://scripts/asteroids.gd").new()
+	var rows := [0]
+	var on_row := func(_gap: float) -> void: rows[0] += 1
+	field.row_spawned.connect(on_row)
+	var cases := 0
+	for id: String in Formations.IDS:
+		for width in [720.0, 1080.0, 1440.0]:
+			for entry in [150.0, width * 0.5, width - 150.0]:
+				var layout := Formations.make(id, width, entry)
+				assert(layout != null and not layout.pieces.is_empty(), "%s: padrão cabe na tela" % id)
+				assert(layout.pieces.size() <= 24, "orçamento de até 24 peças por formação")
+				for reversed in [false, true]:
+					for metals in [false, true]:
+						field.resize(Vector2(width, 1920))
+						field.reset()
+						field._gap_x = entry
+						field.inverted = reversed
+						field.metals_enabled = metals
+						assert(field.spawn_formation(id, 1.0), "%s: formação entra" % id)
+						assert(not field.spawn_formation(id), "não empilha formações")
+						field.spawn_enabled = false
+						for rock in field.asteroids:
+							assert(rock.pos.y - rock.radius >= 1920.0 if reversed else rock.pos.y + rock.radius <= 0.0, "formação nasce fora da tela")
+							assert(metals or rock.kind == field.Kind.DUST, "metal bloqueado respeitado")
+							field.impact(rock, Vector2(1, -1).normalized())
+							assert(rock.knock == Vector2.ZERO, "impacto não deforma a passagem")
+						var speed := 950.0 * (Tuning.INVERT_SPEED_K if reversed else 1.0) + (60.0 if id == "rain" else 0.0)
+						var travel := 0.0
+						var x: float = layout.route[0].x
+						var ship_y := 480.0 if reversed else 1440.0
+						while travel < 1920.0 + Formations.LEAD + layout.depth + 200.0:
+							field.update(0.05, 950.0, 1.0)  # 20 FPS
+							travel += speed * 0.05
+							var depth := travel - Formations.LEAD - 1440.0
+							var next_x: float = layout.route[-1].x
+							for i in range(1, layout.route.size()):
+								var a: Vector2 = layout.route[i - 1]
+								var b: Vector2 = layout.route[i]
+								if depth <= b.y:
+									next_x = lerpf(a.x, b.x, clampf((depth - a.y) / (b.y - a.y), 0.0, 1.0))
+									break
+							assert(absf(next_x - x) <= 1200.0 * 0.05 + 0.01, "rota acompanha velocidade possível da nave")
+							x = next_x
+							assert(x >= Tuning.SHIP_MARGIN and x <= width - Tuning.SHIP_MARGIN, "rota dentro dos controles")
+							for rock in field.asteroids:
+								assert(Vector2(x, ship_y).distance_to(rock.pos) >= rock.radius + Tuning.SAFE_GAP_WIDTH * 0.5 - 0.01,
+										"%s: passagem de 260 px livre, mesmo sem atirar" % id)
+						assert(field.asteroids.is_empty(), "formação sai da tela")
+						cases += 1
+	assert(rows[0] == 0, "formação não invoca perigos de fileira em cima da passagem")
+	# Chance 100% exercita a escolha do spawner, sem depender de um sorteio favorável.
+	field.reset()
+	field.formations = 1.0
+	field.update(1.0, 950.0, 0.5)
+	assert(field.asteroids.any(func(a) -> bool: return a.formation), "chance de DENSITY chega ao spawner")
+	field.reset()
+	assert(not field.spawn_formation("inexistente"), "id desconhecido não altera o campo")
+	assert(field.asteroids.is_empty(), "id inválido não cria pedaços")
+	field.free()
+	# O seek restaura a chance, sem disparar de novo uma formação já passada.
+	var data := SectorData.new()
+	data.events.assign([WaveEvent.make(0.0, WaveEvent.Kind.DENSITY, {"formations": 0.2}),
+			WaveEvent.make(5.0, WaveEvent.Kind.FORMATION, {"text": "v"}),
+			WaveEvent.make(10.0, WaveEvent.Kind.BOSS, {"text": "rock_mother"})])
+	var director := SectorDirector.new(data)
+	director.seek(6.0)
+	assert(is_equal_approx(director.formations, 0.2), "checkpoint restaura chance de formações")
+	assert(director.can_start_formation(2.0) and not director.can_start_formation(5.0), "reserva espaço antes do chefe")
+	assert(director.update(0.01).is_empty(), "checkpoint não repete formação passada")
+	# Todos os eventos de introdução são executáveis no fluxo real da campanha.
+	var introduced := {}
+	var seen: Array[String] = []
+	var on_formation := func(id: String) -> void: seen.append(id)
+	main.asteroids.formation_spawned.connect(on_formation)
+	for sector in main.SECTORS.size():
+		var has_chance := false
+		for event: WaveEvent in main.SECTORS[sector].events:
+			if event.kind == WaveEvent.Kind.DENSITY and event.formations > 0.0:
+				has_chance = true
+			if event.kind != WaveEvent.Kind.FORMATION:
+				continue
+			main.go_to_menu()
+			main.start_mode(main.Mode.CAMPAIGN, sector)
+			main.director.seek(event.at - 0.01)
+			seen.clear()
+			main._step(0.02)
+			assert(event.text in seen, "Setor %d: introdução de %s realmente entra" % [sector + 1, event.text])
+			introduced[event.text] = true
+		assert(has_chance, "setor tem chance de formações")
+	for id in Formations.IDS:
+		assert(introduced.has(id), "campanha apresenta %s" % id)
+	var rock = main.asteroids.asteroids[0]
+	var before: Vector2 = rock.pos
+	main.hazards.portals.append({"a": before, "b": before + Vector2(400, 0), "glow": 0.0})
+	main._apply_rift(DT)
+	assert(rock.pos == before, "portal não desmonta a passagem da formação")
+	main.asteroids.formation_spawned.disconnect(on_formation)
+	main.go_to_menu()
+	print("FORMACOES OK | 7 padroes | %d travessias sem tiro a 20 FPS | 3 larguras | inversao | campanha e chance" % cases)
 
 
 func _touch(pressed: bool) -> void:

@@ -162,5 +162,5 @@ A1 e A2 eu faço sozinho (procedural). A3–A6 dependem da fonte de arte (seçã
 - [x] 7 materiais (`scripts/art/rock_materials.gd`) e quais aparecem em cada setor; o gelo do Setor 5 usa o material GELO
 - [x] Pedaços da explosão na cor do material; dano escurece e o tiro faz piscar como antes
 - [x] Teste: a menor silhueta do shader cobre o círculo que machuca a nave
-- [ ] Comportamentos por material (cristalino solta orbe, vulcânico espirra brasas) — próxima etapa
+- [x] Comportamentos por material (11/11/2026): cristalino garante orbe; vulcânico solta brasas avisadas — sobre os sprites desenhados atuais (ESPEC_ASTEROIDES.md, seção 10)
 - [ ] Medir FPS em aparelho de entrada (A7: opção "Gráficos: simples")

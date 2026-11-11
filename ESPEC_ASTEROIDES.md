@@ -2,6 +2,8 @@
 
 > Rascunho para revisão. Substitui a tentativa A1 (asteroides 2.5D por shader), que foi
 > desfeita em 05/11/2026. Marque as decisões na seção 7 e eu sigo a partir daqui.
+> Atualização de 11/11/2026: física P/M/G e comportamentos por material implementados (seções 9–10). Para a arte atual,
+> prevalece PLANO_SPRITES_IA.md: sprites desenhados por setor, com giro no plano.
 
 ---
 
@@ -104,3 +106,37 @@ crateras e relevo — o "2.5D" do exemplo da galeria —, porém **assado em ima
   por quadro (mesmo custo de um sprite);
 - borda lisa (antialias na imagem), sem recorte calculado no celular;
 - protótipo no **Setor 1** para aprovação antes de levar aos outros setores.
+
+---
+
+## 9. Física P/M/G implementada (11/11/2026)
+
+- Fileiras comuns da campanha, Infinito e Desafio usam os raios, vidas e velocidades da seção 2.
+- Distribuição antes da tentativa de posicionamento: 20% P, 65% M, 15% G. A maioria continua média;
+  rochas que não cabem sem sobreposição são descartadas, como antes.
+- A dificuldade sobe a vida dentro da faixa de cada tamanho (início: 1/2/4; máximo: 1/2–3/4–6).
+- As velocidades são somadas à rolagem; na inversão, o sentido acompanha as fileiras.
+- Metálicos, colisões, recompensa por vida e ataques de chefes mantêm suas regras. O raio mínimo
+  de 34 vale para as rochas comuns; lascas de gelo e projéteis rochosos dos chefes mantêm raios próprios.
+- Teste `ASTEROIDES P/M/G`: 1.200 fileiras nas duas direções e em três dificuldades; tiros reais
+  a 60/30/20 FPS nos limites dos três tamanhos, incluindo tiros que passam ao lado; gelo continua rachando.
+- Os testes da versão anterior nos celulares foram confirmados pelo usuário. O balanceamento
+  desta mudança é novo; a validação automatizada inclui o ritmo da arma e a campanha completa.
+
+## 10. Comportamentos por material (11/11/2026)
+
+- O material é registrado por imagem em `AsteroidLook.dust_materials` e guardado na rocha quando
+  ela nasce. Ao mudar o bioma no Infinito, rochas antigas mantêm seu comportamento. Arte sem
+  metadados mantém rochas comuns; não se deduz comportamento pela cor do arquivo.
+- **Cristalino:** a 4ª rocha do Setor 3, azul com cristais ciano em losango, garante exatamente
+  um orbe de escudo quando destruída a tiro, substituindo o sorteio comum de recompensa.
+- **Vulcânico:** 3ª e 4ª rochas do Setor 8, vermelhas com fissuras luminosas, soltam duas brasas
+  diagonais para baixo após aviso de 0,9 s. O voo dura 1,2 s a 360 px/s (alcance de 432 px), com
+  passagem central. As faixas mostram a trajetória e incluem a largura da brasa e da nave.
+- Brasas usam o pool existente de projéteis inimigos e o dano normal de tiro inimigo. Não se
+  movem nem machucam durante o aviso; pausas congelam o relógio, e limpar os tiros cancela
+  também os disparos pendentes. A colisão considera o trajeto entre quadros.
+- Esses materiais se aplicam às fileiras comuns, também no Infinito e Desafio. Gelo, lascas,
+  metálicos, ataques de chefes e rochas removidas por colisão/limpeza mantêm as regras anteriores.
+- Teste `MATERIAIS`: geração por sprite, troca de bioma, recompensa única a tiro, faixas e
+  corredor seguro, transição do aviso em quadro longo, alcance, pausa e reutilização do pool.

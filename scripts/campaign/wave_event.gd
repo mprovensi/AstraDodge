@@ -23,6 +23,7 @@ enum Kind {
 	BLACKOUT,    ## blecaute por `duration` s: só a luz em volta da nave
 	INVERT,      ## inversão: aviso e depois `duration` s de rochas vindo de baixo
 	MOTHERSHIP,  ## nave-mãe cruza o alto da tela; derrubada solta um contêiner de módulo
+	FORMATION,   ## `text` = id de Formations; entra pelo topo, com rota segura
 }
 
 @export var at := 0.0                ## segundos desde o início do setor
@@ -42,6 +43,7 @@ enum Kind {
 @export_range(0.0, 1.0) var eggs := 0.0     ## DENSITY: chance de um ovo por linha
 @export_range(0.0, 1.0) var wells := 0.0    ## DENSITY: chance de um poço gravitacional por linha
 @export_range(0.0, 1.0) var portals := 0.0  ## DENSITY: chance de um par de portais por linha
+@export_range(0.0, 1.0) var formations := 0.0 ## DENSITY: chance de trocar uma fileira por uma formação
 @export var count := 0                      ## DRONES/COMETS/SWARM/HATCH/GATES/SLIDE: quantos
 
 

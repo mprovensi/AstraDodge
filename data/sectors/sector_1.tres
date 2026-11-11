@@ -70,6 +70,7 @@ text = "CHUVA DE POEIRA!"
 script = ExtResource("1_lcu4m")
 at = 60.0
 kind = 1
+formations = 0.12
 
 [sub_resource type="Resource" id="Resource_23eef"]
 script = ExtResource("1_lcu4m")
@@ -81,6 +82,7 @@ script = ExtResource("1_lcu4m")
 at = 90.0
 kind = 1
 density = 1.15
+formations = 0.12
 
 [sub_resource type="Resource" id="Resource_gqrjd"]
 script = ExtResource("1_lcu4m")
@@ -127,8 +129,20 @@ script = ExtResource("1_lcu4m")
 at = 60.0
 kind = 19
 
+[sub_resource type="Resource" id="Formation_v_0"]
+script = ExtResource("1_lcu4m")
+at = 24.0
+kind = 20
+text = "v"
+
+[sub_resource type="Resource" id="Formation_rain_1"]
+script = ExtResource("1_lcu4m")
+at = 64.0
+kind = 20
+text = "rain"
+
 [resource]
 script = ExtResource("2_we7wr")
 subtitle = "Cinturão de Poeira"
 difficulty_end = 0.45
-events = Array[ExtResource("1_lcu4m")]([SubResource("Resource_qv1ho"), SubResource("Resource_gpcr4"), SubResource("Resource_kialt"), SubResource("Resource_vbgmk"), SubResource("Resource_xqd4x"), SubResource("Resource_rb61c"), SubResource("Resource_lkh7b"), SubResource("Resource_08i7b"), SubResource("Resource_185v8"), SubResource("Resource_ntidy"), SubResource("Resource_4sgut"), SubResource("Resource_23eef"), SubResource("Resource_6ry1x"), SubResource("Resource_gqrjd"), SubResource("Resource_b72a1"), SubResource("Resource_7xnx7"), SubResource("Resource_k83pu"), SubResource("Resource_hg2pd"), SubResource("Resource_qjuq1"), SubResource("Resource_sd6l3"), SubResource("Resource_rh8si")])
+events = Array[ExtResource("1_lcu4m")]([SubResource("Resource_qv1ho"), SubResource("Resource_gpcr4"), SubResource("Resource_kialt"), SubResource("Resource_vbgmk"), SubResource("Resource_xqd4x"), SubResource("Resource_rb61c"), SubResource("Resource_lkh7b"), SubResource("Resource_08i7b"), SubResource("Resource_185v8"), SubResource("Resource_ntidy"), SubResource("Resource_4sgut"), SubResource("Resource_23eef"), SubResource("Resource_6ry1x"), SubResource("Resource_gqrjd"), SubResource("Resource_b72a1"), SubResource("Resource_7xnx7"), SubResource("Resource_k83pu"), SubResource("Resource_hg2pd"), SubResource("Resource_qjuq1"), SubResource("Resource_sd6l3"), SubResource("Resource_rh8si"), SubResource("Formation_v_0"), SubResource("Formation_rain_1")])

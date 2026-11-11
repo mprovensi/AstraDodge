@@ -4,6 +4,7 @@ extends Node2D
 ## e o corredor se desloca pouco entre linhas, garantindo sempre um caminho possível.
 
 signal row_spawned(gap_x: float)  ## uma linha nova entrou (o Main usa para nuvens/minas)
+signal formation_spawned(id: String)
 
 enum Kind { DUST, METAL }
 
@@ -28,6 +29,7 @@ class Asteroid:
 	var shell := 0             # poeira blindada: tiros que a casca ainda aguenta
 	var drift := 0.0           # metálico com propulsor: velocidade lateral (quica nas bordas)
 	var ice := false           # gelo (Setor 5): ao quebrar racha em lascas
+	var material := AsteroidLook.ROCK  # guardado ao nascer: não muda com o bioma do Infinito
 	var sliding := false       # parede móvel (Setor 7): desliza em volta de slide_base
 	var slide_base := 0.0
 	var slide_phase := 0.0
@@ -37,6 +39,7 @@ class Asteroid:
 	var spin_rate := 0.0       # giro 3D (voltas por segundo) das rochas com folha de quadros
 	var spin_phase := 0.0
 	var alive := true
+	var formation := false     # conjunto rígido: tiro e portal não fecham sua rota
 
 var asteroids: Array[Asteroid] = []
 var dust_spawned := 0  # poeiras criadas (para a estrela de "70% da poeira")
@@ -46,6 +49,7 @@ var view_size := Vector2.ZERO
 var spawn_enabled := true
 var metals_enabled := true
 var density := 1.0
+var formations := 0.0
 var dust_rain := false
 var moving_metals := 0.0   # chance de uma linha trazer um metálico com propulsor (Setor 2+)
 var armored := 0.0         # chance de cada poeira vir blindada (Setor 2+)
@@ -71,6 +75,7 @@ func reset() -> void:
 	spawn_enabled = true
 	metals_enabled = true
 	density = 1.0
+	formations = 0.0
 	dust_rain = false
 	moving_metals = 0.0
 	armored = 0.0
@@ -85,9 +90,14 @@ func update(dt: float, scroll_speed: float, difficulty: float) -> void:
 	if spawn_enabled:
 		_distance_to_next_row -= absf(flow) * dt
 		if _distance_to_next_row <= 0.0:
-			_spawn_row(difficulty)
-			var spacing := lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
-			_distance_to_next_row += spacing / (density * (Tuning.DUST_RAIN_DENSITY if dust_rain else 1.0))
+			var made_formation := false
+			if formations > 0.0 and not dust_rain and randf() < formations:
+				var choices := Formations.available(look)
+				made_formation = spawn_formation(choices[randi_range(0, choices.size() - 1)], difficulty)
+			if not made_formation:
+				_spawn_row(difficulty)
+				var spacing := lerpf(Tuning.ROW_SPACING_START, Tuning.ROW_SPACING_END, difficulty)
+				_distance_to_next_row += spacing / (density * (Tuning.DUST_RAIN_DENSITY if dust_rain else 1.0))
 
 	_slide_t += dt
 	for a in asteroids:
@@ -147,7 +157,8 @@ func damage(a: Asteroid, amount: float) -> bool:
 ## Feedback de impacto: recuo na direção do tiro, encolhida e piscada.
 func impact(a: Asteroid, shot_dir: Vector2) -> void:
 	var strength := Tuning.HIT_KNOCKBACK_METAL if a.kind == Kind.METAL else Tuning.HIT_KNOCKBACK_DUST
-	a.knock = (a.knock + shot_dir * strength).limit_length(Tuning.HIT_KNOCKBACK_MAX)
+	if not a.formation:
+		a.knock = (a.knock + shot_dir * strength).limit_length(Tuning.HIT_KNOCKBACK_MAX)
 	a.punch = 1.0
 	a.flash = 0.08
 
@@ -255,19 +266,22 @@ func _spawn_row(difficulty: float) -> void:
 
 	var dust_count := randi_range(1, 2 + int(difficulty * 2.0)) + (2 if dust_rain else 0)
 	for i in dust_count:
-		var r := randf_range(40.0, 85.0)
+		var roll := randf()
+		var size := 1  # M é o tamanho mais comum; P e G dão variedade sem dominar a tela.
+		if roll < Tuning.DUST_SMALL_CHANCE:
+			size = 0
+		elif roll >= 1.0 - Tuning.DUST_LARGE_CHANCE:
+			size = 2
+		var radii: Vector2 = Tuning.DUST_RADIUS_RANGES[size]
+		var speeds: Vector2 = Tuning.DUST_SPEED_RANGES[size]
+		var r := randf_range(radii.x, radii.y)
 		for attempt in 10:
 			var p := Vector2(randf_range(r, w - r), -r - randf_range(0.0, 220.0))
 			if _overlaps(placed, p, r):
 				continue
 			placed.append(Vector3(p.x, p.y, r))
-			var hp := clampi(1 + int(r > 65.0) + randi_range(0, int(difficulty * 2.5)), 1, 5)
-			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(0.0, 80.0))
-			var a := _add(Kind.DUST, p, r, hp, vel)
-			if randf() < ice:
-				a.ice = true  # gelo não leva casca: a novidade dele é rachar
-			elif randf() < armored:
-				a.shell = Tuning.ARMOR_SHELL_HITS
+			var vel := Vector2(randf_range(-40.0, 40.0), randf_range(speeds.x, speeds.y))
+			_add_field_dust(p, r, vel, difficulty)
 			break
 	if inverted:
 		# Inversão: a linha nasce espelhada embaixo da tela e sobe. Perigos do topo (minas,
@@ -278,6 +292,47 @@ func _spawn_row(difficulty: float) -> void:
 			a.vel.y = -a.vel.y
 		return
 	row_spawned.emit(_gap_x)
+
+
+## Peças da formação compartilham velocidade; não emite row_spawned (perigos não tapam a rota).
+func spawn_formation(id: String, difficulty := 0.0) -> bool:
+	if asteroids.any(func(a: Asteroid) -> bool: return a.alive and (a.formation or a.wall > 0)):
+		return false
+	var layout := Formations.make(id, view_size.x, _gap_x)
+	if layout == null or layout.pieces.is_empty():
+		return false
+	for piece in layout.pieces:
+		var pos := Vector2(piece.pos.x, -Formations.LEAD - piece.pos.y)
+		var velocity := Vector2(0, 60.0 if id == "rain" else 0.0)
+		if inverted:
+			pos.y = view_size.y - pos.y
+			velocity.y = -velocity.y
+		var a: Asteroid
+		if piece.metal and metals_enabled:
+			a = _add(Kind.METAL, pos, piece.radius, 1, velocity)
+		else:
+			a = _add_field_dust(pos, piece.radius, velocity, difficulty)
+		a.formation = true
+	_gap_x = layout.route[-1].x
+	_distance_to_next_row = maxf(_distance_to_next_row, layout.depth + Formations.LEAD + Tuning.ROW_SPACING_START)
+	formation_spawned.emit(id)
+	queue_redraw()
+	return true
+
+
+## Mesmas regras de vida, gelo, armadura e material nas fileiras e formações.
+func _add_field_dust(pos: Vector2, radius: float, velocity: Vector2, difficulty: float) -> Asteroid:
+	var size := 0 if radius <= Tuning.DUST_RADIUS_RANGES[0].y else (1 if radius <= Tuning.DUST_RADIUS_RANGES[1].y else 2)
+	var health: Vector2i = Tuning.DUST_HP_RANGES[size]
+	var max_hp := health.x + roundi((health.y - health.x) * clampf(difficulty, 0.0, 1.0))
+	var a := _add(Kind.DUST, pos, radius, randi_range(health.x, max_hp), velocity)
+	if randf() < ice:
+		a.ice = true
+	elif randf() < armored:
+		a.shell = Tuning.ARMOR_SHELL_HITS
+	if not a.ice:
+		a.material = Game.art.dust_material(a.look, a.sprite)
+	return a
 
 
 func _overlaps(placed: Array[Vector3], p: Vector2, r: float) -> bool:
@@ -374,6 +429,7 @@ func _draw() -> void:
 				var fh := sheet.get_height() / ArtSet.SHEET_ROWS
 				var src := Rect2((frame % ArtSet.SHEET_COLS) * fw, (frame / ArtSet.SHEET_COLS) * fh, fw, fh)
 				draw_texture_rect_region(sheet, rect, src, tint)
+			_draw_material(a)
 			if a.shell > 0 and art.dust_shell_texture != null:
 				var shell_tint := Color(1.8, 1.8, 1.8) if a.flash > 0.0 else Color.WHITE
 				shell_tint.a = 0.55 + 0.45 * float(a.shell) / float(Tuning.ARMOR_SHELL_HITS)
@@ -391,6 +447,24 @@ func _draw() -> void:
 		var flame := PackedVector2Array([base + Vector2(0, -12), base + Vector2(0, 12),
 				base + Vector2(back * 46.0 * flick, 0)])
 		draw_colored_polygon(flame, Color(Palette.FLAME_HDR, 0.9))
+
+
+## Marcas dentro da silhueta: cristais em losango e fissuras vulcânicas. Não alteram colisões.
+func _draw_material(a: Asteroid) -> void:
+	if a.material == AsteroidLook.CRYSTAL:
+		for offset: Vector2 in [Vector2(-0.3, 0.1), Vector2(0.1, -0.3), Vector2(0.35, 0.2)]:
+			var p := offset * a.radius
+			var r := a.radius * 0.16
+			var crystal := PackedVector2Array([p + Vector2(0, -r), p + Vector2(r * 0.65, 0),
+					p + Vector2(0, r), p - Vector2(r * 0.65, 0)])
+			draw_colored_polygon(crystal, Palette.NEON_HDR)
+			draw_line(p + Vector2(0, -r), p, Palette.WHITE_HDR, 2.0, true)
+	elif a.material == AsteroidLook.VOLCANIC:
+		for angle in [0.0, 2.2, 4.4]:
+			var crack := PackedVector2Array()
+			for point: Vector2 in [Vector2(0.1, 0), Vector2(0.3, 0.08), Vector2(0.42, -0.04), Vector2(0.65, 0.05)]:
+				crack.append(point.rotated(angle) * a.radius)
+			draw_polyline(crack, Palette.FLAME_HDR, 3.0, true)
 
 
 ## Peças de cada paredão, em ordem da esquerda para a direita, e onde fica a brecha:

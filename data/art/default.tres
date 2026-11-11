@@ -121,6 +121,7 @@ metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.43
 
 [sub_resource type="Resource" id="Resource_50y10"]
 script = ExtResource("19_qf7ya")
+dust_materials = PackedStringArray("rochoso", "rochoso", "rochoso", "cristalino")
 dust_textures = Array[Texture2D]([ExtResource("36_i0evk"), ExtResource("37_50y10"), ExtResource("38_70jpy"), ExtResource("39_t5b1j")])
 metal_textures = Array[Texture2D]([ExtResource("40_h10sp"), ExtResource("41_ae18a"), ExtResource("42_y82fg"), ExtResource("43_0bj7a")])
 junk_paths = PackedStringArray()
@@ -156,6 +157,7 @@ metal_lamps = PackedVector2Array(0.4375, -0.4375, 0.4375, -0.4375, 0.4375, -0.43
 
 [sub_resource type="Resource" id="Resource_y82fg"]
 script = ExtResource("19_qf7ya")
+dust_materials = PackedStringArray("rochoso", "rochoso", "vulcanico", "vulcanico")
 dust_textures = Array[Texture2D]([ExtResource("76_dnh78"), ExtResource("77_ubb3u"), ExtResource("78_s4e4e"), ExtResource("79_xbn8m")])
 metal_textures = Array[Texture2D]([ExtResource("80_gvmci"), ExtResource("81_inl40"), ExtResource("82_pe6eu"), ExtResource("83_o4lik")])
 junk_paths = PackedStringArray()

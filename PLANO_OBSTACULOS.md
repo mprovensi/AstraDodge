@@ -53,7 +53,7 @@ poucas linhas. Cada formação é validada pelo teste de rota segura (sempre há
 | **V / V invertido** | rochas em V; a brecha é no centro ou nas pontas | ler o centro |
 | **Escada** | diagonal de metais descendo; passagem segue a diagonal | movimento lateral contínuo |
 | **Zigue-zague** | 3–4 paredes curtas alternando lados | ritmo esquerda/direita |
-| **Anel** | círculo de metais com uma abertura | entrar e sair |
+| **Anel** | círculo de metais com entrada e saída alinhadas | entrar e sair |
 | **Tabuleiro** | poeira em xadrez (dá para atirar e abrir caminho) | atirar para passar |
 | **Funil** | laterais fechando até um corredor estreito | precisão |
 | **Chuva fina** | muitas pedrinhas pequenas e rápidas | reflexo |
@@ -105,3 +105,24 @@ Sugestão: O1 e O2 logo depois do lançamento atual (S13); O3/O4 como atualizaç
 - [x] `AsteroidLook` + `ArtSet.sector_looks`: cada setor (e cada cenário do Infinito) usa o seu visual; a rocha guarda o visual de onde nasceu
 - [x] Tamanhos variados: pedrinhas pequenas e rápidas (16%), pedregulhos grandes, lentos e resistentes (7%)
 - [x] Teste: em todas as rochas o círculo que machuca a nave fica dentro do desenho, poeira é clara e metal é escuro
+
+**O2 — Formações: implementado (11/11/2026)**
+- [x] `scripts/formations.gd`: V, escada, zigue-zague, anel aberto, tabuleiro, funil e chuva fina.
+  Cada desenho reserva uma rota contínua de 260 px, inclusive entre as linhas, com até 24 peças.
+- [x] `AsteroidField.spawn_formation`: peças entram fora da tela e compartilham velocidade;
+  o gerador reserva espaço até a cauda do padrão. Impactos e portais não desmontam a passagem.
+  As formações não disparam o sorteio de nuvens/minas/torretas das fileiras comuns.
+- [x] `FORMATION` acrescentado ao fim de `WaveEvent.Kind`, preservando os números dos eventos
+  já salvos. `formations` em DENSITY controla a chance; saves/setores antigos usam zero.
+- [x] Introduções na campanha: V e chuva no Setor 1, escada no 2, zigue-zague no 3, anel no 4,
+  tabuleiro no 5 e funil no 6. Depois entram nas fileiras (12–22%, conforme o setor).
+- [x] Infinito/Desafio: bloco de custo 1, sorteado pelo RNG do gerador entre os padrões
+  apresentados pelo bioma; chance de 10–18% nas fileiras. Mesmo seed reproduz a linha do tempo.
+- [x] O diretor verifica se há tempo de limpar a formação antes do próximo evento de encontro,
+  calmaria ou chefe. Não inicia formações durante chuva de poeira, tempestade, chuva de cometas,
+  inversão, portões, corredores, paredes móveis ou blecaute.
+- [x] Teste de 252 travessias sem tiro a 20 FPS: sete padrões, três larguras (720/1080/1440),
+  três entradas, com/sem metal e nos dois sentidos; mede 260 px livres e limites dos controles.
+  Cobre também eventos reais dos oito setores, chance forçada, checkpoint, portais e 100 seeds no Infinito.
+- A rota garantida é a geometria da formação. Ataques de inimigos e efeitos das rochas destruídas
+  continuam seguindo suas próprias regras de aviso e dano. O balanceamento novo ainda depende de uso nos celulares.

@@ -21,6 +21,7 @@ const BOSS_HP_STEP := 0.15        ## +15% a cada repetição do mesmo chefe (at�
 
 ## Um bloco de construção: tipo de evento, custo e de quais biomas (índice do setor) ele é.
 const BLOCKS := [
+	{"kind": WaveEvent.Kind.FORMATION, "cost": 1, "biomes": [0, 1, 2, 3, 4, 5, 6, 7]},
 	{"kind": WaveEvent.Kind.DUST_RAIN, "cost": 0, "biomes": [0, 1, 2, 3, 4, 5, 6, 7]},
 	{"kind": WaveEvent.Kind.METAL_WALL, "cost": 2, "biomes": [0, 1, 2, 3, 4, 5, 6, 7]},
 	{"kind": WaveEvent.Kind.CORRIDOR, "cost": 3, "biomes": [1]},
@@ -129,7 +130,7 @@ func _chunk(t0: float) -> Array[WaveEvent]:
 
 
 func _climate(biome: int, d: float, mix: int) -> Dictionary:
-	var c := {"density": lerpf(0.8, 1.25, d), "metals": true}
+	var c := {"density": lerpf(0.8, 1.25, d), "metals": true, "formations": lerpf(0.1, 0.18, d)}
 	for b in [biome, mix]:
 		if b < 0:
 			continue
@@ -177,6 +178,9 @@ func _block_events(block: Dictionary, at: float, d: float) -> Array[WaveEvent]:
 	var K := WaveEvent.Kind
 	var ev: Array[WaveEvent] = []
 	match block.kind:
+		K.FORMATION:
+			var choices := Formations.available(_biome)
+			ev.append(WaveEvent.make(at, K.FORMATION, {"text": choices[rng.randi_range(0, choices.size() - 1)]}))
 		K.DUST_RAIN:
 			ev.append(WaveEvent.make(at, K.DUST_RAIN, {"duration": 7.0}))
 			ev.append(WaveEvent.make(at, K.MESSAGE, {"text": "CHUVA DE POEIRA!", "duration": 2.5}))

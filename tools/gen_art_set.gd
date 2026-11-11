@@ -41,6 +41,10 @@ func _initialize() -> void:
 	var looks: Array[AsteroidLook] = []
 	for sector in range(1, 9):
 		var look := AsteroidLook.new()
+		if sector == 3:
+			look.dust_materials.assign([AsteroidLook.ROCK, AsteroidLook.ROCK, AsteroidLook.ROCK, AsteroidLook.CRYSTAL])
+		elif sector == 8:
+			look.dust_materials.assign([AsteroidLook.ROCK, AsteroidLook.ROCK, AsteroidLook.VOLCANIC, AsteroidLook.VOLCANIC])
 		for k in range(1, 5):
 			look.dust_textures.append(load("res://sprites/ia/rock_s%d_%d.png" % [sector, k]))
 			look.metal_textures.append(load("res://sprites/ia/junk_s%d_%d.png" % [sector, k]))

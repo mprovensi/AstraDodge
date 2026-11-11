@@ -90,6 +90,21 @@ func rock_textures(metal: bool, look: int) -> Array[Texture2D]:
 	return metal_textures if metal else dust_textures
 
 
+## O material acompanha o mesmo índice usado no desenho, sem deduzir pela cor do PNG.
+func dust_material(look: int, sprite: int) -> String:
+	if look < 0 or look >= sector_looks.size() or sector_looks[look] == null:
+		return AsteroidLook.ROCK
+	var style := sector_looks[look]
+	var count := style.dust_sheets.size() if not style.dust_sheets.is_empty() else style.dust_textures.size()
+	if count == 0:
+		return AsteroidLook.ROCK
+	var index := posmod(sprite, count)
+	if index >= style.dust_materials.size():
+		return AsteroidLook.ROCK
+	var material := style.dust_materials[index]
+	return material if material in [AsteroidLook.CRYSTAL, AsteroidLook.VOLCANIC] else AsteroidLook.ROCK
+
+
 ## Rolagem da nave: onde um x do PNG da pose reta vai parar na pose com rolagem `r` (-1..1).
 ## Encurta o lado para onde a nave rola (a asa "afunda") e alonga um pouco o outro.
 ## Usada por tools/gen_ship.gd (para desenhar as poses) e pela Ship (motores, asas).

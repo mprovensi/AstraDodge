@@ -23,6 +23,7 @@ Plano completo em [PLANO.md](PLANO.md).
 | `scripts/main.gd` | Estados da partida, input, colisões, pontuação, screen shake. |
 | `scripts/ship.gd` | Nave, escudo, níveis e padrões de tiro. |
 | `scripts/asteroids.gd` | Asteroides e spawner com corredor sempre livre de metálicos. |
+| `scripts/formations.gd` | Sete padrões de asteroides com rota contínua de 260 px; usados na campanha e no Infinito. |
 | `scripts/bullets.gd` | Pool de projéteis. |
 | `scripts/pickups.gd` | Orbes de escudo e cristais com ímã. |
 | `scripts/fx.gd` | Partículas (explosões, faíscas, coletas). |
@@ -145,6 +146,9 @@ powershell -ExecutionPolicy Bypass -File tools\rodar_testes.ps1
 O que a bateria cobre (`tests/smoke_test.gd`): o bot joga a campanha inteira (8 setores e chefes) e o
 Infinito; Desafio do Dia; checkpoint/Continuar; rota segura de todos os chefes; colisão × desenho de
 chefes, rochas e todos os quadros do giro 3D; tiro que não atravessa rocha; módulos; gráficos; volume;
+asteroides P/M/G (vida, velocidade, inversão e tiros a 60/30/20 FPS);
+materiais (cristalino garante escudo; vulcânico solta brasas com aviso e passagem central);
+formações (252 travessias sem tiro a 20 FPS, três larguras, eventos e checkpoint);
 **save** (ida e volta de todos os campos, save antigo, arquivo estragado usa a reserva); app indo para
 segundo plano; **justiça das fileiras** (nenhum metal na brecha); regras da nave.
 

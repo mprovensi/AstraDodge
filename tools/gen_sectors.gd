@@ -330,6 +330,15 @@ func _sector_1() -> SectorData:
 
 
 func _save(s: SectorData) -> void:
+	# Cada padrão tem uma introdução antes de entrar no sorteio das fileiras.
+	var intros := {1: [[24.0, "v"], [64.0, "rain"]], 2: [[14.0, "stair"]],
+			3: [[32.0, "zigzag"]], 4: [[36.0, "ring"]], 5: [[38.0, "checker"]],
+			6: [[24.0, "funnel"]], 7: [[52.0, "funnel"]], 8: [[32.0, "ring"]]}
+	for intro: Array in intros[s.number]:
+		s.events.append(WaveEvent.make(intro[0], WaveEvent.Kind.FORMATION, {"text": intro[1]}))
+	for event in s.events:
+		if event.kind == WaveEvent.Kind.DENSITY and event.at >= 55.0:
+			event.formations = minf(0.22, 0.1 + s.number * 0.02)
 	# Nave-mãe no meio de todo setor (PLANO_CARTAS.md C3); o diretor ordena por tempo.
 	s.events.append(WaveEvent.make(MOTHERSHIP_AT, WaveEvent.Kind.MOTHERSHIP))
 	var path := "%s/%s.tres" % [OUT, s.id]

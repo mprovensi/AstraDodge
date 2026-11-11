@@ -66,6 +66,16 @@ const ROW_SPACING_END := 360.0
 const SAFE_GAP_WIDTH := 260.0            # corredor sempre livre de metálicos por linha
 const SAFE_GAP_MAX_SHIFT := 150.0        # deslocamento máximo do corredor entre linhas
 const DUST_RAIN_DENSITY := 1.8           # linhas mais próximas durante a chuva de poeira
+# Poeira das fileiras: P / M / G (ESPEC_ASTEROIDES §2). Chefes e lascas têm regras próprias.
+const DUST_SMALL_CHANCE := 0.20
+const DUST_LARGE_CHANCE := 0.15        # restante (65%) = média
+const DUST_RADIUS_RANGES := [Vector2(34, 44), Vector2(45, 75), Vector2(76, 95)]
+const DUST_HP_RANGES := [Vector2i(1, 1), Vector2i(2, 3), Vector2i(4, 6)]
+const DUST_SPEED_RANGES := [Vector2(60, 60), Vector2(0, 80), Vector2(-40, -40)]
+const EMBER_TELEGRAPH := 0.9           # aviso antes das brasas vulcânicas voarem
+const EMBER_SPEED := 360.0
+const EMBER_LIFETIME := 1.2           # alcance curto: 432 px, com passagem entre as duas diagonais
+const EMBER_RADIUS := 12.0
 const WALL_METAL_RADIUS := 70.0
 const WALL_TELEGRAPH_TIME := 1.4         # aviso antes do paredão aparecer
 const WALL_EXTRA_SPEED := 600.0          # px/s a mais que a rolagem: o paredão avisado cai rápido

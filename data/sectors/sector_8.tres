@@ -60,6 +60,7 @@ ice = 0.2
 swarm = 0.1
 wells = 0.12
 portals = 0.12
+formations = 0.22
 
 [sub_resource type="Resource" id="Resource_cge04"]
 script = ExtResource("1_vdmle")
@@ -100,6 +101,7 @@ mines = 0.1
 turrets = 0.15
 wells = 0.15
 portals = 0.15
+formations = 0.22
 
 [sub_resource type="Resource" id="Resource_yog1t"]
 script = ExtResource("1_vdmle")
@@ -130,6 +132,12 @@ script = ExtResource("1_vdmle")
 at = 60.0
 kind = 19
 
+[sub_resource type="Resource" id="Formation_ring_0"]
+script = ExtResource("1_vdmle")
+at = 32.0
+kind = 20
+text = "ring"
+
 [resource]
 script = ExtResource("2_sbs21")
 id = "sector_8"
@@ -138,7 +146,7 @@ title = "SETOR 8"
 subtitle = "Fenda Gravitacional"
 difficulty_start = 0.7
 difficulty_end = 1.0
-events = Array[ExtResource("1_vdmle")]([SubResource("Resource_sottq"), SubResource("Resource_gj1kg"), SubResource("Resource_rq5td"), SubResource("Resource_gt0kn"), SubResource("Resource_xqht1"), SubResource("Resource_ulvyi"), SubResource("Resource_v0ehw"), SubResource("Resource_hwhqp"), SubResource("Resource_cge04"), SubResource("Resource_esg1o"), SubResource("Resource_xru8c"), SubResource("Resource_ioakf"), SubResource("Resource_w5f1i"), SubResource("Resource_8icpx"), SubResource("Resource_yog1t"), SubResource("Resource_ptikp"), SubResource("Resource_mr4n4"), SubResource("Resource_lryo5"), SubResource("Resource_srn6q")])
+events = Array[ExtResource("1_vdmle")]([SubResource("Resource_sottq"), SubResource("Resource_gj1kg"), SubResource("Resource_rq5td"), SubResource("Resource_gt0kn"), SubResource("Resource_xqht1"), SubResource("Resource_ulvyi"), SubResource("Resource_v0ehw"), SubResource("Resource_hwhqp"), SubResource("Resource_cge04"), SubResource("Resource_esg1o"), SubResource("Resource_xru8c"), SubResource("Resource_ioakf"), SubResource("Resource_w5f1i"), SubResource("Resource_8icpx"), SubResource("Resource_yog1t"), SubResource("Resource_ptikp"), SubResource("Resource_mr4n4"), SubResource("Resource_lryo5"), SubResource("Resource_srn6q"), SubResource("Formation_ring_0")])
 music = "sector8"
 nebula_a = Color(0.03, 0.02, 0.05, 1)
 nebula_b = Color(0.3, 0.05, 0.26, 1)

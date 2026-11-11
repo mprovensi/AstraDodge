@@ -17,6 +17,7 @@ var swarm := 0.0
 var eggs := 0.0
 var wells := 0.0
 var portals := 0.0
+var formations := 0.0
 var rain_left := 0.0
 var calm_left := 0.0
 var finished := false
@@ -46,6 +47,19 @@ static func _by_time(a: WaveEvent, b: WaveEvent) -> bool:
 
 func progress() -> float:
 	return clampf(time / sector.duration, 0.0, 1.0)
+
+
+## Reserva uma janela para a formação sair antes do próximo encontro roteirizado.
+func can_start_formation(travel_time: float) -> bool:
+	if finished or calm_left > 0.0 or rain_left > 0.0:
+		return false
+	for i in range(_next, _events.size()):
+		var e := _events[i]
+		if e.at > time + travel_time:
+			break
+		if e.kind not in [WaveEvent.Kind.MESSAGE, WaveEvent.Kind.DENSITY, WaveEvent.Kind.MUSIC, WaveEvent.Kind.BIOME]:
+			return false
+	return true
 
 
 func difficulty() -> float:
@@ -107,6 +121,7 @@ func _apply(e: WaveEvent, elapsed: float) -> void:
 			eggs = e.eggs
 			wells = e.wells
 			portals = e.portals
+			formations = e.formations
 		WaveEvent.Kind.DUST_RAIN:
 			rain_left = maxf(0.0, e.duration - elapsed)
 		WaveEvent.Kind.CALM:

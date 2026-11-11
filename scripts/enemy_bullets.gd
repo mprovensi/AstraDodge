@@ -3,7 +3,7 @@ extends Node2D
 ## Pool de projéteis inimigos com padrões reutilizáveis (mirado, leque, anel).
 ## Cada tipo tem forma própria — nunca diferenciar só pela cor.
 
-enum Kind { ORB, DIAMOND, ROCK, CHUNK, ICE, ACID }
+enum Kind { ORB, DIAMOND, ROCK, CHUNK, ICE, ACID, EMBER }
 
 const ROCK_RADIUS := 18.0
 const CHUNK_RADIUS := 55.0  # pedaço de metal arremessado pelo Minerador
@@ -16,6 +16,7 @@ const ROCK_SHAPE := [Vector2(1.0, 0.0), Vector2(0.55, 0.8), Vector2(-0.2, 0.95),
 class Shot:
 	var kind := 0
 	var pos := Vector2.ZERO
+	var prev := Vector2.ZERO
 	var vel := Vector2.ZERO
 	var radius := 14.0
 	var t := 0.0
@@ -35,6 +36,7 @@ func fire(pos: Vector2, vel: Vector2, kind := Kind.ORB) -> void:
 	var s := _get_free()
 	s.kind = kind
 	s.pos = pos
+	s.prev = pos
 	s.vel = vel
 	match kind:
 		Kind.ORB:
@@ -49,6 +51,8 @@ func fire(pos: Vector2, vel: Vector2, kind := Kind.ORB) -> void:
 			s.radius = ACID_RADIUS
 		Kind.ICE:
 			s.radius = ICE_RADIUS
+		Kind.EMBER:
+			s.radius = Tuning.EMBER_RADIUS
 	s.t = 0.0
 	s.split_at = -1.0
 	s.alive = true
@@ -60,6 +64,15 @@ func fire_splitting(pos: Vector2, vel: Vector2, after: float, deg: float) -> voi
 	var s := pool[_last]
 	s.split_at = after
 	s.split_deg = deg
+
+
+## Duas brasas diagonais, com corredor central. Aviso e voo compartilham origem e alcance.
+func fire_embers(pos: Vector2, telegraph: TelegraphLayer) -> void:
+	for side in [-1.0, 1.0]:
+		var velocity := Vector2.DOWN.rotated(deg_to_rad(side * 45.0)) * Tuning.EMBER_SPEED
+		fire(pos, velocity, Kind.EMBER)
+		telegraph.line(pos, pos + velocity * Tuning.EMBER_LIFETIME,
+				2.0 * (Tuning.EMBER_RADIUS + Tuning.SHIP_HITBOX_RADIUS), Tuning.EMBER_TELEGRAPH)
 
 
 func fire_aimed(pos: Vector2, target: Vector2, speed: float, kind := Kind.DIAMOND) -> void:
@@ -89,7 +102,13 @@ func active_count() -> int:
 ## Remove e retorna true se algum projétil encostou na nave.
 func hit_ship(ship_pos: Vector2, ship_radius: float) -> bool:
 	for s in pool:
-		if s.alive and s.pos.distance_squared_to(ship_pos) < pow(s.radius + ship_radius, 2.0):
+		if not s.alive or (s.kind == Kind.EMBER and s.t < Tuning.EMBER_TELEGRAPH):
+			continue
+		# As brasas também testam o trajeto, para não saltarem a nave em quadros longos.
+		var closest := s.pos
+		if s.kind == Kind.EMBER:
+			closest = Geometry2D.get_closest_point_to_segment(ship_pos, s.prev, s.pos)
+		if closest.distance_squared_to(ship_pos) < pow(s.radius + ship_radius, 2.0):
 			s.alive = false
 			return true
 	return false
@@ -106,8 +125,17 @@ func update(dt: float) -> void:
 	for s in pool:
 		if not s.alive:
 			continue
-		s.pos += s.vel * dt
+		s.prev = s.pos
+		var before := s.t
 		s.t += dt
+		var move_dt := dt
+		if s.kind == Kind.EMBER:
+			# Só a parte do quadro DEPOIS do aviso move a brasa; seu alcance é limitado.
+			var end_time := Tuning.EMBER_TELEGRAPH + Tuning.EMBER_LIFETIME
+			move_dt = maxf(0.0, minf(s.t, end_time) - maxf(before, Tuning.EMBER_TELEGRAPH))
+			if s.t >= end_time:
+				s.alive = false
+		s.pos += s.vel * move_dt
 		if s.split_at >= 0.0 and s.t >= s.split_at:
 			splits.append(s)
 		if s.pos.y > view_size.y + 40.0 or s.pos.y < -200.0 or s.pos.x < -40.0 or s.pos.x > view_size.x + 40.0:
@@ -141,12 +169,20 @@ func _get_free() -> Shot:
 
 func _draw() -> void:
 	for s in pool:
-		if not s.alive:
+		if not s.alive or (s.kind == Kind.EMBER and s.t < Tuning.EMBER_TELEGRAPH):
 			continue
 		if s.kind == Kind.ORB:
 			draw_circle(s.pos, s.radius * 1.7, Color(Palette.ENEMY, 0.25))
 			draw_circle(s.pos, s.radius, Palette.ENEMY_HDR)
 			draw_circle(s.pos, s.radius * 0.45, Palette.WHITE_HDR)
+		elif s.kind == Kind.EMBER:
+			var dir := s.vel.normalized()
+			var side := dir.orthogonal()
+			var coal := PackedVector2Array([s.pos + dir * s.radius, s.pos + side * s.radius * 0.8,
+					s.pos - dir * s.radius * 0.7, s.pos - side * s.radius * 0.8])
+			draw_line(s.pos - dir * s.radius, s.pos - dir * s.radius * 2.5, Color(Palette.FLAME, 0.35), 6.0, true)
+			draw_colored_polygon(coal, Palette.FLAME_HDR)
+			draw_circle(s.pos, s.radius * 0.35, Palette.WHITE_HDR)
 		elif s.kind == Kind.CHUNK:
 			# Bloco metálico girando, com aura de perigo.
 			var tex: Texture2D = Game.art.metal_textures[0] if not Game.art.metal_textures.is_empty() else null

@@ -54,6 +54,7 @@ kind = 1
 moving = 0.25
 armored = 0.25
 turrets = 0.35
+formations = 0.18
 
 [sub_resource type="Resource" id="Resource_6ko17"]
 script = ExtResource("1_3rwmm")
@@ -101,6 +102,7 @@ moving = 0.3
 armored = 0.3
 mines = 0.15
 turrets = 0.4
+formations = 0.18
 
 [sub_resource type="Resource" id="Resource_wc34r"]
 script = ExtResource("1_3rwmm")
@@ -130,6 +132,12 @@ script = ExtResource("1_3rwmm")
 at = 60.0
 kind = 19
 
+[sub_resource type="Resource" id="Formation_ring_0"]
+script = ExtResource("1_3rwmm")
+at = 36.0
+kind = 20
+text = "ring"
+
 [resource]
 script = ExtResource("2_vog2s")
 id = "sector_4"
@@ -138,7 +146,7 @@ title = "SETOR 4"
 subtitle = "Destroços da Frota"
 difficulty_start = 0.5
 difficulty_end = 0.85
-events = Array[ExtResource("1_3rwmm")]([SubResource("Resource_op0fu"), SubResource("Resource_s1n5j"), SubResource("Resource_nuume"), SubResource("Resource_4de2c"), SubResource("Resource_yti8e"), SubResource("Resource_xtt42"), SubResource("Resource_75r4i"), SubResource("Resource_ip7f7"), SubResource("Resource_6ko17"), SubResource("Resource_jl8oa"), SubResource("Resource_xmt7y"), SubResource("Resource_0lrsv"), SubResource("Resource_7i056"), SubResource("Resource_rqqt8"), SubResource("Resource_s2jge"), SubResource("Resource_wc34r"), SubResource("Resource_nbsgg"), SubResource("Resource_jc0ot"), SubResource("Resource_5n2ii"), SubResource("Resource_1riep")])
+events = Array[ExtResource("1_3rwmm")]([SubResource("Resource_op0fu"), SubResource("Resource_s1n5j"), SubResource("Resource_nuume"), SubResource("Resource_4de2c"), SubResource("Resource_yti8e"), SubResource("Resource_xtt42"), SubResource("Resource_75r4i"), SubResource("Resource_ip7f7"), SubResource("Resource_6ko17"), SubResource("Resource_jl8oa"), SubResource("Resource_xmt7y"), SubResource("Resource_0lrsv"), SubResource("Resource_7i056"), SubResource("Resource_rqqt8"), SubResource("Resource_s2jge"), SubResource("Resource_wc34r"), SubResource("Resource_nbsgg"), SubResource("Resource_jc0ot"), SubResource("Resource_5n2ii"), SubResource("Resource_1riep"), SubResource("Formation_ring_0")])
 music = "sector4"
 nebula_a = Color(0.3, 0.09, 0.04, 1)
 nebula_b = Color(0.32, 0.19, 0.05, 1)
